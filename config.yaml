@@ -1,0 +1,169 @@
+# Lo-Fi Music Generator Configuration
+
+# Data Processing
+data:
+  midi_dir: "data/midi"
+  tokens_dir: "data/tokens"
+  dataset_dir: "data/datasets"
+  output_dir: "output"
+
+  # Quality filtering for lo-fi music
+  quality_filters:
+    min_tempo: 60
+    max_tempo: 95
+    min_duration: 30  # seconds
+    max_duration: 300  # seconds
+    require_drums: true
+    min_note_density: 0.5  # notes per second
+    max_note_density: 8.0
+
+# Tokenization
+tokenization:
+  tokenizer_type: "REMI"
+  max_sequence_length: 2048
+  chunk_size: 1024
+  overlap: 256
+  tempo_bins: 32
+  velocity_bins: 32
+  duration_bins: 64
+
+# Model Architecture
+model:
+  name: "lofi-gpt2"
+  vocab_size: 20000  # Will be set based on tokenizer
+  embedding_dim: 768
+  num_layers: 12
+  num_heads: 12
+  context_length: 2048
+  dropout: 0.1
+  attention_dropout: 0.1
+
+# Training
+training:
+  output_dir: "models/lofi-gpt2"
+  num_epochs: 50
+  batch_size: 4
+  gradient_accumulation_steps: 8
+  effective_batch_size: 32  # batch_size * gradient_accumulation_steps
+
+  learning_rate: 3.0e-4
+  warmup_steps: 500
+  weight_decay: 0.01
+  max_grad_norm: 1.0
+
+  # Optimization
+  optimizer: "adamw"
+  scheduler: "cosine"
+  fp16: true
+
+  # Logging and checkpointing
+  logging_steps: 50
+  eval_steps: 500
+  save_steps: 1000
+  save_total_limit: 3
+
+  # Early stopping
+  early_stopping_patience: 5
+  early_stopping_threshold: 0.01
+  target_eval_loss: 2.5
+
+  # Hardware
+  device: "cuda"
+  dataloader_num_workers: 4
+
+# Generation
+generation:
+  num_tracks: 10
+  temperature: 0.9
+  top_k: 50
+  top_p: 0.95
+  max_length: 2048
+
+  # Conditioning options
+  conditioning:
+    tempo_range: [65, 85]
+    keys: ["C", "Am", "G", "Em", "F", "Dm"]
+    moods: ["chill", "melancholic", "upbeat", "relaxed", "dreamy"]
+
+  # Track structure
+  min_duration: 120  # seconds
+  max_duration: 180  # seconds
+  target_duration: 150
+
+# Audio Processing
+audio:
+  sample_rate: 44100
+  soundfont_path: "soundfonts/GeneralUser_GS.sf2"
+
+  # Lo-fi effects
+  lofi_effects:
+    # Sample rate reduction for vintage sound
+    downsample_rate: 22050
+
+    # Filtering
+    lowpass_cutoff: 3500  # Hz
+    highpass_cutoff: 100   # Hz
+    filter_order: 5
+
+    # Bit reduction for digital artifact
+    bit_depth: 12
+
+    # Vinyl effects
+    vinyl_crackle:
+      enabled: true
+      intensity: 0.015
+
+    # Tape effects
+    tape_wow_flutter:
+      enabled: true
+      depth: 0.002
+
+    # Compression
+    compression:
+      threshold_db: -20
+      ratio: 4.0
+      attack_ms: 5
+      release_ms: 50
+
+  # Normalization
+  target_lufs: -14.0
+  true_peak_max: -1.0
+
+# Batch Generation
+batch_generation:
+  num_tracks: 100
+  parallel_generation: 4
+
+  # Quality filtering
+  quality_check:
+    enabled: true
+    min_score: 7.0
+
+  # Diversity
+  ensure_tempo_variety: true
+  ensure_key_variety: true
+  ensure_mood_variety: true
+
+  # Output organization
+  create_metadata: true
+  generate_midi: true
+  generate_wav: true
+  generate_lofi: true
+
+# Instrument mapping for lo-fi sound
+instruments:
+  piano: [0, 1, 2]  # Acoustic Grand Piano, Bright Acoustic Piano, Electric Grand Piano
+  bass: [32, 33, 34]  # Acoustic Bass, Electric Bass (finger), Electric Bass (pick)
+  drums: [128]  # Standard drum kit
+  synth: [80, 81, 88, 89]  # Square Wave, Saw Wave, Pad 1 (new age), Pad 2 (warm)
+  guitar: [24, 25, 26]  # Acoustic Guitar (nylon), Acoustic Guitar (steel), Electric Guitar (jazz)
+
+# Logging
+logging:
+  level: "INFO"
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  tensorboard: true
+  wandb: false
+
+# Reproducibility
+seed: 42
