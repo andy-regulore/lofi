@@ -76,5 +76,101 @@
     "port": 8000,
     "reload": true,
     "log_level": "info"
+  },
+
+  "lofi_effects": {
+    "enabled": true,
+    "preset": "medium",
+    "custom_params": {
+      "bit_depth": 12,
+      "vinyl_crackle": 0.015,
+      "wow_depth": 5.0,
+      "saturation_mix": 0.5
+    }
+  },
+
+  "ambient_sounds": {
+    "enabled": false,
+    "default_type": "rain",
+    "mix_level": 0.15,
+    "presets": ["rainy_day", "storm", "cafe", "forest", "beach", "windy"]
+  },
+
+  "distribution": {
+    "distrokid": {
+      "api_key": "",
+      "note": "Add DistroKid API key for Spotify/Apple Music distribution"
+    },
+    "soundcloud": {
+      "access_token": "",
+      "note": "Add SoundCloud OAuth token"
+    },
+    "bandcamp": {
+      "username": "",
+      "password": ""
+    }
+  },
+
+  "livestream": {
+    "enabled": false,
+    "obs": {
+      "websocket_port": 4455,
+      "password": "",
+      "note": "Install obs-websocket plugin first"
+    },
+    "restream": {
+      "api_key": "",
+      "note": "Restream.io for multi-platform streaming"
+    },
+    "video_rotation_hours": 8
+  },
+
+  "social_media": {
+    "enabled": false,
+    "instagram": {
+      "access_token": "",
+      "user_id": ""
+    },
+    "tiktok": {
+      "access_token": ""
+    },
+    "twitter": {
+      "api_key": "",
+      "api_secret": "",
+      "access_token": "",
+      "access_secret": ""
+    },
+    "reddit": {
+      "client_id": "",
+      "client_secret": "",
+      "username": "",
+      "password": ""
+    },
+    "posts_per_day": 2,
+    "auto_post": false
+  },
+
+  "email_marketing": {
+    "enabled": false,
+    "mailchimp": {
+      "api_key": "",
+      "server_prefix": "us1",
+      "list_id": "",
+      "note": "Get from Mailchimp account settings"
+    },
+    "send_on_release": false,
+    "lead_magnet_enabled": true
+  },
+
+  "parallel_processing": {
+    "enabled": true,
+    "num_workers": null,
+    "note": "null = auto (CPU count - 1)"
+  },
+
+  "sample_packs": {
+    "auto_create": false,
+    "min_tracks_for_pack": 20,
+    "pack_types": ["drums", "melodic", "midi", "full"]
   }
 }
