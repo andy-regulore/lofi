@@ -41,6 +41,18 @@ This isn't just another music generator. This is an **enterprise-grade AI music 
 - 🚀 **Beam Search** - Advanced generation with beam search decoding
 - 🎯 **Constrained Decoding** - Music theory-aware generation
 - 💾 **Generation Caching** - Intelligent caching for faster repeated generation
+- 🤖 **RLHF** - Reinforcement Learning from Human Feedback (PPO + DPO)
+- 🎓 **Curriculum Learning** - Progressive training from simple to complex
+- 🔬 **Meta-Learning** - Fast adaptation to new styles (MAML)
+- 🎯 **Multi-Task Learning** - Simultaneous genre/mood/chord prediction
+
+### 🎼 **Advanced Music Theory** (NEW!)
+- 🎹 **Jazz Harmony** - Extensions, alterations, substitutions (maj7, dom7b9, etc.)
+- 🎵 **Voice Leading** - Smooth melodic motion analysis and optimization
+- 🔄 **Modal Interchange** - Borrow chords from parallel modes
+- 🎸 **Secondary Dominants** - Advanced harmonic progressions
+- 🎺 **Reharmonization** - Sophisticated chord substitutions
+- 📊 **Harmonic Analysis** - Deep analysis of chord progressions
 
 ### 🏗️ **Infrastructure** (Production-Ready)
 - ⚙️ **Complete CI/CD** - GitHub Actions workflows for testing, quality, and release
@@ -66,6 +78,28 @@ This isn't just another music generator. This is an **enterprise-grade AI music 
 - 📀 **Vinyl Simulation** - Authentic vinyl characteristics
 - 🎚️ **Spectral Processing** - Advanced frequency domain manipulation
 - 🎼 **Stem Separation** - Multi-track processing (integration ready)
+
+### 📊 **Data Pipeline & Training** (NEW!)
+- 🔄 **MIDI Augmentation** - Automatic transposition, tempo change, time stretch
+- 🧹 **Data Cleaning** - Automatic validation and issue fixing
+- 🏷️ **Genre Classification** - Automatic genre detection
+- 🎵 **Chord Extraction** - Automatic chord labeling from MIDI
+- 📈 **Dataset Statistics** - Comprehensive analysis tools
+- 🗂️ **Data Versioning** - Track dataset changes over time
+
+### 📊 **Analysis & Evaluation** (NEW!)
+- 🎼 **MIR Metrics** - Music Information Retrieval metrics (spectral, rhythm, tonal)
+- 📊 **Perplexity Calculation** - Model confidence metrics
+- 👥 **Human Evaluation** - Framework for collecting human ratings
+- 🔬 **A/B Testing** - Statistical comparison of models
+- 📈 **Quality Dashboard** - Real-time quality monitoring
+- 🚨 **Quality Drift Detection** - Automatic quality degradation alerts
+
+### ⚡ **Real-Time Generation** (NEW!)
+- 🎹 **Real-Time MIDI** - Live generation with low latency
+- 🎸 **Interactive Jamming** - Interactive music creation sessions
+- 🔁 **Loop Generation** - Seamless loopable sequences
+- 🎛️ **Live Parameter Control** - Dynamic conditioning during generation
 
 ---
 
