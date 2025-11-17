@@ -101,6 +101,47 @@ This isn't just another music generator. This is an **enterprise-grade AI music 
 - 🔁 **Loop Generation** - Seamless loopable sequences
 - 🎛️ **Live Parameter Control** - Dynamic conditioning during generation
 
+### 🎺 **Orchestration & Instrumentation** (NEW!)
+- 🎻 **Instrument Database** - Comprehensive characteristics for 20+ instruments
+- 🎼 **Voice Spacing** - Professional voice spacing and doubling rules
+- 🎹 **Auto-Arrangement** - Arrange melodies for multiple instruments
+- 🎭 **SATB Voicing** - Traditional four-part voice leading
+- 🎪 **Orchestral Balance** - Automatic balance checking and optimization
+- 🎯 **Smart Instrumentation** - Context-aware instrument suggestions
+
+### 🥁 **Advanced Rhythm Theory** (NEW!)
+- 🔢 **Polyrhythms** - Generate complex polyrhythmic patterns (3:2, 4:3, 5:4, etc.)
+- ⏱️ **Odd Meters** - Support for 5/4, 7/8, 11/8, 13/8 with smart grouping
+- 🌍 **African Rhythms** - Authentic clave and bell patterns (son, rumba, gankogui)
+- 🎵 **Groove Engine** - Swing, humanization, quantization
+- 🔄 **Syncopation** - Intelligent syncopation analysis and generation
+- ⚡ **Metric Modulation** - Tempo relationships and modulation
+- 🎼 **Pattern Library** - Funk, jazz, rock, Latin groove patterns
+
+### 🌊 **Diffusion Models** (NEW!)
+- 🎨 **Continuous Diffusion** - DDPM/DDIM for audio synthesis
+- 🎲 **Discrete Diffusion** - Token-based diffusion for MIDI
+- 🏗️ **UNet Architecture** - 1D UNet with attention for sequence modeling
+- 🔄 **Multiple Schedules** - Linear, cosine, sigmoid noise schedules
+- ⚡ **Fast Sampling** - DDIM sampling with fewer steps
+- 🎯 **Conditional Generation** - Conditioning for controlled generation
+
+### 🎭 **Style Transfer & Genre Blending** (NEW!)
+- 🎨 **Neural Style Transfer** - Content-style separation like image style transfer
+- 🔀 **Genre Blending** - Blend multiple genres with weights
+- 🎵 **Style Interpolation** - Smooth interpolation between styles
+- 🎼 **Cross-Genre Harmonization** - Harmonize with different genre's chords
+- 📊 **Style Database** - Profiles for lofi, jazz, classical, electronic, bossa nova
+- 🎛️ **AdaIN** - Adaptive Instance Normalization for style transfer
+
+### 🔊 **Neural Audio Synthesis** (NEW!)
+- 🌊 **WaveNet Vocoder** - High-quality neural vocoding
+- ⚡ **HiFi-GAN** - Fast, high-quality audio generation
+- 📦 **Neural Audio Codec** - Compress audio to discrete tokens (SoundStream/EnCodec style)
+- 🎚️ **Residual VQ** - Multi-layer vector quantization for better quality
+- 📊 **Mel-Spectrogram** - Differentiable mel-spectrogram computation
+- 🎼 **Multi-Receptive Fields** - HiFi-GAN's MRF fusion for quality
+
 ---
 
 ## ⚡ Quick Start
