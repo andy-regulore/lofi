@@ -1,0 +1,135 @@
+version: '3.8'
+
+services:
+  # Development environment
+  dev:
+    build:
+      context: .
+      target: development
+    image: lofi-generator:dev
+    container_name: lofi-dev
+    volumes:
+      - .:/app
+      - lofi-data:/app/data
+      - lofi-models:/app/models
+      - lofi-output:/app/output
+    environment:
+      - PYTHONPATH=/app
+      - CUDA_VISIBLE_DEVICES=${CUDA_VISIBLE_DEVICES:-0}
+    stdin_open: true
+    tty: true
+    command: /bin/bash
+
+  # Production generation service
+  generate:
+    build:
+      context: .
+      target: production
+    image: lofi-generator:latest
+    container_name: lofi-generate
+    volumes:
+      - lofi-data:/app/data
+      - lofi-models:/app/models
+      - lofi-output:/app/output
+      - ./config.yaml:/app/config.yaml:ro
+    environment:
+      - PYTHONPATH=/app
+    command: python -m scripts.04_generate
+
+  # Training service (requires GPU)
+  train:
+    build:
+      context: .
+      target: training
+    image: lofi-generator:train-gpu
+    container_name: lofi-train
+    runtime: nvidia
+    volumes:
+      - lofi-data:/app/data
+      - lofi-models:/app/models
+      - ./config.yaml:/app/config.yaml:ro
+    environment:
+      - PYTHONPATH=/app
+      - CUDA_VISIBLE_DEVICES=${CUDA_VISIBLE_DEVICES:-0}
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=compute,utility
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    command: python3 -m scripts.03_train
+
+  # Batch generation service
+  batch-generate:
+    build:
+      context: .
+      target: production
+    image: lofi-generator:latest
+    container_name: lofi-batch
+    volumes:
+      - lofi-data:/app/data
+      - lofi-models:/app/models
+      - lofi-output:/app/output
+      - ./config.yaml:/app/config.yaml:ro
+    environment:
+      - PYTHONPATH=/app
+      - NUM_TRACKS=${NUM_TRACKS:-10}
+    command: python -m scripts.05_batch_generate
+
+  # Tokenization service
+  tokenize:
+    build:
+      context: .
+      target: production
+    image: lofi-generator:latest
+    container_name: lofi-tokenize
+    volumes:
+      - lofi-data:/app/data
+      - ./config.yaml:/app/config.yaml:ro
+    environment:
+      - PYTHONPATH=/app
+    command: python -m scripts.01_tokenize
+
+  # TensorBoard for monitoring
+  tensorboard:
+    image: tensorflow/tensorflow:latest
+    container_name: lofi-tensorboard
+    ports:
+      - "6006:6006"
+    volumes:
+      - lofi-models:/app/models:ro
+    command: tensorboard --logdir /app/models/lofi-gpt2/logs --host 0.0.0.0
+
+  # Jupyter notebook server
+  jupyter:
+    build:
+      context: .
+      target: development
+    image: lofi-generator:dev
+    container_name: lofi-jupyter
+    ports:
+      - "8888:8888"
+    volumes:
+      - .:/app
+      - lofi-data:/app/data
+      - lofi-models:/app/models
+      - lofi-output:/app/output
+    environment:
+      - PYTHONPATH=/app
+      - JUPYTER_ENABLE_LAB=yes
+    command: jupyter lab --ip=0.0.0.0 --port=8888 --no-browser --allow-root --NotebookApp.token=''
+
+volumes:
+  lofi-data:
+    driver: local
+  lofi-models:
+    driver: local
+  lofi-output:
+    driver: local
+
+networks:
+  default:
+    name: lofi-network
