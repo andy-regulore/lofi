@@ -1,0 +1,800 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LoFi Music Empire - Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            color: #667eea;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #666;
+            font-size: 1.1em;
+        }
+
+        .status-bar {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 30px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .stat-card {
+            text-align: center;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 8px;
+            color: white;
+        }
+
+        .stat-value {
+            font-size: 2.5em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .tab {
+            padding: 12px 24px;
+            background: rgba(255, 255, 255, 0.9);
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 600;
+            color: #667eea;
+            transition: all 0.3s;
+        }
+
+        .tab:hover {
+            background: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .tab.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .tab-content {
+            display: none;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: border-color 0.3s;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        button {
+            padding: 12px 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .job-list {
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        .job-item {
+            background: #f8f9fa;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+
+        .job-item.completed {
+            border-left-color: #4caf50;
+        }
+
+        .job-item.failed {
+            border-left-color: #f44336;
+        }
+
+        .job-item.running {
+            border-left-color: #ff9800;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e0e0e0;
+            border-radius: 4px;
+            margin-top: 10px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            transition: width 0.3s;
+        }
+
+        .alert {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .alert-info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .card h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .track-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .track-item {
+            background: #f8f9fa;
+            padding: 12px;
+            margin-bottom: 8px;
+            border-radius: 6px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .track-info {
+            flex: 1;
+        }
+
+        .track-title {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 4px;
+        }
+
+        .track-meta {
+            font-size: 0.85em;
+            color: #666;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.85em;
+            font-weight: 600;
+        }
+
+        .badge-chill { background: #e3f2fd; color: #1976d2; }
+        .badge-focus { background: #f3e5f5; color: #7b1fa2; }
+        .badge-happy { background: #fff3e0; color: #e65100; }
+        .badge-peaceful { background: #e8f5e9; color: #2e7d32; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎵 LoFi Music Empire</h1>
+            <p class="subtitle">AI-Powered Music Generation & Automation Dashboard</p>
+        </header>
+
+        <div class="status-bar">
+            <div class="stat-card">
+                <div class="stat-value" id="total-tracks">0</div>
+                <div class="stat-label">Total Tracks</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="total-videos">0</div>
+                <div class="stat-label">Videos Created</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="total-uploads">0</div>
+                <div class="stat-label">Uploads</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="total-comments">0</div>
+                <div class="stat-label">Comments Processed</div>
+            </div>
+        </div>
+
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('generate')">🎼 Generate</button>
+            <button class="tab" onclick="switchTab('videos')">🎬 Videos</button>
+            <button class="tab" onclick="switchTab('schedule')">📅 Schedule</button>
+            <button class="tab" onclick="switchTab('community')">💬 Community</button>
+            <button class="tab" onclick="switchTab('analytics')">📊 Analytics</button>
+            <button class="tab" onclick="switchTab('jobs')">⚙️ Jobs</button>
+        </div>
+
+        <!-- Generate Tab -->
+        <div id="generate" class="tab-content active">
+            <h2 style="margin-bottom: 20px;">🎼 Generate Music</h2>
+            <div id="generate-alert"></div>
+
+            <form id="generate-form">
+                <div class="grid">
+                    <div class="form-group">
+                        <label>Mood</label>
+                        <select name="mood">
+                            <option value="chill">Chill</option>
+                            <option value="focus">Focus</option>
+                            <option value="happy">Happy</option>
+                            <option value="peaceful">Peaceful</option>
+                            <option value="melancholic">Melancholic</option>
+                            <option value="energetic">Energetic</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Duration (seconds)</label>
+                        <input type="number" name="duration" value="180" min="30" max="600">
+                    </div>
+
+                    <div class="form-group">
+                        <label>BPM (optional)</label>
+                        <input type="number" name="bpm" placeholder="Auto" min="60" max="180">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Number of Tracks</label>
+                        <input type="number" name="count" value="1" min="1" max="10">
+                    </div>
+                </div>
+
+                <button type="submit" id="generate-btn">🎵 Generate Music</button>
+            </form>
+
+            <h3 style="margin-top: 30px; margin-bottom: 15px;">Recent Tracks</h3>
+            <div class="track-list" id="track-list">
+                <p style="text-align: center; color: #999; padding: 40px;">No tracks generated yet</p>
+            </div>
+        </div>
+
+        <!-- Videos Tab -->
+        <div id="videos" class="tab-content">
+            <h2 style="margin-bottom: 20px;">🎬 Generate Videos</h2>
+            <div id="video-alert"></div>
+
+            <form id="video-form">
+                <div class="grid">
+                    <div class="form-group">
+                        <label>Audio File Path</label>
+                        <input type="text" name="audio_path" placeholder="/path/to/audio.wav" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Template</label>
+                        <select name="template">
+                            <option value="classic_lofi">Classic LoFi</option>
+                            <option value="modern_spectrum">Modern Spectrum</option>
+                            <option value="cyberpunk_wave">Cyberpunk Wave</option>
+                            <option value="minimal_bars">Minimal Bars</option>
+                            <option value="vintage_vinyl">Vintage Vinyl</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Title</label>
+                        <input type="text" name="title" placeholder="Chill Study Beats" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Artist</label>
+                        <input type="text" name="artist" value="LoFi AI">
+                    </div>
+                </div>
+
+                <button type="submit" id="video-btn">🎬 Generate Video</button>
+            </form>
+        </div>
+
+        <!-- Schedule Tab -->
+        <div id="schedule" class="tab-content">
+            <h2 style="margin-bottom: 20px;">📅 Content Scheduling</h2>
+            <div id="schedule-alert"></div>
+
+            <form id="schedule-form">
+                <div class="grid">
+                    <div class="form-group">
+                        <label>Platform</label>
+                        <select name="platform">
+                            <option value="youtube">YouTube</option>
+                            <option value="tiktok">TikTok</option>
+                            <option value="instagram">Instagram</option>
+                            <option value="spotify">Spotify</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Days Ahead</label>
+                        <input type="number" name="days_ahead" value="30" min="7" max="90">
+                    </div>
+                </div>
+
+                <button type="submit">📅 Generate Schedule</button>
+            </form>
+
+            <h3 style="margin-top: 30px; margin-bottom: 15px;">Upcoming Posts</h3>
+            <div id="schedule-list">
+                <p style="text-align: center; color: #999; padding: 40px;">No schedule generated yet</p>
+            </div>
+        </div>
+
+        <!-- Community Tab -->
+        <div id="community" class="tab-content">
+            <h2 style="margin-bottom: 20px;">💬 Community Management</h2>
+            <div id="community-alert"></div>
+
+            <div class="grid">
+                <div class="card">
+                    <h3>Community Insights</h3>
+                    <button onclick="loadCommunityInsights()">📊 Load Insights</button>
+                    <div id="insights-data" style="margin-top: 15px;"></div>
+                </div>
+
+                <div class="card">
+                    <h3>Process Comment</h3>
+                    <form id="comment-form">
+                        <div class="form-group">
+                            <label>Platform</label>
+                            <select name="platform">
+                                <option value="youtube">YouTube</option>
+                                <option value="instagram">Instagram</option>
+                                <option value="tiktok">TikTok</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Comment Text</label>
+                            <textarea name="text" rows="3" placeholder="This is amazing!" required></textarea>
+                        </div>
+                        <button type="submit">💬 Process Comment</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Analytics Tab -->
+        <div id="analytics" class="tab-content">
+            <h2 style="margin-bottom: 20px;">📊 Analytics Dashboard</h2>
+
+            <div class="grid">
+                <div class="card">
+                    <h3>System Statistics</h3>
+                    <div id="system-stats"></div>
+                </div>
+
+                <div class="card">
+                    <h3>Recent Activity</h3>
+                    <div id="recent-activity"></div>
+                </div>
+            </div>
+
+            <button onclick="loadAnalytics()" style="margin-top: 20px;">🔄 Refresh Analytics</button>
+        </div>
+
+        <!-- Jobs Tab -->
+        <div id="jobs" class="tab-content">
+            <h2 style="margin-bottom: 20px;">⚙️ Job Queue</h2>
+
+            <div style="margin-bottom: 20px;">
+                <button onclick="loadJobs()">🔄 Refresh Jobs</button>
+                <button onclick="loadJobs('running')" style="margin-left: 10px;">▶️ Running Only</button>
+                <button onclick="loadJobs('completed')" style="margin-left: 10px;">✅ Completed Only</button>
+            </div>
+
+            <div class="job-list" id="job-list">
+                <p style="text-align: center; color: #999; padding: 40px;">No jobs yet</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = '';  // Same origin
+
+        // Switch tabs
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+
+            event.target.classList.add('active');
+            document.getElementById(tabName).classList.add('active');
+        }
+
+        // Show alert
+        function showAlert(containerId, message, type = 'success') {
+            const container = document.getElementById(containerId);
+            container.innerHTML = `<div class="alert alert-${type}">${message}</div>`;
+            setTimeout(() => container.innerHTML = '', 5000);
+        }
+
+        // Load status
+        async function loadStatus() {
+            try {
+                const response = await fetch('/api/status');
+                const data = await response.json();
+
+                document.getElementById('total-tracks').textContent = data.analytics.total_tracks;
+                document.getElementById('total-videos').textContent = data.analytics.total_videos;
+                document.getElementById('total-uploads').textContent = data.analytics.total_uploads;
+                document.getElementById('total-comments').textContent = data.analytics.total_comments_processed;
+            } catch (error) {
+                console.error('Error loading status:', error);
+            }
+        }
+
+        // Load tracks
+        async function loadTracks() {
+            try {
+                const response = await fetch('/api/tracks?limit=10');
+                const data = await response.json();
+
+                const container = document.getElementById('track-list');
+                if (data.tracks.length === 0) {
+                    container.innerHTML = '<p style="text-align: center; color: #999; padding: 40px;">No tracks generated yet</p>';
+                    return;
+                }
+
+                container.innerHTML = data.tracks.map(track => `
+                    <div class="track-item">
+                        <div class="track-info">
+                            <div class="track-title">${track.title}</div>
+                            <div class="track-meta">
+                                <span class="badge badge-${track.mood}">${track.mood}</span>
+                                ${track.bpm} BPM · ${track.key} · ${track.duration}s
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error('Error loading tracks:', error);
+            }
+        }
+
+        // Generate form
+        document.getElementById('generate-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('generate-btn');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="loading"></span> Generating...';
+
+            const formData = new FormData(e.target);
+            const data = Object.fromEntries(formData);
+
+            // Convert to numbers
+            data.duration = parseInt(data.duration);
+            data.count = parseInt(data.count);
+            if (data.bpm) data.bpm = parseInt(data.bpm);
+
+            try {
+                const response = await fetch('/api/generate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+                showAlert('generate-alert', `✅ Generation started! Job ID: ${result.job_id}`, 'success');
+
+                // Poll for completion
+                pollJob(result.job_id, () => {
+                    loadStatus();
+                    loadTracks();
+                });
+            } catch (error) {
+                showAlert('generate-alert', `❌ Error: ${error.message}`, 'error');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '🎵 Generate Music';
+            }
+        });
+
+        // Video form
+        document.getElementById('video-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('video-btn');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="loading"></span> Generating...';
+
+            const formData = new FormData(e.target);
+            const data = Object.fromEntries(formData);
+
+            try {
+                const response = await fetch('/api/videos', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+                showAlert('video-alert', `✅ Video generation started! Job ID: ${result.job_id}`, 'success');
+
+                pollJob(result.job_id, () => loadStatus());
+            } catch (error) {
+                showAlert('video-alert', `❌ Error: ${error.message}`, 'error');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '🎬 Generate Video';
+            }
+        });
+
+        // Schedule form
+        document.getElementById('schedule-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const formData = new FormData(e.target);
+            const data = Object.fromEntries(formData);
+            data.days_ahead = parseInt(data.days_ahead);
+
+            try {
+                const response = await fetch('/api/schedule', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+                showAlert('schedule-alert', `✅ Schedule created! ${result.total_scheduled} posts planned.`, 'success');
+
+                // Display schedule
+                const container = document.getElementById('schedule-list');
+                container.innerHTML = result.schedule.map(slot => `
+                    <div class="job-item">
+                        <strong>${new Date(slot.timestamp).toLocaleString()}</strong><br>
+                        ${slot.title} - ${slot.platform}
+                    </div>
+                `).join('');
+            } catch (error) {
+                showAlert('schedule-alert', `❌ Error: ${error.message}`, 'error');
+            }
+        });
+
+        // Comment form
+        document.getElementById('comment-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const formData = new FormData(e.target);
+            const data = Object.fromEntries(formData);
+            data.comment_id = 'comment_' + Date.now();
+            data.author = 'TestUser';
+            data.author_id = 'user_123';
+            data.timestamp = new Date().toISOString();
+            data.likes = 0;
+            data.replies = 0;
+
+            try {
+                const response = await fetch('/api/community/process', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+                showAlert('community-alert', '✅ Comment processed successfully!', 'success');
+                e.target.reset();
+                loadStatus();
+            } catch (error) {
+                showAlert('community-alert', `❌ Error: ${error.message}`, 'error');
+            }
+        });
+
+        // Load community insights
+        async function loadCommunityInsights() {
+            try {
+                const response = await fetch('/api/community/insights');
+                const data = await response.json();
+
+                const container = document.getElementById('insights-data');
+                container.innerHTML = `
+                    <p><strong>Total Comments:</strong> ${data.total_comments}</p>
+                    <p><strong>Superfans:</strong> ${data.superfans}</p>
+                    <p><strong>Potential Collabs:</strong> ${data.potential_collabs}</p>
+                `;
+            } catch (error) {
+                console.error('Error loading insights:', error);
+            }
+        }
+
+        // Load analytics
+        async function loadAnalytics() {
+            try {
+                const response = await fetch('/api/analytics');
+                const data = await response.json();
+
+                document.getElementById('system-stats').innerHTML = `
+                    <p><strong>Total Tracks:</strong> ${data.summary.total_tracks}</p>
+                    <p><strong>Total Videos:</strong> ${data.summary.total_videos}</p>
+                    <p><strong>Total Uploads:</strong> ${data.summary.total_uploads}</p>
+                `;
+
+                document.getElementById('recent-activity').innerHTML =
+                    `<p>${data.generated_tracks.length} tracks in last batch</p>`;
+            } catch (error) {
+                console.error('Error loading analytics:', error);
+            }
+        }
+
+        // Load jobs
+        async function loadJobs(status = null) {
+            try {
+                const url = status ? `/api/jobs?status=${status}` : '/api/jobs';
+                const response = await fetch(url);
+                const data = await response.json();
+
+                const container = document.getElementById('job-list');
+                if (data.jobs.length === 0) {
+                    container.innerHTML = '<p style="text-align: center; color: #999; padding: 40px;">No jobs yet</p>';
+                    return;
+                }
+
+                container.innerHTML = data.jobs.map(job => `
+                    <div class="job-item ${job.status}">
+                        <strong>${job.type.toUpperCase()}</strong> - ${job.id}<br>
+                        <span style="color: #666;">Status: ${job.status}</span>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: ${job.progress}%"></div>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error('Error loading jobs:', error);
+            }
+        }
+
+        // Poll job status
+        function pollJob(jobId, onComplete) {
+            const interval = setInterval(async () => {
+                try {
+                    const response = await fetch(`/api/jobs/${jobId}`);
+                    const job = await response.json();
+
+                    if (job.status === 'completed' || job.status === 'failed') {
+                        clearInterval(interval);
+                        if (onComplete) onComplete();
+                    }
+                } catch (error) {
+                    clearInterval(interval);
+                }
+            }, 2000);
+        }
+
+        // Initialize
+        loadStatus();
+        loadTracks();
+        setInterval(loadStatus, 10000);  // Refresh every 10s
+    </script>
+</body>
+</html>

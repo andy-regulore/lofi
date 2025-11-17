@@ -122,6 +122,32 @@ services:
       - JUPYTER_ENABLE_LAB=yes
     command: jupyter lab --ip=0.0.0.0 --port=8888 --no-browser --allow-root --NotebookApp.token=''
 
+  # API Server & Web UI
+  api:
+    build:
+      context: .
+      target: production
+    image: lofi-generator:latest
+    container_name: lofi-api
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app
+      - lofi-output:/app/output
+      - ./config.json:/app/config.json
+      - ./static:/app/static
+    environment:
+      - PYTHONPATH=/app
+      - PYTHONUNBUFFERED=1
+    command: python api_server.py
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    restart: unless-stopped
+
 volumes:
   lofi-data:
     driver: local

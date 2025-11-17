@@ -1,0 +1,80 @@
+{
+  "output_dir": "output",
+
+  "generation": {
+    "default_mood": "chill",
+    "default_duration": 180,
+    "default_bpm": 85,
+    "default_key": "C",
+    "note": "Replace with your private model configuration"
+  },
+
+  "video": {
+    "default_template": "classic_lofi",
+    "width": 1920,
+    "height": 1080,
+    "fps": 60,
+    "available_templates": [
+      "classic_lofi",
+      "modern_spectrum",
+      "cyberpunk_wave",
+      "minimal_bars",
+      "vintage_vinyl"
+    ]
+  },
+
+  "metadata": {
+    "artist_name": "LoFi AI",
+    "default_tags": ["lofi", "chill", "study", "beats", "music"],
+    "seo_optimization": true
+  },
+
+  "scheduling": {
+    "auto_schedule": true,
+    "platform": "youtube",
+    "posts_per_week": 3,
+    "min_hours_between": 48,
+    "optimal_times_enabled": true
+  },
+
+  "community": {
+    "auto_respond": true,
+    "dry_run": false,
+    "response_rates": {
+      "question": 1.0,
+      "collaboration": 1.0,
+      "feedback": 1.0,
+      "positive": 0.3,
+      "neutral": 0.1
+    },
+    "auto_like": true,
+    "auto_pin_superfans": true
+  },
+
+  "copyright": {
+    "check_enabled": true,
+    "auto_reject_high_risk": true,
+    "database_path": "copyright_db.json",
+    "thresholds": {
+      "safe": 0.30,
+      "low_risk": 0.50,
+      "moderate_risk": 0.70,
+      "high_risk": 0.85
+    }
+  },
+
+  "youtube": {
+    "enabled": false,
+    "client_secrets_file": "client_secrets.json",
+    "credentials_file": "youtube_credentials.json",
+    "category_id": "10",
+    "privacy_status": "public"
+  },
+
+  "api_server": {
+    "host": "0.0.0.0",
+    "port": 8000,
+    "reload": true,
+    "log_level": "info"
+  }
+}
