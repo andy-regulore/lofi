@@ -10,7 +10,7 @@
 
 **Production-ready AI-powered lo-fi music generation with advanced ML features**
 
-[Quick Start](#-quick-start) • [Features](#-ultra-pro-features) • [Usage Guide](USAGE_GUIDE.md) • [Contributing](CONTRIBUTING.md)
+[Quick Start](#-quick-start) • [Features](#-ultra-pro-features) • [Usage Guide](USAGE.md) • [Contributing](CONTRIBUTING.md)
 
 </div>
 
@@ -433,7 +433,7 @@ docker-compose up jupyter      # localhost:8888
 ```python
 from src.generator import LoFiGenerator
 from src.quality_scorer import MusicQualityScorer
-# ... (see USAGE_GUIDE.md for complete script)
+# ... (see USAGE.md for complete script)
 
 # Generate 100 tracks
 metadata_list = generator.batch_generate(num_tracks=100)
@@ -462,7 +462,7 @@ print(f"Optimal device: {resources['optimal_device']}")
 
 ## 📚 Documentation
 
-- **[Usage Guide](USAGE_GUIDE.md)** - Complete feature documentation
+- **[Usage Guide](USAGE.md)** - Complete feature documentation
 - **[Contributing](CONTRIBUTING.md)** - Development setup and guidelines
 - **[API Reference](docs/)** - Sphinx-generated API docs
 
@@ -584,7 +584,7 @@ tokens, _ = generator.generate_track(max_length=512)
 tokens, _ = generator.generate_track(temperature=0.85)
 ```
 
-See [USAGE_GUIDE.md](USAGE_GUIDE.md#troubleshooting) for more solutions.
+See [USAGE.md](USAGE.md#troubleshooting) for more solutions.
 
 ---
 

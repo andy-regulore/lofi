@@ -303,7 +303,7 @@
 | Feature | Blueprint | Current Status | Notes |
 |---------|-----------|----------------|-------|
 | **Hardware Setup** |
-| Documented requirements | ✅ | ✅ YES | SETUP_GUIDE.md |
+| Documented requirements | ✅ | ✅ YES | GUIDE.md |
 | **Software Stack** |
 | DAW-free production | ✅ | ✅ YES | Python-based |
 | VST integration | ✅ | ⚠️ PARTIAL | Pedalboard mentioned |

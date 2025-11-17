@@ -252,7 +252,7 @@ chmod -R 755 output/
 
 ## 📚 Full Documentation
 
-- **Complete Setup**: See `SETUP_GUIDE.md`
+- **Complete Setup**: See `GUIDE.md`
 - **System Manual**: See `SOP.md`
 - **API Docs**: http://localhost:8000/docs
 

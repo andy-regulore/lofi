@@ -1443,7 +1443,7 @@ python scripts/test_youtube_api.py
 
 **For Technical Issues:**
 - GitHub Issues: https://github.com/andy-regulore/lofi/issues
-- Documentation: See README.md, USAGE_GUIDE.md
+- Documentation: See README.md, GUIDE.md, USAGE.md
 
 **For API Issues:**
 - YouTube API: https://developers.google.com/youtube/v3/support
