@@ -150,7 +150,7 @@ def generate_audio_task(settings):
         generation_status['current_step'] = 'Applying LoFi effects...'
         generation_status['progress'] = 60
 
-        audio_lofi = lofi_effects.process_full_chain(audio, preset=lofi_preset, sample_rate=sample_rate)
+        audio_lofi = lofi_effects.process_full_chain(audio, preset=lofi_preset)
 
         # Fade
         fade_samples = int(0.5 * sample_rate)
