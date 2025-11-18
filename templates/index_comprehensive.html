@@ -538,14 +538,14 @@
                     <strong>Status:</strong> <span id="training-status-text">Ready to train</span>
                 </div>
 
-                <h3 class="card-title">1. Upload Training Data (MIDI Files)</h3>
+                <h3 class="card-title">1. Upload Training Data (MIDI or WAV Files)</h3>
                 <div class="upload-zone" id="training-upload-zone">
-                    <input type="file" id="training-file-input" style="display: none;" accept=".mid,.midi" multiple>
+                    <input type="file" id="training-file-input" style="display: none;" accept=".mid,.midi,.wav" multiple>
                     <div class="upload-icon">🎹</div>
-                    <div class="upload-text">Drag & Drop MIDI files here</div>
+                    <div class="upload-text">Drag & Drop MIDI or WAV files here</div>
                     <div class="upload-hint">or click to browse</div>
                     <div style="margin-top: 10px; font-size: 0.85rem; color: #999;">
-                        Accepted: .mid, .midi files
+                        Accepted: .mid, .midi, .wav files
                     </div>
                 </div>
 
@@ -911,7 +911,7 @@
 
         async function handleTrainingFiles(files) {
             for (let file of files) {
-                if (file.name.endsWith('.mid') || file.name.endsWith('.midi')) {
+                if (file.name.endsWith('.mid') || file.name.endsWith('.midi') || file.name.endsWith('.wav')) {
                     await uploadTrainingFile(file);
                 }
             }

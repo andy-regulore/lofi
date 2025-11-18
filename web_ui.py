@@ -413,14 +413,14 @@ training_status = {
 
 @app.route('/api/upload/training', methods=['POST'])
 def upload_training():
-    """Upload training MIDI file"""
+    """Upload training MIDI or WAV file"""
     if 'file' not in request.files:
         return jsonify({'error': 'No file provided'}), 400
 
     file = request.files['file']
 
-    if file.filename == '' or not (file.filename.endswith('.mid') or file.filename.endswith('.midi')):
-        return jsonify({'error': 'Invalid file. MIDI files only (.mid, .midi)'}), 400
+    if file.filename == '' or not (file.filename.endswith('.mid') or file.filename.endswith('.midi') or file.filename.endswith('.wav')):
+        return jsonify({'error': 'Invalid file. MIDI or WAV files only (.mid, .midi, .wav)'}), 400
 
     filename = secure_filename(file.filename)
     timestamp = int(time.time())
@@ -447,7 +447,9 @@ def list_training_files():
     training_data_dir.mkdir(parents=True, exist_ok=True)
 
     files = []
-    for file in sorted(training_data_dir.glob('*.mid*'), key=lambda x: x.stat().st_mtime, reverse=True):
+    # Get both MIDI and WAV files
+    all_files = list(training_data_dir.glob('*.mid*')) + list(training_data_dir.glob('*.wav'))
+    for file in sorted(all_files, key=lambda x: x.stat().st_mtime, reverse=True):
         files.append({
             'filename': file.name,
             'original_name': '_'.join(file.name.split('_')[1:]),
@@ -483,10 +485,10 @@ def start_training():
 
     # Check if we have training data
     training_data_dir = Path('data/training')
-    midi_files = list(training_data_dir.glob('*.mid*'))
+    training_files = list(training_data_dir.glob('*.mid*')) + list(training_data_dir.glob('*.wav'))
 
-    if len(midi_files) == 0:
-        return jsonify({'error': 'No training data uploaded. Please upload MIDI files first.'}), 400
+    if len(training_files) == 0:
+        return jsonify({'error': 'No training data uploaded. Please upload MIDI or WAV files first.'}), 400
 
     # Start training in background
     def training_task():
