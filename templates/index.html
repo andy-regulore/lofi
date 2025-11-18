@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LoFi Music Empire - Control Panel</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .header h1 {
+            color: #667eea;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 1.1rem;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 400px 1fr;
+            gap: 20px;
+        }
+
+        .panel {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .panel h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+            border-bottom: 2px solid #f0f0f0;
+            padding-bottom: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 600;
+        }
+
+        .form-group select,
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+
+        .form-group select:focus,
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .form-group small {
+            display: block;
+            margin-top: 5px;
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-primary:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .progress-container {
+            margin-top: 20px;
+            display: none;
+        }
+
+        .progress-container.active {
+            display: block;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 30px;
+            background: #f0f0f0;
+            border-radius: 15px;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            transition: width 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+        }
+
+        .progress-text {
+            text-align: center;
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .track-list {
+            display: grid;
+            gap: 15px;
+        }
+
+        .track-item {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            transition: transform 0.2s;
+        }
+
+        .track-item:hover {
+            transform: translateX(5px);
+            background: #e9ecef;
+        }
+
+        .track-icon {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: white;
+        }
+
+        .track-info {
+            flex: 1;
+        }
+
+        .track-title {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .track-meta {
+            font-size: 0.85rem;
+            color: #666;
+        }
+
+        .track-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .track-btn {
+            padding: 8px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+        }
+
+        .track-btn-download {
+            background: #28a745;
+            color: white;
+        }
+
+        .track-btn-download:hover {
+            background: #218838;
+        }
+
+        .track-btn-delete {
+            background: #dc3545;
+            color: white;
+        }
+
+        .track-btn-delete:hover {
+            background: #c82333;
+        }
+
+        .track-btn-info {
+            background: #17a2b8;
+            color: white;
+        }
+
+        .track-btn-info:hover {
+            background: #138496;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .empty-state-icon {
+            font-size: 4rem;
+            margin-bottom: 15px;
+            opacity: 0.3;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.7);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-header h3 {
+            color: #667eea;
+            font-size: 1.5rem;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 2rem;
+            cursor: pointer;
+            color: #666;
+        }
+
+        .metadata-item {
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .metadata-label {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .metadata-value {
+            color: #666;
+        }
+
+        .tag-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 5px;
+        }
+
+        .tag {
+            background: #e9ecef;
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 0.85rem;
+            color: #495057;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        @media (max-width: 1024px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>🎵 LoFi Music Empire</h1>
+            <p>Complete Control Panel - Generate, Manage, and Download Your LoFi Tracks</p>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Generation Panel -->
+            <div class="panel">
+                <h2>🎨 Generate New Track</h2>
+
+                <form id="generation-form">
+                    <div class="form-group">
+                        <label for="mood">Mood</label>
+                        <select id="mood" name="mood">
+                            <option value="chill">Chill - Relaxed, easy-going</option>
+                            <option value="melancholic">Melancholic - Nostalgic, reflective</option>
+                            <option value="upbeat">Upbeat - Energetic, positive</option>
+                            <option value="relaxed">Relaxed - Calm, peaceful</option>
+                            <option value="dreamy">Dreamy - Ethereal, floating</option>
+                        </select>
+                        <small>Choose the emotional vibe of your track</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="theme">Theme (Ambient Sound)</label>
+                        <select id="theme" name="theme">
+                            <option value="plain">Plain - No ambient sounds</option>
+                            <option value="rain">Rain - Rainfall ambience</option>
+                            <option value="cafe">Cafe - Coffee shop sounds</option>
+                            <option value="urban_chill" selected>Urban Chill - City ambience</option>
+                            <option value="nature">Nature - Forest, birds, wind</option>
+                        </select>
+                        <small>Add background ambient sounds</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="lofi_preset">LoFi Effect Intensity</label>
+                        <select id="lofi_preset" name="lofi_preset">
+                            <option value="light">Light - Subtle vintage feel</option>
+                            <option value="medium" selected>Medium - Classic lofi sound</option>
+                            <option value="heavy">Heavy - Maximum cassette tape vibe</option>
+                        </select>
+                        <small>How much vinyl/tape degradation</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="key">Musical Key</label>
+                        <select id="key" name="key">
+                            <option value="C">C - Bright, simple</option>
+                            <option value="Am" selected>Am - Melancholic</option>
+                            <option value="F">F - Warm</option>
+                            <option value="G">G - Happy</option>
+                            <option value="Dm">Dm - Dark</option>
+                            <option value="Em">Em - Mysterious</option>
+                        </select>
+                        <small>The musical key of the track</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="duration">Duration (seconds)</label>
+                        <input type="number" id="duration" name="duration" value="180" min="30" max="600" step="30">
+                        <small>Track length (30-600 seconds)</small>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary" id="generate-btn">
+                        🎵 Generate Track
+                    </button>
+                </form>
+
+                <!-- Progress -->
+                <div class="progress-container" id="progress-container">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progress-fill" style="width: 0%">0%</div>
+                    </div>
+                    <div class="progress-text" id="progress-text">Initializing...</div>
+                </div>
+            </div>
+
+            <!-- Track Library Panel -->
+            <div class="panel">
+                <h2>📚 Your Track Library</h2>
+
+                <!-- Stats -->
+                <div class="stats">
+                    <div class="stat-card">
+                        <div class="stat-value" id="stat-total">0</div>
+                        <div class="stat-label">Total Tracks</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="stat-size">0 MB</div>
+                        <div class="stat-label">Total Size</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="stat-duration">0 min</div>
+                        <div class="stat-label">Total Duration</div>
+                    </div>
+                </div>
+
+                <!-- Track List -->
+                <div class="track-list" id="track-list">
+                    <div class="empty-state">
+                        <div class="empty-state-icon">🎵</div>
+                        <p>No tracks yet. Generate your first track!</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Track Details Modal -->
+    <div class="modal" id="track-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Track Details</h3>
+                <button class="modal-close" onclick="closeModal()">&times;</button>
+            </div>
+            <div id="track-details"></div>
+        </div>
+    </div>
+
+    <script>
+        let statusCheckInterval;
+
+        // Load tracks on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            loadTracks();
+        });
+
+        // Generate form submission
+        document.getElementById('generation-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const formData = new FormData(e.target);
+            const settings = {};
+            formData.forEach((value, key) => settings[key] = value);
+
+            const btn = document.getElementById('generate-btn');
+            btn.disabled = true;
+            btn.textContent = '⏳ Generating...';
+
+            document.getElementById('progress-container').classList.add('active');
+
+            try {
+                const response = await fetch('/api/generate', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(settings)
+                });
+
+                if (response.ok) {
+                    startStatusCheck();
+                } else {
+                    alert('Failed to start generation');
+                    btn.disabled = false;
+                    btn.textContent = '🎵 Generate Track';
+                }
+            } catch (error) {
+                alert('Error: ' + error);
+                btn.disabled = false;
+                btn.textContent = '🎵 Generate Track';
+            }
+        });
+
+        function startStatusCheck() {
+            statusCheckInterval = setInterval(checkStatus, 500);
+        }
+
+        async function checkStatus() {
+            try {
+                const response = await fetch('/api/status');
+                const status = await response.json();
+
+                const progressFill = document.getElementById('progress-fill');
+                const progressText = document.getElementById('progress-text');
+                const btn = document.getElementById('generate-btn');
+
+                progressFill.style.width = status.progress + '%';
+                progressFill.textContent = status.progress + '%';
+                progressText.textContent = status.current_step;
+
+                if (!status.is_generating) {
+                    clearInterval(statusCheckInterval);
+
+                    if (status.error) {
+                        alert('Error: ' + status.error);
+                    } else if (status.progress === 100) {
+                        // Success!
+                        setTimeout(() => {
+                            document.getElementById('progress-container').classList.remove('active');
+                            progressFill.style.width = '0%';
+                            progressFill.textContent = '0%';
+                            loadTracks();
+                        }, 2000);
+                    }
+
+                    btn.disabled = false;
+                    btn.textContent = '🎵 Generate Track';
+                }
+            } catch (error) {
+                console.error('Status check error:', error);
+            }
+        }
+
+        async function loadTracks() {
+            try {
+                const response = await fetch('/api/tracks');
+                const tracks = await response.json();
+
+                const trackList = document.getElementById('track-list');
+
+                if (tracks.length === 0) {
+                    trackList.innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-state-icon">🎵</div>
+                            <p>No tracks yet. Generate your first track!</p>
+                        </div>
+                    `;
+                } else {
+                    trackList.innerHTML = tracks.map(track => `
+                        <div class="track-item">
+                            <div class="track-icon">🎵</div>
+                            <div class="track-info">
+                                <div class="track-title">${track.title || track.filename}</div>
+                                <div class="track-meta">
+                                    ${track.mood || 'Unknown mood'} •
+                                    ${Math.round(track.duration || 0)}s •
+                                    ${(track.size / 1024 / 1024).toFixed(2)} MB
+                                </div>
+                            </div>
+                            <div class="track-actions">
+                                <button class="track-btn track-btn-info" onclick="showTrackDetails('${track.id}')">
+                                    ℹ️ Info
+                                </button>
+                                <button class="track-btn track-btn-download" onclick="downloadTrack('${track.id}')">
+                                    ⬇️ Download
+                                </button>
+                                <button class="track-btn track-btn-delete" onclick="deleteTrack('${track.id}')">
+                                    🗑️ Delete
+                                </button>
+                            </div>
+                        </div>
+                    `).join('');
+                }
+
+                // Update stats
+                const totalSize = tracks.reduce((sum, t) => sum + t.size, 0) / 1024 / 1024;
+                const totalDuration = tracks.reduce((sum, t) => sum + (t.duration || 0), 0) / 60;
+
+                document.getElementById('stat-total').textContent = tracks.length;
+                document.getElementById('stat-size').textContent = totalSize.toFixed(2) + ' MB';
+                document.getElementById('stat-duration').textContent = totalDuration.toFixed(1) + ' min';
+
+            } catch (error) {
+                console.error('Error loading tracks:', error);
+            }
+        }
+
+        async function showTrackDetails(trackId) {
+            try {
+                const response = await fetch(`/api/track/${trackId}`);
+                const metadata = await response.json();
+
+                const details = document.getElementById('track-details');
+                details.innerHTML = `
+                    <div class="metadata-item">
+                        <div class="metadata-label">Title</div>
+                        <div class="metadata-value">${metadata.title}</div>
+                    </div>
+                    <div class="metadata-item">
+                        <div class="metadata-label">Description</div>
+                        <div class="metadata-value">${metadata.description}</div>
+                    </div>
+                    <div class="metadata-item">
+                        <div class="metadata-label">Mood</div>
+                        <div class="metadata-value">${metadata.mood}</div>
+                    </div>
+                    <div class="metadata-item">
+                        <div class="metadata-label">Key</div>
+                        <div class="metadata-value">${metadata.key}</div>
+                    </div>
+                    <div class="metadata-item">
+                        <div class="metadata-label">BPM</div>
+                        <div class="metadata-value">${metadata.bpm}</div>
+                    </div>
+                    <div class="metadata-item">
+                        <div class="metadata-label">Duration</div>
+                        <div class="metadata-value">${metadata.duration_seconds} seconds</div>
+                    </div>
+                    <div class="metadata-item">
+                        <div class="metadata-label">Tags</div>
+                        <div class="tag-list">
+                            ${metadata.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}
+                        </div>
+                    </div>
+                `;
+
+                document.getElementById('track-modal').classList.add('active');
+            } catch (error) {
+                alert('Error loading track details');
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('track-modal').classList.remove('active');
+        }
+
+        function downloadTrack(trackId) {
+            window.location.href = `/api/download/${trackId}`;
+        }
+
+        async function deleteTrack(trackId) {
+            if (!confirm('Are you sure you want to delete this track?')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/delete/${trackId}`, {method: 'DELETE'});
+
+                if (response.ok) {
+                    loadTracks();
+                } else {
+                    alert('Failed to delete track');
+                }
+            } catch (error) {
+                alert('Error deleting track');
+            }
+        }
+
+        // Auto-refresh tracks every 10 seconds
+        setInterval(loadTracks, 10000);
+    </script>
+</body>
+</html>
