@@ -305,7 +305,7 @@ class WorkflowOrchestrator:
         metadata = self.metadata_generator.generate_complete_metadata(
             mood=track_info['mood'],
             style='lofi',
-            variation='study'
+            use_case='study'
         )
 
         print(f"  Title: {metadata['title']}")
