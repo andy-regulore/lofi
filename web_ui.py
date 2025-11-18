@@ -13,6 +13,7 @@ from dataclasses import asdict
 from datetime import datetime
 import threading
 import os
+from werkzeug.utils import secure_filename
 
 # Import our modules
 from src.metadata_generator import MetadataGenerator
@@ -21,6 +22,15 @@ from src.lofi_effects import LoFiEffectsChain
 from src.ambient_sounds import AmbientSoundGenerator
 
 app = Flask(__name__)
+app.config['MAX_CONTENT_LENGTH'] = 50 * 1024 * 1024  # 50MB max upload
+app.config['UPLOAD_FOLDER'] = 'uploads'
+
+# Allowed file extensions
+ALLOWED_AUDIO_EXTENSIONS = {'mid', 'midi', 'wav', 'mp3', 'flac', 'ogg'}
+ALLOWED_IMAGE_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
+
+def allowed_file(filename, allowed_extensions):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in allowed_extensions
 
 # Global state
 generation_status = {
@@ -38,10 +48,11 @@ copyright_protector = CopyrightProtector(copyright_db)
 lofi_effects = LoFiEffectsChain()
 ambient_gen = AmbientSoundGenerator()
 
-# Ensure output directories exist
+# Ensure directories exist
 output_dir = Path('output')
 (output_dir / 'audio').mkdir(parents=True, exist_ok=True)
 (output_dir / 'metadata').mkdir(parents=True, exist_ok=True)
+Path(app.config['UPLOAD_FOLDER']).mkdir(parents=True, exist_ok=True)
 
 def generate_audio_task(settings):
     """Background task for audio generation"""
@@ -110,7 +121,7 @@ def generate_audio_task(settings):
             ambient = ambient_gen.generate_rain(duration, intensity='medium', include_thunder=False)
             mix_level = 0.15
         elif theme == 'cafe':
-            ambient = ambient_gen.generate_cafe(duration, crowd_level='medium')
+            ambient = ambient_gen.generate_cafe_ambience(duration, busyness='medium')
             mix_level = 0.12
         elif theme == 'urban_chill':
             ambient = np.random.randn(len(audio)) * 0.03
@@ -122,7 +133,7 @@ def generate_audio_task(settings):
                     ambient[pos:pos+len(car_sound)] += car_sound * 0.05
             mix_level = 0.10
         elif theme == 'nature':
-            ambient = ambient_gen.generate_nature(duration, environment='forest')
+            ambient = ambient_gen.generate_nature_sounds(duration, environment='forest')
             mix_level = 0.15
         else:
             ambient = np.zeros(len(audio))
@@ -275,6 +286,61 @@ def delete_track(track_id):
         return jsonify({'status': 'deleted'})
     else:
         return jsonify({'error': 'Track not found'}), 404
+
+@app.route('/api/upload/midi', methods=['POST'])
+def upload_midi():
+    """Upload MIDI file"""
+    if 'file' not in request.files:
+        return jsonify({'error': 'No file provided'}), 400
+
+    file = request.files['file']
+
+    if file.filename == '':
+        return jsonify({'error': 'No file selected'}), 400
+
+    if file and allowed_file(file.filename, ALLOWED_AUDIO_EXTENSIONS):
+        filename = secure_filename(file.filename)
+        timestamp = int(time.time())
+        unique_filename = f"{timestamp}_{filename}"
+        filepath = os.path.join(app.config['UPLOAD_FOLDER'], unique_filename)
+        file.save(filepath)
+
+        return jsonify({
+            'status': 'success',
+            'filename': unique_filename,
+            'original_filename': filename,
+            'path': filepath
+        })
+    else:
+        return jsonify({'error': 'Invalid file type. Allowed: MIDI, WAV, MP3, FLAC, OGG'}), 400
+
+@app.route('/api/uploads')
+def list_uploads():
+    """List all uploaded files"""
+    uploads = []
+    upload_path = Path(app.config['UPLOAD_FOLDER'])
+
+    for file in sorted(upload_path.glob('*'), key=lambda x: x.stat().st_mtime, reverse=True):
+        if file.is_file():
+            uploads.append({
+                'filename': file.name,
+                'original_name': '_'.join(file.name.split('_')[1:]),  # Remove timestamp
+                'size': file.stat().st_size,
+                'uploaded': datetime.fromtimestamp(file.stat().st_mtime).isoformat()
+            })
+
+    return jsonify(uploads)
+
+@app.route('/api/upload/<filename>/delete', methods=['DELETE'])
+def delete_upload(filename):
+    """Delete uploaded file"""
+    filepath = Path(app.config['UPLOAD_FOLDER']) / secure_filename(filename)
+
+    if filepath.exists():
+        filepath.unlink()
+        return jsonify({'status': 'deleted'})
+    else:
+        return jsonify({'error': 'File not found'}), 404
 
 if __name__ == '__main__':
     print("=" * 60)

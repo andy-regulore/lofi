@@ -363,6 +363,76 @@
             opacity: 0.9;
         }
 
+        .upload-zone {
+            border: 3px dashed #667eea;
+            border-radius: 10px;
+            padding: 30px;
+            text-align: center;
+            background: #f8f9fa;
+            margin-top: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .upload-zone:hover {
+            background: #e9ecef;
+            border-color: #764ba2;
+        }
+
+        .upload-zone.dragover {
+            background: #667eea;
+            color: white;
+        }
+
+        .upload-icon {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            color: #667eea;
+        }
+
+        .upload-zone.dragover .upload-icon {
+            color: white;
+        }
+
+        .upload-text {
+            font-size: 1.1rem;
+            color: #666;
+            margin-bottom: 10px;
+        }
+
+        .upload-zone.dragover .upload-text {
+            color: white;
+        }
+
+        .upload-hint {
+            font-size: 0.9rem;
+            color: #999;
+        }
+
+        .upload-list {
+            margin-top: 20px;
+        }
+
+        .upload-item {
+            background: #f8f9fa;
+            padding: 10px 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .upload-item-name {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .upload-item-meta {
+            font-size: 0.85rem;
+            color: #666;
+        }
+
         @media (max-width: 1024px) {
             .main-content {
                 grid-template-columns: 1fr;
@@ -449,6 +519,23 @@
                         <div class="progress-fill" id="progress-fill" style="width: 0%">0%</div>
                     </div>
                     <div class="progress-text" id="progress-text">Initializing...</div>
+                </div>
+
+                <!-- MIDI Upload -->
+                <div style="margin-top: 30px; border-top: 2px solid #f0f0f0; padding-top: 30px;">
+                    <h2 style="color: #667eea; margin-bottom: 20px; font-size: 1.3rem;">📁 Upload MIDI Files</h2>
+
+                    <div class="upload-zone" id="upload-zone">
+                        <input type="file" id="file-input" style="display: none;" accept=".mid,.midi,.wav,.mp3,.flac,.ogg" multiple>
+                        <div class="upload-icon">⬆️</div>
+                        <div class="upload-text">Drag & Drop files here</div>
+                        <div class="upload-hint">or click to browse</div>
+                        <div style="margin-top: 10px; font-size: 0.85rem; color: #999;">
+                            Supported: MIDI, WAV, MP3, FLAC, OGG
+                        </div>
+                    </div>
+
+                    <div class="upload-list" id="upload-list"></div>
                 </div>
             </div>
 
@@ -704,6 +791,124 @@
 
         // Auto-refresh tracks every 10 seconds
         setInterval(loadTracks, 10000);
+
+        // ===== MIDI UPLOAD FUNCTIONALITY =====
+
+        const uploadZone = document.getElementById('upload-zone');
+        const fileInput = document.getElementById('file-input');
+
+        // Click to browse
+        uploadZone.addEventListener('click', () => {
+            fileInput.click();
+        });
+
+        // File selection
+        fileInput.addEventListener('change', (e) => {
+            handleFiles(e.target.files);
+        });
+
+        // Drag and drop
+        uploadZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadZone.classList.add('dragover');
+        });
+
+        uploadZone.addEventListener('dragleave', () => {
+            uploadZone.classList.remove('dragover');
+        });
+
+        uploadZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadZone.classList.remove('dragover');
+            handleFiles(e.dataTransfer.files);
+        });
+
+        async function handleFiles(files) {
+            for (let file of files) {
+                await uploadFile(file);
+            }
+            loadUploads();
+        }
+
+        async function uploadFile(file) {
+            const formData = new FormData();
+            formData.append('file', file);
+
+            try {
+                const response = await fetch('/api/upload/midi', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    console.log('Upload success:', result);
+                } else {
+                    alert('Upload failed: ' + result.error);
+                }
+            } catch (error) {
+                alert('Upload error: ' + error);
+            }
+        }
+
+        async function loadUploads() {
+            try {
+                const response = await fetch('/api/uploads');
+                const uploads = await response.json();
+
+                const uploadList = document.getElementById('upload-list');
+
+                if (uploads.length === 0) {
+                    uploadList.innerHTML = '';
+                } else {
+                    uploadList.innerHTML = '<h3 style="color: #667eea; margin-bottom: 15px; font-size: 1.1rem;">Uploaded Files</h3>' +
+                        uploads.map(upload => `
+                        <div class="upload-item">
+                            <div>
+                                <div class="upload-item-name">${upload.original_name}</div>
+                                <div class="upload-item-meta">
+                                    ${(upload.size / 1024).toFixed(2)} KB •
+                                    ${new Date(upload.uploaded).toLocaleString()}
+                                </div>
+                            </div>
+                            <button class="track-btn track-btn-delete"
+                                    onclick="deleteUpload('${upload.filename}')">
+                                🗑️ Delete
+                            </button>
+                        </div>
+                    `).join('');
+                }
+            } catch (error) {
+                console.error('Error loading uploads:', error);
+            }
+        }
+
+        async function deleteUpload(filename) {
+            if (!confirm('Delete this file?')) return;
+
+            try {
+                const response = await fetch(`/api/upload/${filename}/delete`, {
+                    method: 'DELETE'
+                });
+
+                if (response.ok) {
+                    loadUploads();
+                } else {
+                    alert('Failed to delete file');
+                }
+            } catch (error) {
+                alert('Error deleting file');
+            }
+        }
+
+        // Load uploads on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            loadUploads();
+        });
+
+        // Auto-refresh uploads every 10 seconds
+        setInterval(loadUploads, 10000);
     </script>
 </body>
 </html>
