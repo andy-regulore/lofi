@@ -74,48 +74,102 @@ def generate_audio_task(settings):
         audio_path = output_dir / 'audio' / f"{track_id}.wav"
         generation_status['track_id'] = track_id
 
-        # Step 1: Generate base music
-        generation_status['current_step'] = 'Generating base music...'
+        # Step 1: Generate musical composition
+        generation_status['current_step'] = 'Composing music...'
         generation_status['progress'] = 20
 
         sample_rate = 44100
-        t = np.linspace(0, duration, int(sample_rate * duration))
+        tempo_bpm = 75
+        beat_duration = 60.0 / tempo_bpm
+        bar_duration = beat_duration * 4
 
-        # Chord progressions
-        chord_map = {
-            'chill': [261.63, 196.00, 220.00, 174.61],
-            'melancholic': [220.00, 174.61, 196.00, 146.83],
-            'upbeat': [261.63, 293.66, 196.00, 261.63],
-            'relaxed': [174.61, 261.63, 196.00, 220.00],
-            'dreamy': [220.00, 196.00, 174.61, 261.63]
+        # Key/mood-specific chord progressions
+        key_root = {'C': 0, 'C#': 1, 'D': 2, 'D#': 3, 'E': 4, 'F': 5, 'F#': 6,
+                    'G': 7, 'G#': 8, 'A': 9, 'A#': 10, 'B': 11,
+                    'Cm': 0, 'Dm': 2, 'Em': 4, 'Fm': 5, 'Gm': 7, 'Am': 9, 'Bm': 11}.get(key, 9)
+        base_freq = 440 * (2 ** ((key_root - 9) / 12))  # A4 = 440 Hz
+
+        # Chord progressions (semitone intervals from root)
+        progressions = {
+            'chill': [[0, 4, 7], [-5, -1, 2], [-3, 0, 4], [-5, -1, 2]],  # I-IV-vi-IV
+            'melancholic': [[0, 3, 7], [-5, -2, 2], [-8, -5, -1], [-3, 0, 4]],  # i-iv-bVI-VI
+            'upbeat': [[0, 4, 7], [-3, 0, 4], [-5, -1, 2], [-7, -3, 0]],  # I-vi-IV-V
+            'dreamy': [[0, 4, 7, 11], [-3, 0, 4, 7], [-5, -1, 2, 7], [2, 7, 11]],  # With 7ths
+            'relaxed': [[0, 4, 7], [2, 5, 9], [-5, -1, 2], [0, 4, 7]]  # I-ii-IV-I
         }
+        progression = progressions.get(mood, progressions['chill'])
 
-        freqs = chord_map.get(mood, chord_map['chill'])
-        audio = np.zeros(len(t))
-        beats_per_bar = 4
-        beat_duration = duration / (beats_per_bar * 4)
+        # Generate audio
+        audio = np.zeros(int(sample_rate * duration))
+        t = np.arange(len(audio)) / sample_rate
 
-        for i, freq in enumerate(freqs):
-            start_idx = int(i * beat_duration * 4 * sample_rate)
-            end_idx = int((i + 1) * beat_duration * 4 * sample_rate)
-            if end_idx > len(t):
-                end_idx = len(t)
+        # Step 2: Layer the composition
+        generation_status['current_step'] = 'Adding chords, bass, and melody...'
+        generation_status['progress'] = 35
 
-            segment = t[start_idx:end_idx]
-            audio[start_idx:end_idx] += 0.20 * np.sin(2 * np.pi * freq * segment)
-            audio[start_idx:end_idx] += 0.15 * np.sin(2 * np.pi * freq * 1.5 * segment)
-            audio[start_idx:end_idx] += 0.12 * np.sin(2 * np.pi * freq * 1.25 * segment)
-            audio[start_idx:end_idx] += 0.08 * np.sin(2 * np.pi * freq * 0.5 * segment)
+        num_bars = int(duration / bar_duration)
 
-            melody_freq = freq * 2
-            melody = 0.10 * np.sin(2 * np.pi * melody_freq * segment + np.sin(segment * 0.5))
-            audio[start_idx:end_idx] += melody
+        for bar_idx in range(num_bars):
+            chord_idx = bar_idx % len(progression)
+            chord_intervals = progression[chord_idx]
+            bar_start = bar_idx * bar_duration
+            bar_end = (bar_idx + 1) * bar_duration
 
-        audio = audio / np.max(np.abs(audio))
+            start_sample = int(bar_start * sample_rate)
+            end_sample = int(bar_end * sample_rate)
+            if end_sample > len(audio):
+                end_sample = len(audio)
 
-        # Step 2: Add ambient
+            bar_t = t[start_sample:end_sample]
+
+            # Add rich chords (piano-like)
+            for interval in chord_intervals:
+                freq = base_freq * (2 ** (interval / 12)) * (2 ** 1)  # One octave up
+                # Multiple harmonics for richer sound
+                audio[start_sample:end_sample] += 0.15 * np.sin(2 * np.pi * freq * bar_t)
+                audio[start_sample:end_sample] += 0.08 * np.sin(2 * np.pi * freq * 2 * bar_t)  # 2nd harmonic
+                audio[start_sample:end_sample] += 0.04 * np.sin(2 * np.pi * freq * 3 * bar_t)  # 3rd harmonic
+
+            # Add bass line (root notes, octave down)
+            bass_freq = base_freq * (2 ** (chord_intervals[0] / 12)) / 2
+            # Bass on beats 1 and 3
+            for beat in [0, 2]:
+                beat_start = bar_start + beat * beat_duration
+                beat_end = beat_start + beat_duration * 0.8
+                beat_start_sample = int(beat_start * sample_rate)
+                beat_end_sample = int(beat_end * sample_rate)
+                if beat_end_sample > len(audio):
+                    beat_end_sample = len(audio)
+
+                beat_t = t[beat_start_sample:beat_end_sample]
+                envelope = np.exp(-3 * (beat_t - beat_start))
+                audio[beat_start_sample:beat_end_sample] += 0.25 * np.sin(2 * np.pi * bass_freq * beat_t) * envelope
+
+            # Add melody (pentatonic scale)
+            if bar_idx % 2 == 1 or mood == 'upbeat':  # Every other bar
+                pentatonic = [0, 2, 4, 7, 9]  # Pentatonic scale degrees
+                for _ in range(np.random.randint(3, 7)):
+                    note_start = bar_start + np.random.uniform(0, bar_duration - beat_duration * 0.5)
+                    note_dur = beat_duration * np.random.choice([0.25, 0.5, 0.75])
+                    note_end = min(note_start + note_dur, bar_end)
+
+                    note_start_sample = int(note_start * sample_rate)
+                    note_end_sample = int(note_end * sample_rate)
+                    if note_end_sample > len(audio):
+                        break
+
+                    degree = np.random.choice(pentatonic)
+                    melody_freq = base_freq * (2 ** (degree / 12)) * (2 ** 2)  # Two octaves up
+                    note_t = t[note_start_sample:note_end_sample]
+                    envelope = np.exp(-4 * (note_t - note_start))
+                    audio[note_start_sample:note_end_sample] += 0.12 * np.sin(2 * np.pi * melody_freq * note_t) * envelope
+
+        # Normalize
+        audio = audio / (np.max(np.abs(audio)) + 1e-8)
+
+        # Step 3: Add ambient
         generation_status['current_step'] = f'Adding {theme} ambience...'
-        generation_status['progress'] = 40
+        generation_status['progress'] = 50
 
         if theme == 'rain':
             ambient = ambient_gen.generate_rain(duration, intensity='medium', include_thunder=False)
@@ -146,9 +200,9 @@ def generate_audio_task(settings):
                 ambient = np.pad(ambient, (0, len(audio) - len(ambient)))
             audio = audio * (1 - mix_level) + ambient * mix_level
 
-        # Step 3: Apply LoFi effects
+        # Step 4: Apply LoFi effects
         generation_status['current_step'] = 'Applying LoFi effects...'
-        generation_status['progress'] = 60
+        generation_status['progress'] = 70
 
         audio_lofi = lofi_effects.process_full_chain(audio, preset=lofi_preset)
 
