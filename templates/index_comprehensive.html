@@ -439,40 +439,55 @@
             <div class="two-column">
                 <div class="card">
                     <h2 class="card-title">Generate Track</h2>
+                    <p style="color: #666; margin-bottom: 20px; line-height: 1.6;">
+                        Create a unique lo-fi track with custom settings. The system will compose music with proper chord progressions, bass lines, and melodies, then apply authentic lo-fi effects like vinyl crackle, bit crushing, and tape saturation.
+                    </p>
                     <form id="generation-form">
                         <div class="form-group">
                             <label for="mood">Mood</label>
+                            <small style="display: block; color: #999; margin-bottom: 5px;">
+                                Controls the chord progression and overall feel of the track
+                            </small>
                             <select name="mood" id="mood">
-                                <option value="chill">Chill</option>
-                                <option value="melancholic">Melancholic</option>
-                                <option value="upbeat">Upbeat</option>
-                                <option value="dreamy">Dreamy</option>
-                                <option value="relaxed">Relaxed</option>
+                                <option value="chill">Chill - Relaxed I-IV-vi-IV progression</option>
+                                <option value="melancholic">Melancholic - Emotional minor progressions</option>
+                                <option value="upbeat">Upbeat - Energetic I-vi-IV-V progression</option>
+                                <option value="dreamy">Dreamy - Lush chords with 7th extensions</option>
+                                <option value="relaxed">Relaxed - Smooth I-ii-IV-I progression</option>
                             </select>
                         </div>
 
                         <div class="form-group">
                             <label for="theme">Theme / Ambient</label>
+                            <small style="display: block; color: #999; margin-bottom: 5px;">
+                                Add atmospheric background sounds to enhance the mood
+                            </small>
                             <select name="theme" id="theme">
-                                <option value="plain">Plain (No ambient)</option>
-                                <option value="rain">Rain</option>
-                                <option value="cafe">Café</option>
-                                <option value="urban_chill">Urban Chill</option>
-                                <option value="nature">Nature</option>
+                                <option value="plain">Plain (No ambient sounds)</option>
+                                <option value="rain">Rain - Gentle rainfall ambience</option>
+                                <option value="cafe">Café - Coffee shop chatter and sounds</option>
+                                <option value="urban_chill">Urban Chill - Distant traffic and city sounds</option>
+                                <option value="nature">Nature - Forest birds and nature sounds</option>
                             </select>
                         </div>
 
                         <div class="form-group">
                             <label for="lofi_preset">LoFi Effect Intensity</label>
+                            <small style="display: block; color: #999; margin-bottom: 5px;">
+                                How much vintage/lo-fi character to add (vinyl crackle, wow/flutter, etc.)
+                            </small>
                             <select name="lofi_preset" id="lofi_preset">
-                                <option value="light">Light</option>
-                                <option value="medium">Medium</option>
-                                <option value="heavy">Heavy</option>
+                                <option value="light">Light - Subtle vintage warmth</option>
+                                <option value="medium" selected>Medium - Classic lo-fi sound</option>
+                                <option value="heavy">Heavy - Maximum vintage character</option>
                             </select>
                         </div>
 
                         <div class="form-group">
-                            <label for="key">Key</label>
+                            <label for="key">Musical Key</label>
+                            <small style="display: block; color: #999; margin-bottom: 5px;">
+                                The root key of the composition (affects overall tonality)
+                            </small>
                             <select name="key" id="key">
                                 <option value="C">C Major</option>
                                 <option value="Cm">C Minor</option>
@@ -485,7 +500,7 @@
                                 <option value="G">G Major</option>
                                 <option value="Gm">G Minor</option>
                                 <option value="A">A Major</option>
-                                <option value="Am" selected>A Minor</option>
+                                <option value="Am" selected>A Minor (default)</option>
                                 <option value="B">B Major</option>
                                 <option value="Bm">B Minor</option>
                             </select>
@@ -493,6 +508,9 @@
 
                         <div class="form-group">
                             <label for="duration">Duration (seconds)</label>
+                            <small style="display: block; color: #999; margin-bottom: 5px;">
+                                Length of the track (10-600 seconds, ~3 minutes recommended)
+                            </small>
                             <input type="number" name="duration" id="duration" value="180" min="10" max="600">
                         </div>
 
@@ -511,6 +529,9 @@
 
                 <div class="card">
                     <h2 class="card-title">Quick Stats</h2>
+                    <p style="color: #666; margin-bottom: 15px; font-size: 0.95rem;">
+                        Overview of your music generation activity
+                    </p>
                     <div class="stats-grid">
                         <div class="stat-card">
                             <div class="stat-value" id="total-tracks">0</div>
@@ -523,6 +544,9 @@
                     </div>
 
                     <h3 class="card-title" style="margin-top: 20px;">Recent Generations</h3>
+                    <p style="color: #666; margin-bottom: 10px; font-size: 0.9rem;">
+                        Your last 3 generated tracks
+                    </p>
                     <div id="recent-tracks"></div>
                 </div>
             </div>
@@ -532,39 +556,65 @@
         <div id="training-tab" class="tab-content">
             <div class="card">
                 <h2 class="card-title">AI Model Training</h2>
-                <p style="color: #666; margin-bottom: 20px;">Upload MIDI files to train the AI model on your music style</p>
+                <p style="color: #666; margin-bottom: 15px; line-height: 1.6;">
+                    Train the AI model on your own MIDI files to teach it your unique musical style. The more diverse and high-quality MIDI files you provide, the better the AI will learn to generate music in your style.
+                </p>
+                <div style="background: #f0f7ff; border-left: 4px solid #667eea; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                    <strong>💡 How it works:</strong>
+                    <ul style="margin: 10px 0 0 20px; line-height: 1.8;">
+                        <li>Upload your MIDI files (at least 10-20 for good results)</li>
+                        <li>System tokenizes the MIDI data into musical patterns</li>
+                        <li>AI learns chord progressions, melodies, and rhythms from your music</li>
+                        <li>After training, generated tracks will reflect your musical style</li>
+                    </ul>
+                </div>
 
                 <div class="training-status" id="training-status">
                     <strong>Status:</strong> <span id="training-status-text">Ready to train</span>
                 </div>
 
-                <h3 class="card-title">1. Upload Training Data (MIDI Files)</h3>
+                <h3 class="card-title">Step 1: Upload Training Data (MIDI Files)</h3>
+                <p style="color: #666; margin-bottom: 15px; font-size: 0.95rem;">
+                    Drag and drop multiple MIDI files or click to browse. These files will be analyzed to teach the AI your musical patterns and style.
+                </p>
                 <div class="upload-zone" id="training-upload-zone">
                     <input type="file" id="training-file-input" style="display: none;" accept=".mid,.midi" multiple>
                     <div class="upload-icon">🎹</div>
                     <div class="upload-text">Drag & Drop MIDI files here</div>
                     <div class="upload-hint">or click to browse</div>
                     <div style="margin-top: 10px; font-size: 0.85rem; color: #999;">
-                        Accepted: .mid, .midi files
+                        Accepted: .mid, .midi files | Upload 10+ files for best results
                     </div>
                 </div>
 
                 <div class="file-list" id="training-file-list"></div>
 
-                <h3 class="card-title" style="margin-top: 30px;">2. Training Configuration</h3>
+                <h3 class="card-title" style="margin-top: 30px;">Step 2: Configure Training Parameters</h3>
+                <p style="color: #666; margin-bottom: 15px; font-size: 0.95rem;">
+                    Adjust these settings based on your needs. Default values work well for most cases.
+                </p>
                 <form id="training-form">
                     <div class="form-group">
                         <label for="epochs">Number of Epochs</label>
+                        <small style="display: block; color: #999; margin-bottom: 5px;">
+                            How many times to iterate through the training data (more epochs = better learning, but slower)
+                        </small>
                         <input type="number" name="epochs" id="epochs" value="10" min="1" max="100">
                     </div>
 
                     <div class="form-group">
                         <label for="batch_size">Batch Size</label>
+                        <small style="display: block; color: #999; margin-bottom: 5px;">
+                            Number of samples processed together (larger = faster, but uses more memory)
+                        </small>
                         <input type="number" name="batch_size" id="batch_size" value="8" min="1" max="64">
                     </div>
 
                     <div class="form-group">
                         <label for="learning_rate">Learning Rate</label>
+                        <small style="display: block; color: #999; margin-bottom: 5px;">
+                            How quickly the model learns (0.0001 is a safe default, smaller = more stable)
+                        </small>
                         <input type="number" name="learning_rate" id="learning_rate" value="0.0001" step="0.00001" min="0.00001" max="0.01">
                     </div>
 
@@ -591,34 +641,57 @@
         <div id="batch-tab" class="tab-content">
             <div class="card">
                 <h2 class="card-title">Batch Generation</h2>
-                <p style="color: #666; margin-bottom: 20px;">Generate multiple tracks at once</p>
+                <p style="color: #666; margin-bottom: 15px; line-height: 1.6;">
+                    Generate multiple lo-fi tracks in one go - perfect for creating albums, playlists, or building up your music library quickly. All tracks will automatically appear in your Library tab.
+                </p>
+                <div style="background: #fff3cd; border-left: 4px solid #ffc107; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                    <strong>⚡ Batch Benefits:</strong>
+                    <ul style="margin: 10px 0 0 20px; line-height: 1.8;">
+                        <li>Save time by generating multiple tracks automatically</li>
+                        <li>Create variety with random mood selection</li>
+                        <li>Build a complete album or playlist in minutes</li>
+                        <li>All tracks are saved with unique metadata</li>
+                    </ul>
+                </div>
 
                 <form id="batch-form">
                     <div class="form-group">
                         <label for="batch-count">Number of Tracks</label>
+                        <small style="display: block; color: #999; margin-bottom: 5px;">
+                            How many tracks to generate (1-50). Each track processes sequentially.
+                        </small>
                         <input type="number" name="count" id="batch-count" value="5" min="1" max="50">
                     </div>
 
                     <div class="form-group">
-                        <label for="batch-mood">Mood</label>
+                        <label for="batch-mood">Mood Selection</label>
+                        <small style="display: block; color: #999; margin-bottom: 5px;">
+                            Choose 'Random' for variety, or select a specific mood for consistency
+                        </small>
                         <select name="mood" id="batch-mood">
-                            <option value="random">Random</option>
-                            <option value="chill">Chill</option>
-                            <option value="melancholic">Melancholic</option>
-                            <option value="upbeat">Upbeat</option>
-                            <option value="dreamy">Dreamy</option>
-                            <option value="relaxed">Relaxed</option>
+                            <option value="random">Random - Mix of all moods for variety</option>
+                            <option value="chill">Chill - All tracks will be relaxed</option>
+                            <option value="melancholic">Melancholic - All tracks will be emotional</option>
+                            <option value="upbeat">Upbeat - All tracks will be energetic</option>
+                            <option value="dreamy">Dreamy - All tracks will be lush</option>
+                            <option value="relaxed">Relaxed - All tracks will be smooth</option>
                         </select>
                     </div>
 
                     <div class="form-group">
                         <label for="batch-duration">Duration per Track (seconds)</label>
+                        <small style="display: block; color: #999; margin-bottom: 5px;">
+                            Length for each track (180 seconds = 3 minutes, typical for lo-fi)
+                        </small>
                         <input type="number" name="duration" id="batch-duration" value="180" min="10" max="600">
                     </div>
 
                     <button type="submit" class="btn btn-primary" id="batch-btn">
                         ⚡ Generate Batch
                     </button>
+                    <p style="color: #999; margin-top: 10px; font-size: 0.9rem;">
+                        ⏱️ Estimated time: ~30-60 seconds per track
+                    </p>
                 </form>
 
                 <div class="progress-container" id="batch-progress-container">
@@ -638,6 +711,18 @@
         <div id="library-tab" class="tab-content">
             <div class="card">
                 <h2 class="card-title">Track Library</h2>
+                <p style="color: #666; margin-bottom: 20px; line-height: 1.6;">
+                    View all your generated tracks in one place. Download your favorites as WAV files or delete tracks you don't need. Each track includes full metadata with mood, duration, and file size information.
+                </p>
+                <div style="background: #f0f7ff; border-left: 4px solid #667eea; padding: 15px; border-radius: 8px; margin-bottom: 20px; font-size: 0.95rem;">
+                    <strong>📚 Library Features:</strong>
+                    <ul style="margin: 10px 0 0 20px; line-height: 1.6;">
+                        <li><strong>Download:</strong> Get WAV files for use in other software</li>
+                        <li><strong>Metadata:</strong> Each track shows mood, duration, and file size</li>
+                        <li><strong>Management:</strong> Delete tracks you don't want to keep</li>
+                        <li><strong>Auto-refresh:</strong> New tracks appear automatically</li>
+                    </ul>
+                </div>
                 <div class="track-list" id="track-list">
                     <div class="empty-state">
                         <div class="empty-state-icon">🎵</div>
@@ -651,6 +736,9 @@
         <div id="analytics-tab" class="tab-content">
             <div class="card">
                 <h2 class="card-title">Analytics Dashboard</h2>
+                <p style="color: #666; margin-bottom: 20px; line-height: 1.6;">
+                    Track your music generation activity with detailed statistics. See how many tracks you've created, total audio time produced, and breakdown by mood to understand your creative patterns.
+                </p>
                 <div class="stats-grid">
                     <div class="stat-card">
                         <div class="stat-value" id="analytics-total-tracks">0</div>
