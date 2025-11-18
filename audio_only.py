@@ -29,7 +29,7 @@ output_dir = Path('output')
 (output_dir / 'metadata').mkdir(parents=True, exist_ok=True)
 
 # Initialize modules
-metadata_gen = MetadataGenerator(config)
+metadata_gen = MetadataGenerator()
 copyright_db = CopyrightDatabase('data/copyright.db')
 copyright_protector = CopyrightProtector(copyright_db)
 
