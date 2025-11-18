@@ -647,12 +647,13 @@
                     if (status.error) {
                         alert('Error: ' + status.error);
                     } else if (status.progress === 100) {
-                        // Success!
+                        // Success! Load tracks immediately
+                        console.log('Generation complete! Refreshing track list...');
+                        loadTracks();
                         setTimeout(() => {
                             document.getElementById('progress-container').classList.remove('active');
                             progressFill.style.width = '0%';
                             progressFill.textContent = '0%';
-                            loadTracks();
                         }, 2000);
                     }
 
@@ -666,8 +667,10 @@
 
         async function loadTracks() {
             try {
+                console.log('Loading tracks...');
                 const response = await fetch('/api/tracks');
                 const tracks = await response.json();
+                console.log('Loaded tracks:', tracks);
 
                 const trackList = document.getElementById('track-list');
 

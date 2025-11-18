@@ -3,7 +3,7 @@ LoFi Music Empire - Web UI
 Complete interface for all features
 """
 
-from flask import Flask, render_template, request, jsonify, send_file, send_from_directory
+from flask import Flask, render_template, request, jsonify, send_file, send_from_directory, make_response
 import json
 import time
 import numpy as np
@@ -194,7 +194,11 @@ def generate_audio_task(settings):
 @app.route('/')
 def index():
     """Main page"""
-    return render_template('index.html')
+    response = make_response(render_template('index.html'))
+    response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+    response.headers['Pragma'] = 'no-cache'
+    response.headers['Expires'] = '0'
+    return response
 
 @app.route('/api/generate', methods=['POST'])
 def generate():
