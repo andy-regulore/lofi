@@ -474,8 +474,10 @@ def list_training_files():
     training_data_dir.mkdir(parents=True, exist_ok=True)
 
     files = []
-    # Get both MIDI and WAV files
-    all_files = list(training_data_dir.glob('*.mid*')) + list(training_data_dir.glob('*.wav'))
+    # Get both MIDI and WAV files (search recursively in subdirectories)
+    all_files = (list(training_data_dir.glob('**/*.mid')) +
+                 list(training_data_dir.glob('**/*.midi')) +
+                 list(training_data_dir.glob('**/*.wav')))
     for file in sorted(all_files, key=lambda x: x.stat().st_mtime, reverse=True):
         files.append({
             'filename': file.name,
@@ -510,9 +512,11 @@ def start_training():
     batch_size = int(config.get('batch_size', 8))
     learning_rate = float(config.get('learning_rate', 0.0001))
 
-    # Check if we have training data
+    # Check if we have training data (search recursively)
     training_data_dir = Path('data/training')
-    training_files = list(training_data_dir.glob('*.mid*')) + list(training_data_dir.glob('*.wav'))
+    training_files = (list(training_data_dir.glob('**/*.mid')) +
+                     list(training_data_dir.glob('**/*.midi')) +
+                     list(training_data_dir.glob('**/*.wav')))
 
     if len(training_files) == 0:
         return jsonify({'error': 'No training data uploaded. Please upload MIDI or WAV files first.'}), 400
@@ -555,7 +559,8 @@ def start_training():
 
             # Tokenize MIDI files (skip WAV files for now - no audio-to-MIDI conversion yet)
             training_status['status'] = 'Tokenizing MIDI files...'
-            midi_files = list(training_data_dir.glob('*.mid*'))
+            # Search recursively in all subdirectories
+            midi_files = list(training_data_dir.glob('**/*.mid')) + list(training_data_dir.glob('**/*.midi'))
 
             if len(midi_files) == 0:
                 raise ValueError('No MIDI files found. WAV files are not yet supported for training.')
