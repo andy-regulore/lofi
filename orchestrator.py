@@ -308,13 +308,14 @@ class WorkflowOrchestrator:
             use_case='study'
         )
 
-        print(f"  Title: {metadata['title']}")
-        print(f"  Tags: {len(metadata['tags'])} tags")
+        print(f"  Title: {metadata.title}")
+        print(f"  Tags: {len(metadata.tags)} tags")
 
-        # Save metadata
+        # Save metadata (convert dataclass to dict)
         metadata_path = self.output_dir / 'metadata' / f"{track_info['track_id']}.json"
+        from dataclasses import asdict
         with open(metadata_path, 'w') as f:
-            json.dump(metadata, f, indent=2)
+            json.dump(asdict(metadata), f, indent=2)
 
         print(f"  ✅ Metadata saved: {metadata_path}")
 
@@ -336,7 +337,7 @@ class WorkflowOrchestrator:
         thumbnail_path = self.output_dir / 'thumbnails' / f"{track_info['track_id']}.png"
 
         self.thumbnail_generator.generate_thumbnail(
-            text=metadata['title'],
+            text=metadata.title,
             output_path=str(thumbnail_path),
             style='lofi_aesthetic',
             palette='warm'
@@ -380,7 +381,7 @@ class WorkflowOrchestrator:
         metadata = self.create_metadata(track_info)
 
         # Step 4: Create video
-        video_path = self.create_video(track_info, metadata['title'])
+        video_path = self.create_video(track_info, metadata.title)
         if not video_path:
             print("\n❌ Video creation failed")
             return None
