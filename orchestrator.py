@@ -193,11 +193,49 @@ class WorkflowOrchestrator:
         print("  ⏳ Generating...")
         time.sleep(1)  # Simulate processing time
 
-        # Create placeholder file
-        audio_path.touch()
+        # Generate actual audio (placeholder - replace with your model)
+        import numpy as np
+        import soundfile as sf
+
+        sample_rate = 44100
+        t = np.linspace(0, duration, int(sample_rate * duration))
+
+        # Generate simple lofi-style placeholder audio
+        # Base frequencies for a chill progression (C, G, Am, F)
+        freqs = [261.63, 196.00, 220.00, 174.61]  # C4, G3, A3, F3
+        audio = np.zeros(len(t))
+
+        # Create a simple chord progression
+        beats_per_bar = 4
+        beat_duration = duration / (beats_per_bar * 4)  # 4 bars
+
+        for i, freq in enumerate(freqs):
+            start_idx = int(i * beat_duration * 4 * sample_rate)
+            end_idx = int((i + 1) * beat_duration * 4 * sample_rate)
+            if end_idx > len(t):
+                end_idx = len(t)
+
+            # Add chord tones
+            segment = t[start_idx:end_idx]
+            audio[start_idx:end_idx] += 0.15 * np.sin(2 * np.pi * freq * segment)  # Root
+            audio[start_idx:end_idx] += 0.10 * np.sin(2 * np.pi * freq * 1.5 * segment)  # Fifth
+            audio[start_idx:end_idx] += 0.08 * np.sin(2 * np.pi * freq * 1.25 * segment)  # Third
+
+        # Add subtle vinyl crackle (lofi effect)
+        audio += 0.02 * np.random.randn(len(audio))
+
+        # Simple envelope to avoid clicks
+        fade_samples = int(0.1 * sample_rate)
+        audio[:fade_samples] *= np.linspace(0, 1, fade_samples)
+        audio[-fade_samples:] *= np.linspace(1, 0, fade_samples)
+
+        # Normalize
+        audio = audio / np.max(np.abs(audio)) * 0.7
+
+        # Save as WAV
+        sf.write(str(audio_path), audio, sample_rate)
 
         # Get melody/chords for copyright check
-        # TODO: Get these from your actual generator
         melody_notes = [60, 62, 64, 65, 67, 65, 64, 62]  # Placeholder
         melody_times = [0.0, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5]
         chords = ["C", "G", "Am", "F"]  # Placeholder
