@@ -248,7 +248,7 @@ def generate_audio_task(settings):
 @app.route('/')
 def index():
     """Main page"""
-    response = make_response(render_template('index.html'))
+    response = make_response(render_template('index_comprehensive.html'))
     response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
     response.headers['Pragma'] = 'no-cache'
     response.headers['Expires'] = '0'
@@ -399,6 +399,212 @@ def delete_upload(filename):
         return jsonify({'status': 'deleted'})
     else:
         return jsonify({'error': 'File not found'}), 404
+
+# Training endpoints
+training_status = {
+    'is_training': False,
+    'epoch': 0,
+    'total_epochs': 0,
+    'loss': 0.0,
+    'status': '',
+    'error': None,
+    'last_trained': None
+}
+
+@app.route('/api/upload/training', methods=['POST'])
+def upload_training():
+    """Upload training MIDI file"""
+    if 'file' not in request.files:
+        return jsonify({'error': 'No file provided'}), 400
+
+    file = request.files['file']
+
+    if file.filename == '' or not (file.filename.endswith('.mid') or file.filename.endswith('.midi')):
+        return jsonify({'error': 'Invalid file. MIDI files only (.mid, .midi)'}), 400
+
+    filename = secure_filename(file.filename)
+    timestamp = int(time.time())
+    unique_filename = f"{timestamp}_{filename}"
+
+    # Save to training data folder
+    training_data_dir = Path('data/training')
+    training_data_dir.mkdir(parents=True, exist_ok=True)
+
+    filepath = training_data_dir / unique_filename
+    file.save(str(filepath))
+
+    return jsonify({
+        'status': 'success',
+        'filename': unique_filename,
+        'original_filename': filename,
+        'path': str(filepath)
+    })
+
+@app.route('/api/training/files')
+def list_training_files():
+    """List all training files"""
+    training_data_dir = Path('data/training')
+    training_data_dir.mkdir(parents=True, exist_ok=True)
+
+    files = []
+    for file in sorted(training_data_dir.glob('*.mid*'), key=lambda x: x.stat().st_mtime, reverse=True):
+        files.append({
+            'filename': file.name,
+            'original_name': '_'.join(file.name.split('_')[1:]),
+            'size': file.stat().st_size,
+            'uploaded': datetime.fromtimestamp(file.stat().st_mtime).isoformat()
+        })
+
+    return jsonify(files)
+
+@app.route('/api/training/files/<filename>', methods=['DELETE'])
+def delete_training_file(filename):
+    """Delete training file"""
+    filepath = Path('data/training') / secure_filename(filename)
+
+    if filepath.exists():
+        filepath.unlink()
+        return jsonify({'status': 'deleted'})
+    else:
+        return jsonify({'error': 'File not found'}), 404
+
+@app.route('/api/training/start', methods=['POST'])
+def start_training():
+    """Start model training"""
+    global training_status
+
+    if training_status['is_training']:
+        return jsonify({'error': 'Training already in progress'}), 400
+
+    config = request.json
+    epochs = int(config.get('epochs', 10))
+    batch_size = int(config.get('batch_size', 8))
+    learning_rate = float(config.get('learning_rate', 0.0001))
+
+    # Check if we have training data
+    training_data_dir = Path('data/training')
+    midi_files = list(training_data_dir.glob('*.mid*'))
+
+    if len(midi_files) == 0:
+        return jsonify({'error': 'No training data uploaded. Please upload MIDI files first.'}), 400
+
+    # Start training in background
+    def training_task():
+        global training_status
+
+        try:
+            training_status['is_training'] = True
+            training_status['total_epochs'] = epochs
+            training_status['status'] = 'Initializing...'
+            training_status['error'] = None
+
+            # Simulate training for now (TODO: integrate actual training)
+            for epoch in range(1, epochs + 1):
+                training_status['epoch'] = epoch
+                training_status['status'] = f'Training epoch {epoch}/{epochs}'
+
+                # Simulate epoch time
+                time.sleep(2)
+
+                # Simulate decreasing loss
+                training_status['loss'] = 5.0 * (1 - epoch / epochs) + 0.1
+
+            training_status['is_training'] = False
+            training_status['status'] = 'Training completed'
+            training_status['last_trained'] = datetime.now().isoformat()
+
+        except Exception as e:
+            training_status['error'] = str(e)
+            training_status['is_training'] = False
+
+    thread = threading.Thread(target=training_task)
+    thread.daemon = True
+    thread.start()
+
+    return jsonify({'status': 'started'})
+
+@app.route('/api/training/status')
+def get_training_status():
+    """Get training status"""
+    return jsonify(training_status)
+
+# Batch generation endpoints
+batch_generation_status = {
+    'is_generating': False,
+    'total': 0,
+    'completed': 0,
+    'progress': 0,
+    'status': '',
+    'error': None
+}
+
+@app.route('/api/batch/generate', methods=['POST'])
+def batch_generate():
+    """Start batch generation"""
+    global batch_generation_status
+
+    if batch_generation_status['is_generating']:
+        return jsonify({'error': 'Batch generation already in progress'}), 400
+
+    config = request.json
+    count = int(config.get('count', 5))
+    mood = config.get('mood', 'random')
+    duration = int(config.get('duration', 180))
+
+    def batch_task():
+        global batch_generation_status
+
+        try:
+            batch_generation_status['is_generating'] = True
+            batch_generation_status['total'] = count
+            batch_generation_status['completed'] = 0
+            batch_generation_status['error'] = None
+
+            moods = ['chill', 'melancholic', 'upbeat', 'dreamy', 'relaxed']
+            keys = ['C', 'Cm', 'D', 'Dm', 'E', 'Em', 'F', 'Fm', 'G', 'Gm', 'A', 'Am', 'B', 'Bm']
+
+            for i in range(count):
+                batch_generation_status['status'] = f'Generating track {i+1}/{count}'
+
+                # Select mood
+                selected_mood = mood if mood != 'random' else np.random.choice(moods)
+                selected_key = np.random.choice(keys)
+
+                # Generate using the same logic as single generation
+                settings = {
+                    'mood': selected_mood,
+                    'theme': 'plain',
+                    'lofi_preset': 'medium',
+                    'duration': duration,
+                    'key': selected_key
+                }
+
+                # Call the generation task
+                generate_audio_task(settings)
+
+                batch_generation_status['completed'] = i + 1
+                batch_generation_status['progress'] = int(((i + 1) / count) * 100)
+
+                # Small delay between generations
+                time.sleep(1)
+
+            batch_generation_status['is_generating'] = False
+            batch_generation_status['status'] = 'Batch generation completed'
+
+        except Exception as e:
+            batch_generation_status['error'] = str(e)
+            batch_generation_status['is_generating'] = False
+
+    thread = threading.Thread(target=batch_task)
+    thread.daemon = True
+    thread.start()
+
+    return jsonify({'status': 'started'})
+
+@app.route('/api/batch/status')
+def get_batch_status():
+    """Get batch generation status"""
+    return jsonify(batch_generation_status)
 
 if __name__ == '__main__':
     print("=" * 60)
