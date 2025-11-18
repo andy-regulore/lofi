@@ -172,5 +172,60 @@
     "auto_create": false,
     "min_tracks_for_pack": 20,
     "pack_types": ["drums", "melodic", "midi", "full"]
+  },
+
+  "keyword_research": {
+    "enabled": true,
+    "auto_suggest_enabled": true,
+    "trending_topics_enabled": true,
+    "min_keyword_suggestions": 10,
+    "cache_duration_hours": 24,
+    "note": "Helps find trending search terms people are looking for"
+  },
+
+  "competitor_analysis": {
+    "enabled": false,
+    "youtube_api_key": "",
+    "tracked_channels": [],
+    "analysis_frequency_days": 7,
+    "note": "Monitor successful channels to learn what works. Add API key and channel IDs to enable"
+  },
+
+  "ab_testing": {
+    "enabled": false,
+    "variations_per_test": 3,
+    "test_duration_days": 7,
+    "min_sample_size": 100,
+    "confidence_level": 0.95,
+    "auto_select_winner": false,
+    "note": "Test different titles/thumbnails to find what performs best. Set auto_select_winner to true for automation"
+  },
+
+  "redis": {
+    "enabled": false,
+    "host": "localhost",
+    "port": 6379,
+    "password": "",
+    "queue_db": 0,
+    "cache_db": 1,
+    "cache_ttl_seconds": 3600,
+    "note": "Optional Redis for job queue and caching. Install Redis first: apt-get install redis-server"
+  },
+
+  "youtube_endscreens": {
+    "enabled": false,
+    "default_template": "default",
+    "auto_apply": false,
+    "templates": ["default", "playlist_focus", "channel_growth"],
+    "note": "Automatically add end screens to encourage subscriptions and more views"
+  },
+
+  "youtube_community": {
+    "enabled": false,
+    "posts_per_week": 3,
+    "auto_schedule": false,
+    "poll_frequency_days": 7,
+    "optimal_posting_hours": [10, 14, 18, 20],
+    "note": "Post updates and polls to YouTube Community Tab to build audience connection"
   }
 }
