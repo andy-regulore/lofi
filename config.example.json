@@ -1,0 +1,164 @@
+{
+  "_comment": "Example configuration file - Copy this to config.json and update with your settings",
+
+  "youtube": {
+    "api_key": "YOUR_YOUTUBE_API_KEY_HERE",
+    "channel_id": "YOUR_CHANNEL_ID",
+    "upload_defaults": {
+      "category": "10",
+      "privacy": "public",
+      "made_for_kids": false
+    }
+  },
+
+  "generation": {
+    "default_duration": 180,
+    "tempo_range": [70, 90],
+    "key_preferences": ["C", "Am", "F", "G"],
+    "complexity": "medium"
+  },
+
+  "lofi_effects": {
+    "enabled": true,
+    "preset": "medium",
+    "note": "Adds vinyl crackle, bit crushing, wow/flutter, tape saturation"
+  },
+
+  "ambient_sounds": {
+    "enabled": false,
+    "default_type": "rain",
+    "mix_level": 0.3,
+    "note": "Mix ambient sounds (rain, cafe, nature) with tracks"
+  },
+
+  "parallel_processing": {
+    "enabled": true,
+    "num_workers": 4,
+    "note": "Use multiple CPU cores for faster generation (4-8x speedup)"
+  },
+
+  "metadata": {
+    "auto_generate": true,
+    "include_chapters": false,
+    "seo_optimize": true
+  },
+
+  "thumbnail": {
+    "auto_generate": true,
+    "color_palette": "purple_dream",
+    "style": "aesthetic"
+  },
+
+  "keyword_research": {
+    "enabled": true,
+    "note": "Find trending search terms people are looking for"
+  },
+
+  "competitor_analysis": {
+    "enabled": false,
+    "youtube_api_key": "YOUR_YOUTUBE_API_KEY_HERE",
+    "tracked_channels": [
+      "UC_competitor_channel_1",
+      "UC_competitor_channel_2"
+    ],
+    "note": "Monitor successful channels to learn what works (requires YouTube Data API)"
+  },
+
+  "ab_testing": {
+    "enabled": false,
+    "min_sample_size": 100,
+    "confidence_level": 0.95,
+    "note": "Test different titles/thumbnails to find what performs best"
+  },
+
+  "redis": {
+    "enabled": false,
+    "host": "localhost",
+    "port": 6379,
+    "db": 0,
+    "note": "Optional Redis for job queue and caching. Install Redis first: apt-get install redis-server"
+  },
+
+  "youtube_endscreens": {
+    "enabled": true,
+    "template": "default",
+    "note": "Automatically add end screens to boost retention (10-15% improvement)"
+  },
+
+  "youtube_community": {
+    "enabled": false,
+    "post_frequency": "weekly",
+    "auto_schedule": true,
+    "note": "Automate Community Tab posts (polls, updates, behind-the-scenes)"
+  },
+
+  "livestream": {
+    "enabled": false,
+    "stream_key": "YOUR_OBS_STREAM_KEY",
+    "platforms": ["youtube", "twitch"],
+    "video_hours": 8,
+    "note": "24/7 lofi radio livestream for passive income"
+  },
+
+  "distribution": {
+    "distrokid": {
+      "enabled": false,
+      "api_key": "YOUR_DISTROKID_API_KEY",
+      "note": "Requires DistroKid partner API access"
+    },
+    "soundcloud": {
+      "enabled": false,
+      "client_id": "YOUR_CLIENT_ID",
+      "client_secret": "YOUR_CLIENT_SECRET",
+      "note": "Direct uploads to SoundCloud"
+    }
+  },
+
+  "social_media": {
+    "instagram": {
+      "enabled": false,
+      "username": "your_username",
+      "password": "your_password",
+      "note": "Auto-post to Instagram (unofficial API, use with caution)"
+    },
+    "twitter": {
+      "enabled": false,
+      "api_key": "YOUR_API_KEY",
+      "api_secret": "YOUR_API_SECRET",
+      "access_token": "YOUR_ACCESS_TOKEN",
+      "access_secret": "YOUR_ACCESS_SECRET",
+      "note": "Auto-post to Twitter/X"
+    }
+  },
+
+  "email_marketing": {
+    "mailchimp": {
+      "enabled": false,
+      "api_key": "YOUR_MAILCHIMP_API_KEY",
+      "list_id": "YOUR_LIST_ID",
+      "note": "Automated email campaigns for releases"
+    }
+  },
+
+  "sample_packs": {
+    "auto_create": false,
+    "tracks_per_pack": 10,
+    "include_stems": false,
+    "output_formats": ["wav", "mp3"],
+    "note": "Generate sample packs from your tracks"
+  },
+
+  "paths": {
+    "output_dir": "output",
+    "tracks_dir": "output/tracks",
+    "videos_dir": "output/videos",
+    "thumbnails_dir": "output/thumbnails",
+    "logs_dir": "logs"
+  },
+
+  "advanced": {
+    "log_level": "INFO",
+    "save_intermediate": false,
+    "cleanup_temp_files": true
+  }
+}
