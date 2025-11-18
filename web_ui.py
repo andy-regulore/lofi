@@ -14,12 +14,18 @@ from datetime import datetime
 import threading
 import os
 from werkzeug.utils import secure_filename
+import yaml
+import torch
+from transformers import TrainerCallback
 
 # Import our modules
 from src.metadata_generator import MetadataGenerator
 from src.copyright_protection import CopyrightDatabase, CopyrightProtector
 from src.lofi_effects import LoFiEffectsChain
 from src.ambient_sounds import AmbientSoundGenerator
+from src.tokenizer import LoFiTokenizer
+from src.model import ConditionedLoFiModel
+from src.trainer import LoFiTrainer
 
 app = Flask(__name__)
 app.config['MAX_CONTENT_LENGTH'] = 50 * 1024 * 1024  # 50MB max upload
@@ -31,6 +37,27 @@ ALLOWED_IMAGE_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 
 def allowed_file(filename, allowed_extensions):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in allowed_extensions
+
+# Custom callback to update training status
+class WebUITrainingCallback(TrainerCallback):
+    """Callback to update global training status during training."""
+
+    def __init__(self, training_status_dict, total_epochs):
+        self.training_status = training_status_dict
+        self.total_epochs = total_epochs
+
+    def on_epoch_begin(self, args, state, control, **kwargs):
+        """Called at the beginning of each epoch."""
+        epoch = int(state.epoch) if state.epoch is not None else 0
+        self.training_status['epoch'] = epoch + 1
+        self.training_status['status'] = f'Training epoch {epoch + 1}/{self.total_epochs}'
+
+    def on_log(self, args, state, control, logs=None, **kwargs):
+        """Called when logging occurs."""
+        if logs and 'loss' in logs:
+            self.training_status['loss'] = float(logs['loss'])
+        if logs and 'eval_loss' in logs:
+            self.training_status['loss'] = float(logs['eval_loss'])
 
 # Global state
 generation_status = {
@@ -500,24 +527,95 @@ def start_training():
             training_status['status'] = 'Initializing...'
             training_status['error'] = None
 
-            # Simulate training for now (TODO: integrate actual training)
-            for epoch in range(1, epochs + 1):
-                training_status['epoch'] = epoch
-                training_status['status'] = f'Training epoch {epoch}/{epochs}'
+            # Load configuration
+            training_status['status'] = 'Loading configuration...'
+            with open('config.yaml', 'r') as f:
+                base_config = yaml.safe_load(f)
 
-                # Simulate epoch time
-                time.sleep(2)
+            # Override with user settings
+            base_config['training']['num_epochs'] = epochs
+            base_config['training']['batch_size'] = batch_size
+            base_config['training']['learning_rate'] = learning_rate
+            base_config['data']['midi_dir'] = 'data/training'  # Use training dir instead
+            base_config['training']['output_dir'] = 'models/web-trained'
 
-                # Simulate decreasing loss
-                training_status['loss'] = 5.0 * (1 - epoch / epochs) + 0.1
+            # Disable FP16 if CUDA not available
+            if not torch.cuda.is_available():
+                base_config['training']['device'] = 'cpu'
+                base_config['training']['fp16'] = False
+                base_config['training']['dataloader_num_workers'] = 2
+                # Reduce batch size for CPU
+                base_config['training']['batch_size'] = max(1, batch_size // 4)
+                base_config['training']['gradient_accumulation_steps'] = 4
+
+            # Initialize tokenizer
+            training_status['status'] = 'Initializing tokenizer...'
+            tokenizer = LoFiTokenizer(base_config)
+            vocab_size = tokenizer.get_vocab_size()
+
+            # Tokenize MIDI files (skip WAV files for now - no audio-to-MIDI conversion yet)
+            training_status['status'] = 'Tokenizing MIDI files...'
+            midi_files = list(training_data_dir.glob('*.mid*'))
+
+            if len(midi_files) == 0:
+                raise ValueError('No MIDI files found. WAV files are not yet supported for training.')
+
+            token_sequences = []
+            for i, midi_file in enumerate(midi_files):
+                try:
+                    # Update progress
+                    progress_pct = int((i / len(midi_files)) * 30)  # 0-30% for tokenization
+                    training_status['status'] = f'Tokenizing {i+1}/{len(midi_files)} files ({progress_pct}%)...'
+
+                    tokens = tokenizer.tokenize_file(str(midi_file))
+                    if tokens:
+                        chunks = tokenizer.chunk_sequence(tokens)
+                        token_sequences.extend(chunks)
+                except Exception as e:
+                    print(f"Warning: Failed to tokenize {midi_file}: {e}")
+                    continue
+
+            if len(token_sequences) == 0:
+                raise ValueError('No valid token sequences generated from MIDI files.')
+
+            # Split into train/eval (90/10 split)
+            training_status['status'] = 'Splitting dataset...'
+            from sklearn.model_selection import train_test_split
+            train_sequences, eval_sequences = train_test_split(
+                token_sequences, test_size=0.1, random_state=42
+            )
+
+            # Initialize model
+            training_status['status'] = 'Initializing model...'
+            model = ConditionedLoFiModel(base_config, vocab_size)
+
+            # Initialize trainer with custom callback
+            training_status['status'] = 'Preparing training...'
+            lofi_trainer = LoFiTrainer(model, base_config, vocab_size)
+
+            # Prepare the trainer
+            lofi_trainer.prepare_datasets(train_sequences, eval_sequences)
+            lofi_trainer.prepare_training_args()
+
+            # Add our custom callback to update status
+            web_callback = WebUITrainingCallback(training_status, epochs)
+
+            # Train the model with custom callback
+            training_status['status'] = 'Training model...'
+            results = lofi_trainer.train(train_sequences, eval_sequences, custom_callbacks=[web_callback])
 
             training_status['is_training'] = False
             training_status['status'] = 'Training completed'
             training_status['last_trained'] = datetime.now().isoformat()
+            training_status['loss'] = results['eval_metrics'].get('eval_loss', 0.0)
 
         except Exception as e:
+            import traceback
+            error_msg = f"{str(e)}\n{traceback.format_exc()}"
+            print(f"Training error: {error_msg}")
             training_status['error'] = str(e)
             training_status['is_training'] = False
+            training_status['status'] = 'Training failed'
 
     thread = threading.Thread(target=training_task)
     thread.daemon = True

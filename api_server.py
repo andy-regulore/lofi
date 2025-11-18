@@ -36,10 +36,20 @@ from pathlib import Path
 import json
 import asyncio
 import uuid
+import numpy as np
+import soundfile as sf
+from dataclasses import asdict
 
 # Import our modules
-# Note: The actual generation model is private/proprietary
-# These are integration points for the automation system
+from src.metadata_generator import MetadataGenerator
+from src.lofi_effects import LoFiEffectsChain
+from src.ambient_sounds import AmbientSoundGenerator
+
+# Initialize generation modules
+metadata_gen = MetadataGenerator()
+lofi_effects = LoFiEffectsChain()
+ambient_gen = AmbientSoundGenerator()
+SAMPLE_RATE = 44100
 
 app = FastAPI(
     title="LoFi Music Empire API",
@@ -246,33 +256,159 @@ async def generate_music(request: GenerateRequest, background_tasks: BackgroundT
     }
 
 
+def generate_single_track(mood: str, duration: int, bpm: Optional[int], key: Optional[str], output_path: Path) -> Dict:
+    """Generate a single lo-fi track with real music composition."""
+    # Setup
+    sample_rate = SAMPLE_RATE
+    audio = np.zeros(int(duration * sample_rate))
+    t = np.arange(len(audio)) / sample_rate
+
+    # Select key and BPM
+    if not key:
+        keys = ['C', 'Cm', 'D', 'Dm', 'E', 'Em', 'F', 'Fm', 'G', 'Gm', 'A', 'Am', 'B', 'Bm']
+        key = np.random.choice(keys)
+    if not bpm:
+        bpm = 75
+
+    # Key to frequency mapping
+    key_freqs = {
+        'C': 261.63, 'Cm': 261.63, 'D': 293.66, 'Dm': 293.66,
+        'E': 329.63, 'Em': 329.63, 'F': 349.23, 'Fm': 349.23,
+        'G': 392.00, 'Gm': 392.00, 'A': 440.00, 'Am': 440.00,
+        'B': 493.88, 'Bm': 493.88
+    }
+    base_freq = key_freqs.get(key, 261.63)
+
+    # Create chord progression
+    beat_duration = 60.0 / bpm
+    bar_duration = beat_duration * 4
+    num_bars = int(duration / bar_duration)
+
+    chord_patterns = {
+        'chill': [0, 5, 3, 4],
+        'melancholic': [0, 3, 5, 7],
+        'upbeat': [0, 4, 5, 7],
+        'dreamy': [0, 5, 7, 3],
+        'relaxed': [0, 4, 7, 5]
+    }
+    pattern = chord_patterns.get(mood, [0, 5, 3, 4])
+
+    # Generate chords and bass
+    for bar_idx in range(num_bars):
+        bar_start = bar_idx * bar_duration
+        bar_end = (bar_idx + 1) * bar_duration
+        chord_degree = pattern[bar_idx % len(pattern)]
+
+        chord_freq = base_freq * (2 ** (chord_degree / 12))
+
+        bar_start_sample = int(bar_start * sample_rate)
+        bar_end_sample = int(bar_end * sample_rate)
+        if bar_end_sample > len(audio):
+            bar_end_sample = len(audio)
+
+        bar_t = t[bar_start_sample:bar_end_sample]
+        envelope = np.exp(-2.5 * (bar_t - bar_start))
+
+        # Chord (root, third, fifth)
+        audio[bar_start_sample:bar_end_sample] += 0.08 * np.sin(2 * np.pi * chord_freq * bar_t) * envelope
+        audio[bar_start_sample:bar_end_sample] += 0.06 * np.sin(2 * np.pi * chord_freq * 1.26 * bar_t) * envelope
+        audio[bar_start_sample:bar_end_sample] += 0.05 * np.sin(2 * np.pi * chord_freq * 1.5 * bar_t) * envelope
+
+        # Bass
+        bass_freq = chord_freq / 2
+        audio[bar_start_sample:bar_end_sample] += 0.15 * np.sin(2 * np.pi * bass_freq * bar_t) * envelope
+
+        # Melody
+        pentatonic = [0, 2, 4, 7, 9]
+        for _ in range(np.random.randint(3, 7)):
+            note_start = bar_start + np.random.uniform(0, bar_duration - beat_duration * 0.5)
+            note_dur = beat_duration * np.random.choice([0.25, 0.5, 0.75])
+            note_end = min(note_start + note_dur, bar_end)
+
+            note_start_sample = int(note_start * sample_rate)
+            note_end_sample = int(note_end * sample_rate)
+            if note_end_sample > len(audio):
+                break
+
+            degree = np.random.choice(pentatonic)
+            melody_freq = base_freq * (2 ** (degree / 12)) * (2 ** 2)
+            note_t = t[note_start_sample:note_end_sample]
+            note_envelope = np.exp(-4 * (note_t - note_start))
+            audio[note_start_sample:note_end_sample] += 0.12 * np.sin(2 * np.pi * melody_freq * note_t) * note_envelope
+
+    # Normalize
+    audio = audio / (np.max(np.abs(audio)) + 1e-8)
+
+    # Apply lo-fi effects
+    audio_lofi = lofi_effects.process_full_chain(audio, preset='medium')
+
+    # Fade in/out
+    fade_samples = int(0.5 * sample_rate)
+    audio_lofi[:fade_samples] *= np.linspace(0, 1, fade_samples)
+    audio_lofi[-fade_samples:] *= np.linspace(1, 0, fade_samples)
+    audio_lofi = audio_lofi / np.max(np.abs(audio_lofi)) * 0.75
+
+    # Save audio
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    sf.write(str(output_path), audio_lofi, sample_rate)
+
+    # Generate metadata
+    metadata = metadata_gen.generate_complete_metadata(
+        mood=mood,
+        style='lofi',
+        use_case='study',
+        bpm=bpm,
+        key=key,
+        duration=duration
+    )
+
+    return {
+        'audio_path': str(output_path),
+        'metadata': asdict(metadata),
+        'bpm': bpm,
+        'key': key,
+        'duration': duration
+    }
+
+
 async def run_generation(job_id: str, request: GenerateRequest):
     """Background task for music generation."""
     try:
         state.update_job(job_id, status='running', progress=0)
 
-        # TODO: Integrate with your proprietary generation model here
-        # For now, simulate the process
-
         generated_files = []
+        output_dir = Path('output')
 
         for i in range(request.count):
             # Update progress
             progress = int((i + 1) / request.count * 100)
             state.update_job(job_id, progress=progress)
 
-            # Simulate generation
-            await asyncio.sleep(2)  # Replace with actual generation call
+            # Generate real music track
+            track_id = str(uuid.uuid4())[:8]
+            audio_path = output_dir / 'audio' / f"{job_id}_{track_id}.wav"
 
-            # Placeholder for actual generation
+            # Run generation in executor to avoid blocking event loop
+            loop = asyncio.get_event_loop()
+            track_data = await loop.run_in_executor(
+                None,
+                generate_single_track,
+                request.mood,
+                request.duration,
+                request.bpm,
+                request.key,
+                audio_path
+            )
+
             track_info = {
-                'track_id': str(uuid.uuid4())[:8],
+                'track_id': track_id,
                 'title': f"{request.mood.title()} Beats #{i+1}",
                 'mood': request.mood,
                 'duration': request.duration,
-                'bpm': request.bpm or state.config['generation']['default_bpm'],
-                'key': request.key or 'C',
-                'audio_path': f"output/audio/{job_id}_track_{i}.wav",
+                'bpm': track_data['bpm'],
+                'key': track_data['key'],
+                'audio_path': track_data['audio_path'],
+                'metadata': track_data['metadata'],
                 'created_at': datetime.now().isoformat()
             }
 
@@ -283,6 +419,8 @@ async def run_generation(job_id: str, request: GenerateRequest):
         state.update_job(job_id, status='completed', progress=100, result=generated_files)
 
     except Exception as e:
+        import traceback
+        print(f"Generation error: {str(e)}\n{traceback.format_exc()}")
         state.update_job(job_id, status='failed', error=str(e))
 
 

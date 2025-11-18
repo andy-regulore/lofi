@@ -202,12 +202,13 @@ class LoFiTrainer:
 
         return train_dataset, eval_dataset
 
-    def train(self, train_sequences, eval_sequences):
+    def train(self, train_sequences, eval_sequences, custom_callbacks=None):
         """Train the model.
 
         Args:
             train_sequences: List of training token sequences
             eval_sequences: List of evaluation token sequences
+            custom_callbacks: Optional list of additional TrainerCallback instances
 
         Returns:
             Training metrics
@@ -227,6 +228,10 @@ class LoFiTrainer:
         callbacks = [
             MetricsCallback(training_args.output_dir),
         ]
+
+        # Add custom callbacks if provided
+        if custom_callbacks:
+            callbacks.extend(custom_callbacks)
 
         # Add early stopping if configured
         if self.train_config.get('early_stopping_patience'):
