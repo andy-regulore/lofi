@@ -35,3 +35,50 @@ seaborn>=0.12.0
 
 # Audio normalization
 pyloudnorm>=0.1.1
+
+# Validation and type checking
+pydantic>=2.0.0
+typing-extensions>=4.5.0
+
+# API Server & Web UI
+flask>=3.0.0
+fastapi>=0.100.0
+uvicorn[standard]>=0.23.0
+python-multipart>=0.0.6
+aiofiles>=23.1.0
+python-dotenv>=1.0.0
+
+# YouTube Integration (Optional)
+# google-api-python-client>=2.95.0
+# google-auth-oauthlib>=1.0.0
+# google-auth-httplib2>=0.1.0
+
+# Video/Image Processing (Optional - for actual rendering)
+# opencv-python>=4.8.0
+# Pillow>=10.0.0
+# moviepy>=1.0.3
+
+# Social Media Integration (Optional)
+# tweepy>=4.14.0  # Twitter API
+# instagrapi>=2.0.0  # Instagram (unofficial)
+
+# OBS WebSocket for Livestreaming (Optional)
+# obs-websocket-py>=1.0  # OBS Studio automation
+
+# Email Marketing (Optional)
+# mailchimp-marketing>=3.0.80
+
+# HTTP Requests for API integration
+requests>=2.31.0
+
+# SEO & Competitor Analysis (Optional - for keyword research and channel tracking)
+# beautifulsoup4>=4.12.0  # For web scraping if needed
+# lxml>=4.9.0  # XML/HTML parser
+
+# Redis for Caching & Job Queue (Optional - improves performance)
+# redis>=5.0.0  # Install Redis server first: apt-get install redis-server
+# hiredis>=2.2.0  # Faster Redis performance (optional)
+
+# Testing
+pytest>=7.4.0
+pytest-asyncio>=0.21.0

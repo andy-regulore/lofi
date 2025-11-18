@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="License premium lofi music for your YouTube videos, podcasts, and commercial projects. Flexible pricing starting at $9.">
+    <title>Music Licensing - LoFi Music Empire</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav>
+        <div class="container">
+            <div class="logo">🎵 LoFi Music Empire</div>
+            <ul>
+                <li><a href="index.html">Home</a></li>
+                <li><a href="licensing.html">Licensing</a></li>
+                <li><a href="samples.html">Sample Packs</a></li>
+                <li><a href="free-pack.html">Free Pack</a></li>
+                <li><a href="index.html#contact">Contact</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">
+            <h1>Music Licensing Made Simple</h1>
+            <p>Clear, affordable licenses for creators and businesses</p>
+        </div>
+    </section>
+
+    <!-- Pricing Section -->
+    <section id="pricing">
+        <div class="container">
+            <h2>Choose Your License</h2>
+            <p style="text-align: center; color: var(--gray-text); margin-bottom: 3rem;">
+                All licenses include MP3 + WAV files, lifetime usage rights, and email support
+            </p>
+
+            <div class="pricing-grid">
+                <!-- Personal License -->
+                <div class="pricing-card">
+                    <h3>Personal</h3>
+                    <div class="price">$9<span style="font-size: 1rem; color: var(--gray-text);">/track</span></div>
+                    <p style="color: var(--gray-text); margin-bottom: 2rem;">Perfect for individual creators</p>
+
+                    <ul class="features">
+                        <li>1 Track license</li>
+                        <li>YouTube monetization OK</li>
+                        <li>Social media posts</li>
+                        <li>Personal podcasts</li>
+                        <li>Up to 500K views per video</li>
+                        <li>MP3 + WAV included</li>
+                        <li>Lifetime usage</li>
+                        <li>Email support</li>
+                    </ul>
+
+                    <button class="btn btn-primary" style="width: 100%; margin-top: 2rem;" onclick="selectLicense('personal')">
+                        Select Personal
+                    </button>
+                </div>
+
+                <!-- Creator License (Featured) -->
+                <div class="pricing-card featured">
+                    <h3>Creator</h3>
+                    <div class="price">$29<span style="font-size: 1rem; color: var(--gray-text);">/track</span></div>
+                    <p style="color: var(--gray-text); margin-bottom: 2rem;">For professional content creators</p>
+
+                    <ul class="features">
+                        <li>1 Track license</li>
+                        <li>Unlimited views</li>
+                        <li>Multiple platforms (YouTube, Twitch, etc.)</li>
+                        <li>Client work allowed</li>
+                        <li>Podcast sponsorships OK</li>
+                        <li>MP3 + WAV + Stems</li>
+                        <li>Lifetime usage</li>
+                        <li>Priority support</li>
+                    </ul>
+
+                    <button class="btn btn-primary" style="width: 100%; margin-top: 2rem;" onclick="selectLicense('creator')">
+                        Select Creator
+                    </button>
+                </div>
+
+                <!-- Commercial License -->
+                <div class="pricing-card">
+                    <h3>Commercial</h3>
+                    <div class="price">$99<span style="font-size: 1rem; color: var(--gray-text);">/track</span></div>
+                    <p style="color: var(--gray-text); margin-bottom: 2rem;">For businesses & agencies</p>
+
+                    <ul class="features">
+                        <li>1 Track license</li>
+                        <li>Unlimited distribution</li>
+                        <li>TV & radio broadcasting</li>
+                        <li>Corporate videos</li>
+                        <li>Retail & public venues</li>
+                        <li>White-label allowed</li>
+                        <li>MP3 + WAV + Stems</li>
+                        <li>Dedicated support</li>
+                    </ul>
+
+                    <button class="btn btn-primary" style="width: 100%; margin-top: 2rem;" onclick="selectLicense('commercial')">
+                        Select Commercial
+                    </button>
+                </div>
+            </div>
+
+            <!-- Bulk Discounts -->
+            <div style="text-align: center; margin-top: 4rem; background: var(--card-bg); padding: 2rem; border-radius: 15px;">
+                <h3>💰 Bulk Discounts Available</h3>
+                <p style="color: var(--gray-text); margin: 1rem 0;">License multiple tracks and save</p>
+                <div style="display: flex; gap: 2rem; justify-content: center; flex-wrap: wrap; margin-top: 2rem;">
+                    <div>
+                        <strong style="color: var(--primary-color);">5-10 tracks:</strong> 15% off
+                    </div>
+                    <div>
+                        <strong style="color: var(--primary-color);">11-20 tracks:</strong> 25% off
+                    </div>
+                    <div>
+                        <strong style="color: var(--primary-color);">21+ tracks:</strong> 35% off
+                    </div>
+                </div>
+                <a href="index.html#contact" class="btn btn-secondary" style="margin-top: 2rem;">Contact for Bulk Pricing</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- License Comparison -->
+    <section id="comparison" style="background: var(--darker-bg);">
+        <div class="container">
+            <h2>License Comparison</h2>
+
+            <div style="overflow-x: auto;">
+                <table style="width: 100%; background: var(--card-bg); border-radius: 15px; padding: 2rem;">
+                    <thead>
+                        <tr style="border-bottom: 2px solid var(--darker-bg);">
+                            <th style="text-align: left; padding: 1rem;">Feature</th>
+                            <th style="padding: 1rem;">Personal</th>
+                            <th style="padding: 1rem;">Creator</th>
+                            <th style="padding: 1rem;">Commercial</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr style="border-bottom: 1px solid var(--darker-bg);">
+                            <td style="padding: 1rem; color: var(--gray-text);">YouTube Monetization</td>
+                            <td style="padding: 1rem; text-align: center;">✓</td>
+                            <td style="padding: 1rem; text-align: center;">✓</td>
+                            <td style="padding: 1rem; text-align: center;">✓</td>
+                        </tr>
+                        <tr style="border-bottom: 1px solid var(--darker-bg);">
+                            <td style="padding: 1rem; color: var(--gray-text);">Max Views Per Video</td>
+                            <td style="padding: 1rem; text-align: center;">500K</td>
+                            <td style="padding: 1rem; text-align: center;">Unlimited</td>
+                            <td style="padding: 1rem; text-align: center;">Unlimited</td>
+                        </tr>
+                        <tr style="border-bottom: 1px solid var(--darker-bg);">
+                            <td style="padding: 1rem; color: var(--gray-text);">Client Work</td>
+                            <td style="padding: 1rem; text-align: center;">✗</td>
+                            <td style="padding: 1rem; text-align: center;">✓</td>
+                            <td style="padding: 1rem; text-align: center;">✓</td>
+                        </tr>
+                        <tr style="border-bottom: 1px solid var(--darker-bg);">
+                            <td style="padding: 1rem; color: var(--gray-text);">TV/Radio Broadcasting</td>
+                            <td style="padding: 1rem; text-align: center;">✗</td>
+                            <td style="padding: 1rem; text-align: center;">✗</td>
+                            <td style="padding: 1rem; text-align: center;">✓</td>
+                        </tr>
+                        <tr style="border-bottom: 1px solid var(--darker-bg);">
+                            <td style="padding: 1rem; color: var(--gray-text);">Stem Files</td>
+                            <td style="padding: 1rem; text-align: center;">✗</td>
+                            <td style="padding: 1rem; text-align: center;">✓</td>
+                            <td style="padding: 1rem; text-align: center;">✓</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 1rem; color: var(--gray-text);">Price Per Track</td>
+                            <td style="padding: 1rem; text-align: center; font-weight: bold; color: var(--secondary-color);">$9</td>
+                            <td style="padding: 1rem; text-align: center; font-weight: bold; color: var(--secondary-color);">$29</td>
+                            <td style="padding: 1rem; text-align: center; font-weight: bold; color: var(--secondary-color);">$99</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <!-- How It Works -->
+    <section id="how-it-works">
+        <div class="container">
+            <h2>How It Works</h2>
+
+            <div class="grid">
+                <div class="card">
+                    <h3>1. Choose Your Tracks</h3>
+                    <p>Browse our catalog and listen to previews. Find the perfect tracks for your project.</p>
+                </div>
+                <div class="card">
+                    <h3>2. Select License Type</h3>
+                    <p>Pick Personal, Creator, or Commercial based on how you'll use the music.</p>
+                </div>
+                <div class="card">
+                    <h3>3. Complete Purchase</h3>
+                    <p>Secure checkout with PayPal or Stripe. Instant delivery via email.</p>
+                </div>
+                <div class="card">
+                    <h3>4. Download & Use</h3>
+                    <p>Get MP3 and WAV files immediately. License certificate included for your records.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FAQ -->
+    <section id="faq" style="background: var(--darker-bg);">
+        <div class="container">
+            <h2>Frequently Asked Questions</h2>
+
+            <div style="max-width: 800px; margin: 0 auto;">
+                <div class="card" style="margin-bottom: 1.5rem;">
+                    <h3>Can I use this music on YouTube and monetize?</h3>
+                    <p>Yes! All our licenses allow YouTube monetization. You won't get copyright claims or strikes.</p>
+                </div>
+
+                <div class="card" style="margin-bottom: 1.5rem;">
+                    <h3>What if my video gets more than 500K views (Personal license)?</h3>
+                    <p>Contact us to upgrade to a Creator license. We'll work out a fair price based on your situation.</p>
+                </div>
+
+                <div class="card" style="margin-bottom: 1.5rem;">
+                    <h3>Do I need to credit you in my videos?</h3>
+                    <p>Attribution is appreciated but not required. If you want to credit us: "Music by LoFi Music Empire"</p>
+                </div>
+
+                <div class="card" style="margin-bottom: 1.5rem;">
+                    <h3>Can I use one license for multiple videos?</h3>
+                    <p>Each license covers one track used across unlimited videos/projects within your license tier.</p>
+                </div>
+
+                <div class="card" style="margin-bottom: 1.5rem;">
+                    <h3>What's your refund policy?</h3>
+                    <p>We offer a 14-day refund if you're not satisfied. No questions asked.</p>
+                </div>
+
+                <div class="card">
+                    <h3>Can I get a custom track made?</h3>
+                    <p>Yes! We offer custom music production. Contact us with your requirements for a quote.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA -->
+    <section id="cta" style="background: var(--gradient-1); text-align: center;">
+        <div class="container">
+            <h2 style="color: white; -webkit-text-fill-color: white;">Ready to License Music?</h2>
+            <p style="font-size: 1.2rem; margin-bottom: 2rem; color: white;">Browse our catalog or contact us for custom licensing</p>
+            <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+                <a href="index.html#music" class="btn btn-secondary">Browse Catalog</a>
+                <a href="index.html#contact" class="btn btn-secondary">Contact Us</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-content">
+            <div class="logo" style="font-size: 2rem; margin-bottom: 1rem;">🎵 LoFi Music Empire</div>
+            <p style="color: var(--gray-text); margin-bottom: 2rem;">Premium lofi beats for creators worldwide</p>
+
+            <div class="social-links">
+                <a href="https://youtube.com/@yourchannelhere" target="_blank" title="YouTube">▶</a>
+                <a href="https://open.spotify.com/artist/yourartist" target="_blank" title="Spotify">♫</a>
+                <a href="https://instagram.com/yourhandle" target="_blank" title="Instagram">📷</a>
+                <a href="https://twitter.com/yourhandle" target="_blank" title="Twitter">🐦</a>
+            </div>
+
+            <div style="margin-top: 2rem;">
+                <a href="privacy.html" style="color: var(--gray-text); margin: 0 1rem;">Privacy Policy</a>
+                <a href="terms.html" style="color: var(--gray-text); margin: 0 1rem;">Terms of Service</a>
+                <a href="about.html" style="color: var(--gray-text); margin: 0 1rem;">About</a>
+            </div>
+
+            <div style="margin-top: 2rem; padding-top: 2rem; border-top: 1px solid var(--card-bg);">
+                <p style="color: var(--gray-text); font-size: 0.9rem;">
+                    © 2025 LoFi Music Empire. All rights reserved.
+                </p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="js/main.js"></script>
+    <script>
+        function selectLicense(type) {
+            // This would integrate with your payment processor (Stripe/PayPal)
+            alert(`Selected ${type} license! This would redirect to payment processing.\n\nIntegrate with:\n- Stripe: stripe.com\n- PayPal: paypal.com\n- Gumroad: gumroad.com`);
+
+            // Example: window.location.href = `https://buy.stripe.com/your-product-${type}`;
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,231 @@
+{
+  "output_dir": "output",
+
+  "generation": {
+    "default_mood": "chill",
+    "default_duration": 180,
+    "default_bpm": 85,
+    "default_key": "C",
+    "note": "Replace with your private model configuration"
+  },
+
+  "video": {
+    "default_template": "classic_lofi",
+    "width": 1280,
+    "height": 720,
+    "fps": 30,
+    "available_templates": [
+      "classic_lofi",
+      "modern_spectrum",
+      "cyberpunk_wave",
+      "minimal_bars",
+      "vintage_vinyl"
+    ]
+  },
+
+  "metadata": {
+    "artist_name": "LoFi AI",
+    "default_tags": ["lofi", "chill", "study", "beats", "music"],
+    "seo_optimization": true
+  },
+
+  "scheduling": {
+    "auto_schedule": true,
+    "platform": "youtube",
+    "posts_per_week": 3,
+    "min_hours_between": 48,
+    "optimal_times_enabled": true
+  },
+
+  "community": {
+    "auto_respond": true,
+    "dry_run": false,
+    "response_rates": {
+      "question": 1.0,
+      "collaboration": 1.0,
+      "feedback": 1.0,
+      "positive": 0.3,
+      "neutral": 0.1
+    },
+    "auto_like": true,
+    "auto_pin_superfans": true
+  },
+
+  "copyright": {
+    "check_enabled": true,
+    "auto_reject_high_risk": true,
+    "database_path": "copyright_db.json",
+    "thresholds": {
+      "safe": 0.30,
+      "low_risk": 0.50,
+      "moderate_risk": 0.70,
+      "high_risk": 0.85
+    }
+  },
+
+  "youtube": {
+    "enabled": false,
+    "client_secrets_file": "client_secrets.json",
+    "credentials_file": "youtube_credentials.json",
+    "category_id": "10",
+    "privacy_status": "public"
+  },
+
+  "api_server": {
+    "host": "0.0.0.0",
+    "port": 8000,
+    "reload": true,
+    "log_level": "info"
+  },
+
+  "lofi_effects": {
+    "enabled": true,
+    "preset": "medium",
+    "custom_params": {
+      "bit_depth": 12,
+      "vinyl_crackle": 0.015,
+      "wow_depth": 5.0,
+      "saturation_mix": 0.5
+    }
+  },
+
+  "ambient_sounds": {
+    "enabled": false,
+    "default_type": "rain",
+    "mix_level": 0.15,
+    "presets": ["rainy_day", "storm", "cafe", "forest", "beach", "windy"]
+  },
+
+  "distribution": {
+    "distrokid": {
+      "api_key": "",
+      "note": "Add DistroKid API key for Spotify/Apple Music distribution"
+    },
+    "soundcloud": {
+      "access_token": "",
+      "note": "Add SoundCloud OAuth token"
+    },
+    "bandcamp": {
+      "username": "",
+      "password": ""
+    }
+  },
+
+  "livestream": {
+    "enabled": false,
+    "obs": {
+      "websocket_port": 4455,
+      "password": "",
+      "note": "Install obs-websocket plugin first"
+    },
+    "restream": {
+      "api_key": "",
+      "note": "Restream.io for multi-platform streaming"
+    },
+    "video_rotation_hours": 8
+  },
+
+  "social_media": {
+    "enabled": false,
+    "instagram": {
+      "access_token": "",
+      "user_id": ""
+    },
+    "tiktok": {
+      "access_token": ""
+    },
+    "twitter": {
+      "api_key": "",
+      "api_secret": "",
+      "access_token": "",
+      "access_secret": ""
+    },
+    "reddit": {
+      "client_id": "",
+      "client_secret": "",
+      "username": "",
+      "password": ""
+    },
+    "posts_per_day": 2,
+    "auto_post": false
+  },
+
+  "email_marketing": {
+    "enabled": false,
+    "mailchimp": {
+      "api_key": "",
+      "server_prefix": "us1",
+      "list_id": "",
+      "note": "Get from Mailchimp account settings"
+    },
+    "send_on_release": false,
+    "lead_magnet_enabled": true
+  },
+
+  "parallel_processing": {
+    "enabled": true,
+    "num_workers": null,
+    "note": "null = auto (CPU count - 1)"
+  },
+
+  "sample_packs": {
+    "auto_create": false,
+    "min_tracks_for_pack": 20,
+    "pack_types": ["drums", "melodic", "midi", "full"]
+  },
+
+  "keyword_research": {
+    "enabled": true,
+    "auto_suggest_enabled": true,
+    "trending_topics_enabled": true,
+    "min_keyword_suggestions": 10,
+    "cache_duration_hours": 24,
+    "note": "Helps find trending search terms people are looking for"
+  },
+
+  "competitor_analysis": {
+    "enabled": false,
+    "youtube_api_key": "",
+    "tracked_channels": [],
+    "analysis_frequency_days": 7,
+    "note": "Monitor successful channels to learn what works. Add API key and channel IDs to enable"
+  },
+
+  "ab_testing": {
+    "enabled": false,
+    "variations_per_test": 3,
+    "test_duration_days": 7,
+    "min_sample_size": 100,
+    "confidence_level": 0.95,
+    "auto_select_winner": false,
+    "note": "Test different titles/thumbnails to find what performs best. Set auto_select_winner to true for automation"
+  },
+
+  "redis": {
+    "enabled": false,
+    "host": "localhost",
+    "port": 6379,
+    "password": "",
+    "queue_db": 0,
+    "cache_db": 1,
+    "cache_ttl_seconds": 3600,
+    "note": "Optional Redis for job queue and caching. Install Redis first: apt-get install redis-server"
+  },
+
+  "youtube_endscreens": {
+    "enabled": false,
+    "default_template": "default",
+    "auto_apply": false,
+    "templates": ["default", "playlist_focus", "channel_growth"],
+    "note": "Automatically add end screens to encourage subscriptions and more views"
+  },
+
+  "youtube_community": {
+    "enabled": false,
+    "posts_per_week": 3,
+    "auto_schedule": false,
+    "poll_frequency_days": 7,
+    "optimal_posting_hours": [10, 14, 18, 20],
+    "note": "Post updates and polls to YouTube Community Tab to build audience connection"
+  }
+}

@@ -69,3 +69,31 @@ wandb/
 *.flac
 !examples/*.wav
 !examples/*.mp3
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+coverage.xml
+.tox/
+*.cover
+.hypothesis/
+
+# Type checking
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Documentation builds
+docs/_build/
+docs/_static/
+docs/_templates/
+
+# Security reports
+bandit-report.json
+safety-report.json
+
+# Environment variables
+.env
+.env.local
+.env.*.local
