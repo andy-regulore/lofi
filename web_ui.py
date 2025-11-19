@@ -748,4 +748,5 @@ if __name__ == '__main__':
     print("\n🌐 Open your browser to: http://localhost:5000")
     print("\n💡 Press Ctrl+C to stop the server\n")
 
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    # Disable debug mode to prevent auto-reload killing training threads
+    app.run(debug=False, host='0.0.0.0', port=5000)
