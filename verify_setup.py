@@ -56,8 +56,9 @@ def main():
         print("   → Create with: mkdir -p data/training")
         print("   → Then copy your MIDI files there")
     else:
-        midi_files = list(training_dir.glob('*.mid')) + list(training_dir.glob('*.midi'))
-        wav_files = list(training_dir.glob('*.wav'))
+        # Search recursively in all subdirectories
+        midi_files = list(training_dir.glob('**/*.mid')) + list(training_dir.glob('**/*.midi'))
+        wav_files = list(training_dir.glob('**/*.wav'))
 
         if len(midi_files) > 0:
             check_pass(f"Found {len(midi_files):,} MIDI files")
