@@ -543,6 +543,13 @@ def start_training():
             base_config['data']['midi_dir'] = 'data/training'  # Use training dir instead
             base_config['training']['output_dir'] = 'models/web-trained'
 
+            # Disable quality filters for web training (accept all MIDI files)
+            base_config['data']['quality_filters']['require_drums'] = False
+            base_config['data']['quality_filters']['min_tempo'] = 1
+            base_config['data']['quality_filters']['max_tempo'] = 999
+            base_config['data']['quality_filters']['min_duration'] = 1
+            base_config['data']['quality_filters']['max_duration'] = 9999
+
             # Disable FP16 if CUDA not available
             if not torch.cuda.is_available():
                 base_config['training']['device'] = 'cpu'
@@ -566,22 +573,44 @@ def start_training():
                 raise ValueError('No MIDI files found. WAV files are not yet supported for training.')
 
             token_sequences = []
-            for i, midi_file in enumerate(midi_files):
+            success_count = 0
+            fail_count = 0
+
+            # Process files (limit to first 1000 for initial testing to avoid long waits)
+            files_to_process = midi_files[:min(1000, len(midi_files))]
+            print(f"Processing {len(files_to_process)} MIDI files (limited from {len(midi_files)} total)...")
+
+            for i, midi_file in enumerate(files_to_process):
                 try:
                     # Update progress
-                    progress_pct = int((i / len(midi_files)) * 30)  # 0-30% for tokenization
-                    training_status['status'] = f'Tokenizing {i+1}/{len(midi_files)} files ({progress_pct}%)...'
+                    progress_pct = int((i / len(files_to_process)) * 30)  # 0-30% for tokenization
+                    training_status['status'] = f'Tokenizing {i+1}/{len(files_to_process)} files ({progress_pct}%)...'
 
                     tokens = tokenizer.tokenize_file(str(midi_file))
-                    if tokens:
+                    if tokens and len(tokens) > 0:
                         chunks = tokenizer.chunk_sequence(tokens)
-                        token_sequences.extend(chunks)
+                        if chunks and len(chunks) > 0:
+                            token_sequences.extend(chunks)
+                            success_count += 1
+                        else:
+                            fail_count += 1
+                            if fail_count <= 5:  # Log first 5 failures
+                                print(f"No chunks generated from {midi_file.name}")
+                    else:
+                        fail_count += 1
+                        if fail_count <= 5:
+                            print(f"No tokens generated from {midi_file.name}")
                 except Exception as e:
-                    print(f"Warning: Failed to tokenize {midi_file}: {e}")
+                    fail_count += 1
+                    if fail_count <= 5:  # Log first 5 errors
+                        print(f"Error tokenizing {midi_file.name}: {e}")
                     continue
 
+            print(f"\nTokenization complete: {success_count} succeeded, {fail_count} failed")
+            print(f"Generated {len(token_sequences)} token sequences")
+
             if len(token_sequences) == 0:
-                raise ValueError('No valid token sequences generated from MIDI files.')
+                raise ValueError(f'No valid token sequences generated from {len(files_to_process)} MIDI files. Check that files are valid MIDI format.')
 
             # Split into train/eval (90/10 split)
             training_status['status'] = 'Splitting dataset...'
