@@ -586,9 +586,10 @@ def start_training():
                     progress_pct = int((i / len(files_to_process)) * 30)  # 0-30% for tokenization
                     training_status['status'] = f'Tokenizing {i+1}/{len(files_to_process)} files ({progress_pct}%)...'
 
-                    tokens = tokenizer.tokenize_file(str(midi_file))
-                    if tokens and len(tokens) > 0:
-                        chunks = tokenizer.chunk_sequence(tokens)
+                    # Use tokenize_midi method (not tokenize_file) and disable quality checks
+                    result = tokenizer.tokenize_midi(str(midi_file), check_quality=False)
+                    if result and 'tokens' in result and len(result['tokens']) > 0:
+                        chunks = tokenizer.chunk_sequence(result['tokens'])
                         if chunks and len(chunks) > 0:
                             token_sequences.extend(chunks)
                             success_count += 1
