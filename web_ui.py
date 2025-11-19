@@ -576,9 +576,13 @@ def start_training():
             success_count = 0
             fail_count = 0
 
-            # Process files (limit to first 1000 for initial testing to avoid long waits)
-            files_to_process = midi_files[:min(1000, len(midi_files))]
-            print(f"Processing {len(files_to_process)} MIDI files (limited from {len(midi_files)} total)...")
+            # Process all files (can be limited for testing by changing None to a number like 1000)
+            limit = None  # Set to 1000 for testing, None for all files
+            files_to_process = midi_files[:limit] if limit else midi_files
+            if limit and len(midi_files) > limit:
+                print(f"Processing {len(files_to_process)} MIDI files (limited from {len(midi_files)} total for testing)...")
+            else:
+                print(f"Processing all {len(files_to_process)} MIDI files...")
 
             for i, midi_file in enumerate(files_to_process):
                 try:
