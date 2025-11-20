@@ -21,8 +21,8 @@ data:
 tokenization:
   tokenizer_type: "REMI"
   max_sequence_length: 2048
-  chunk_size: 1024
-  overlap: 256
+  chunk_size: 2048
+  overlap: 0
   tempo_bins: 32
   velocity_bins: 32
   duration_bins: 64
@@ -41,9 +41,9 @@ model:
 # Training
 training:
   output_dir: "models/lofi-gpt2"
-  num_epochs: 15
-  batch_size: 8
-  gradient_accumulation_steps: 4
+  num_epochs: 3
+  batch_size: 16
+  gradient_accumulation_steps: 2
   effective_batch_size: 32  # batch_size * gradient_accumulation_steps
 
   learning_rate: 3.0e-4
