@@ -9,12 +9,12 @@ data:
 
   # Quality filtering for lo-fi music
   quality_filters:
-    min_tempo: 60
-    max_tempo: 95
-    min_duration: 30  # seconds
-    max_duration: 300  # seconds
-    require_drums: true
-    min_note_density: 0.5  # notes per second
+    min_tempo: 40
+    max_tempo: 180
+    min_duration: 20  # seconds
+    max_duration: 600  # seconds
+    require_drums: false
+    min_note_density: 0.3  # notes per second
     max_note_density: 8.0
 
 # Tokenization
