@@ -19,8 +19,8 @@ class TestLoFiTokenizer:
         tokenizer = LoFiTokenizer(test_config)
 
         assert tokenizer.config == test_config
-        assert tokenizer.token_config == test_config['tokenization']
-        assert tokenizer.quality_filters == test_config['data']['quality_filters']
+        assert tokenizer.token_config == test_config["tokenization"]
+        assert tokenizer.quality_filters == test_config["data"]["quality_filters"]
         assert tokenizer.tokenizer is not None
 
     def test_get_vocab_size(self, test_config):
@@ -38,11 +38,11 @@ class TestLoFiTokenizer:
 
         assert isinstance(passes, bool)
         assert isinstance(metadata, dict)
-        assert 'tempo' in metadata
-        assert 'duration' in metadata
-        assert 'has_drums' in metadata
-        assert 'note_density' in metadata
-        assert 'quality_checks' in metadata
+        assert "tempo" in metadata
+        assert "duration" in metadata
+        assert "has_drums" in metadata
+        assert "note_density" in metadata
+        assert "quality_checks" in metadata
 
     def test_check_quality_fail_tempo(self, test_config, temp_dir):
         """Test quality check fails for tempo out of range."""
@@ -55,14 +55,14 @@ class TestLoFiTokenizer:
         piano.notes.append(note)
         midi.instruments.append(piano)
 
-        midi_path = temp_dir / 'high_tempo.mid'
+        midi_path = temp_dir / "high_tempo.mid"
         midi.write(str(midi_path))
 
         tokenizer = LoFiTokenizer(test_config)
         passes, metadata = tokenizer.check_quality(str(midi_path))
 
         assert passes is False
-        assert metadata['quality_checks']['tempo_ok'] is False
+        assert metadata["quality_checks"]["tempo_ok"] is False
 
     def test_check_quality_fail_no_drums(self, test_config, temp_dir):
         """Test quality check fails when drums are required but missing."""
@@ -73,24 +73,21 @@ class TestLoFiTokenizer:
         piano = pretty_midi.Instrument(program=0, is_drum=False)
         for i in range(100):
             note = pretty_midi.Note(
-                velocity=80,
-                pitch=60 + (i % 12),
-                start=i * 0.1,
-                end=(i + 1) * 0.1
+                velocity=80, pitch=60 + (i % 12), start=i * 0.1, end=(i + 1) * 0.1
             )
             piano.notes.append(note)
         midi.instruments.append(piano)
 
-        midi_path = temp_dir / 'no_drums.mid'
+        midi_path = temp_dir / "no_drums.mid"
         midi.write(str(midi_path))
 
         tokenizer = LoFiTokenizer(test_config)
         passes, metadata = tokenizer.check_quality(str(midi_path))
 
         # Should fail if require_drums is True
-        if test_config['data']['quality_filters']['require_drums']:
+        if test_config["data"]["quality_filters"]["require_drums"]:
             assert passes is False
-            assert metadata['quality_checks']['has_drums'] is False
+            assert metadata["quality_checks"]["has_drums"] is False
 
     def test_extract_metadata(self, test_config, sample_midi_path):
         """Test metadata extraction."""
@@ -100,19 +97,19 @@ class TestLoFiTokenizer:
         midi = pretty_midi.PrettyMIDI(sample_midi_path)
         metadata = tokenizer._extract_metadata(midi)
 
-        assert 'tempo' in metadata
-        assert 'duration' in metadata
-        assert 'has_drums' in metadata
-        assert 'total_notes' in metadata
-        assert 'note_density' in metadata
-        assert 'key' in metadata
-        assert 'mood' in metadata
-        assert 'instruments' in metadata
-        assert 'num_tracks' in metadata
+        assert "tempo" in metadata
+        assert "duration" in metadata
+        assert "has_drums" in metadata
+        assert "total_notes" in metadata
+        assert "note_density" in metadata
+        assert "key" in metadata
+        assert "mood" in metadata
+        assert "instruments" in metadata
+        assert "num_tracks" in metadata
 
-        assert metadata['tempo'] > 0
-        assert metadata['duration'] > 0
-        assert metadata['total_notes'] > 0
+        assert metadata["tempo"] > 0
+        assert metadata["duration"] > 0
+        assert metadata["total_notes"] > 0
 
     def test_tokenize_midi_success(self, test_config, sample_midi_path):
         """Test successful MIDI tokenization."""
@@ -120,11 +117,11 @@ class TestLoFiTokenizer:
         result = tokenizer.tokenize_midi(sample_midi_path, check_quality=False)
 
         assert result is not None
-        assert 'tokens' in result
-        assert 'metadata' in result
-        assert 'file_path' in result
-        assert isinstance(result['tokens'], list)
-        assert len(result['tokens']) > 0
+        assert "tokens" in result
+        assert "metadata" in result
+        assert "file_path" in result
+        assert isinstance(result["tokens"], list)
+        assert len(result["tokens"]) > 0
 
     def test_tokenize_midi_quality_check_fail(self, test_config, temp_dir):
         """Test MIDI tokenization with quality check failure."""
@@ -137,7 +134,7 @@ class TestLoFiTokenizer:
         piano.notes.append(note)
         midi.instruments.append(piano)
 
-        midi_path = temp_dir / 'bad_quality.mid'
+        midi_path = temp_dir / "bad_quality.mid"
         midi.write(str(midi_path))
 
         tokenizer = LoFiTokenizer(test_config)
@@ -179,34 +176,31 @@ class TestLoFiTokenizer:
     def test_tokenize_directory(self, test_config, temp_dir, sample_midi_path):
         """Test batch tokenization of directory."""
         # Create input directory with MIDI files
-        input_dir = temp_dir / 'input'
+        input_dir = temp_dir / "input"
         input_dir.mkdir()
-        output_dir = temp_dir / 'output'
+        output_dir = temp_dir / "output"
 
         # Copy sample MIDI
         import shutil
+
         for i in range(3):
-            shutil.copy(sample_midi_path, input_dir / f'track_{i}.mid')
+            shutil.copy(sample_midi_path, input_dir / f"track_{i}.mid")
 
         tokenizer = LoFiTokenizer(test_config)
-        stats = tokenizer.tokenize_directory(
-            str(input_dir),
-            str(output_dir),
-            check_quality=False
-        )
+        stats = tokenizer.tokenize_directory(str(input_dir), str(output_dir), check_quality=False)
 
-        assert stats['total_files'] == 3
-        assert stats['processed'] >= 0
-        assert stats['passed_quality'] >= 0
+        assert stats["total_files"] == 3
+        assert stats["processed"] >= 0
+        assert stats["passed_quality"] >= 0
 
         # Check output files exist
-        assert (output_dir / 'tokenization_stats.json').exists()
-        assert (output_dir / 'metadata.json').exists()
+        assert (output_dir / "tokenization_stats.json").exists()
+        assert (output_dir / "metadata.json").exists()
 
     def test_tokens_to_midi(self, test_config, temp_dir, sample_tokens):
         """Test converting tokens back to MIDI."""
         tokenizer = LoFiTokenizer(test_config)
-        output_path = temp_dir / 'generated.mid'
+        output_path = temp_dir / "generated.mid"
 
         # This might fail depending on tokenizer implementation
         # Just check it doesn't raise unexpected errors
@@ -231,7 +225,7 @@ class TestLoFiTokenizer:
                 velocity=80,
                 pitch=60 + (i % 2) * 12,  # C notes only
                 start=i * 0.1,
-                end=(i + 1) * 0.1
+                end=(i + 1) * 0.1,
             )
             piano.notes.append(note)
         midi.instruments.append(piano)
@@ -240,17 +234,17 @@ class TestLoFiTokenizer:
         metadata = tokenizer._extract_metadata(midi)
 
         # Key should be C (though heuristic might not be perfect)
-        assert 'key' in metadata
+        assert "key" in metadata
 
     def test_mood_inference(self, test_config, temp_dir):
         """Test mood inference from tempo."""
         import pretty_midi
 
         test_cases = [
-            (65, 'melancholic'),  # Very slow
-            (75, 'chill'),         # Slow
-            (85, 'relaxed'),       # Moderate
-            (95, 'upbeat'),        # Fast
+            (65, "melancholic"),  # Very slow
+            (75, "chill"),  # Slow
+            (85, "relaxed"),  # Moderate
+            (95, "upbeat"),  # Fast
         ]
 
         tokenizer = LoFiTokenizer(test_config)
@@ -263,16 +257,16 @@ class TestLoFiTokenizer:
             midi.instruments.append(piano)
 
             metadata = tokenizer._extract_metadata(midi)
-            assert metadata['mood'] == expected_mood
+            assert metadata["mood"] == expected_mood
 
     def test_invalid_midi_path(self, test_config):
         """Test handling of invalid MIDI path."""
         tokenizer = LoFiTokenizer(test_config)
 
-        passes, metadata = tokenizer.check_quality('/nonexistent/file.mid')
+        passes, metadata = tokenizer.check_quality("/nonexistent/file.mid")
 
         assert passes is False
-        assert 'error' in metadata
+        assert "error" in metadata
 
     def test_note_density_calculation(self, test_config, temp_dir):
         """Test note density calculation."""
@@ -284,21 +278,16 @@ class TestLoFiTokenizer:
 
         # Add 100 notes over 10 seconds = 10 notes/second
         for i in range(100):
-            note = pretty_midi.Note(
-                velocity=80,
-                pitch=60,
-                start=i * 0.1,
-                end=(i + 1) * 0.1
-            )
+            note = pretty_midi.Note(velocity=80, pitch=60, start=i * 0.1, end=(i + 1) * 0.1)
             piano.notes.append(note)
         midi.instruments.append(piano)
 
         tokenizer = LoFiTokenizer(test_config)
         metadata = tokenizer._extract_metadata(midi)
 
-        assert 'note_density' in metadata
+        assert "note_density" in metadata
         # Should be around 10 notes per second
-        assert 8 < metadata['note_density'] < 12
+        assert 8 < metadata["note_density"] < 12
 
     def test_instruments_extraction(self, test_config, temp_dir):
         """Test instrument program extraction."""
@@ -327,7 +316,7 @@ class TestLoFiTokenizer:
         tokenizer = LoFiTokenizer(test_config)
         metadata = tokenizer._extract_metadata(midi)
 
-        assert 0 in metadata['instruments']
-        assert 48 in metadata['instruments']
+        assert 0 in metadata["instruments"]
+        assert 48 in metadata["instruments"]
         # Drums should not be in instruments list
-        assert len([i for i in metadata['instruments'] if i == 0]) == 1
+        assert len([i for i in metadata["instruments"] if i == 0]) == 1

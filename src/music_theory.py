@@ -19,18 +19,18 @@ class MusicTheoryEngine:
 
     # Common chord progressions (in scale degrees)
     COMMON_PROGRESSIONS = [
-        [1, 4, 5, 1],      # I-IV-V-I
-        [1, 5, 6, 4],      # I-V-vi-IV (very common in pop)
-        [1, 6, 4, 5],      # I-vi-IV-V
-        [2, 5, 1],         # ii-V-I (jazz)
-        [1, 4, 1, 5],      # I-IV-I-V
+        [1, 4, 5, 1],  # I-IV-V-I
+        [1, 5, 6, 4],  # I-V-vi-IV (very common in pop)
+        [1, 6, 4, 5],  # I-vi-IV-V
+        [2, 5, 1],  # ii-V-I (jazz)
+        [1, 4, 1, 5],  # I-IV-I-V
     ]
 
     # Lo-fi specific progressions
     LOFI_PROGRESSIONS = [
-        [6, 4, 1, 5],      # vi-IV-I-V (melancholic)
-        [1, 3, 6, 4],      # I-iii-vi-IV
-        [2, 5, 1, 6],      # ii-V-I-vi
+        [6, 4, 1, 5],  # vi-IV-I-V (melancholic)
+        [1, 3, 6, 4],  # I-iii-vi-IV
+        [2, 5, 1, 6],  # ii-V-I-vi
     ]
 
     def __init__(self):
@@ -46,29 +46,26 @@ class MusicTheoryEngine:
         keys = {}
 
         # Major keys
-        note_names = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']
+        note_names = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
         for i, note in enumerate(note_names):
             keys[note] = {
-                'root': i,
-                'scale': [(i + interval) % 12 for interval in self.MAJOR_SCALE],
-                'mode': 'major'
+                "root": i,
+                "scale": [(i + interval) % 12 for interval in self.MAJOR_SCALE],
+                "mode": "major",
             }
 
         # Minor keys
         for i, note in enumerate(note_names):
             keys[f"{note}m"] = {
-                'root': i,
-                'scale': [(i + interval) % 12 for interval in self.MINOR_SCALE],
-                'mode': 'minor'
+                "root": i,
+                "scale": [(i + interval) % 12 for interval in self.MINOR_SCALE],
+                "mode": "minor",
             }
 
         return keys
 
     def validate_melody(
-        self,
-        notes: List[int],
-        key: str = 'C',
-        allow_chromatic: bool = True
+        self, notes: List[int], key: str = "C", allow_chromatic: bool = True
     ) -> Tuple[bool, List[int]]:
         """Validate melody against music theory rules.
 
@@ -82,9 +79,9 @@ class MusicTheoryEngine:
         """
         if key not in self.key_signatures:
             logger.warning(f"Unknown key: {key}, using C major")
-            key = 'C'
+            key = "C"
 
-        scale_notes = set(self.key_signatures[key]['scale'])
+        scale_notes = set(self.key_signatures[key]["scale"])
         corrected_notes = []
 
         for note in notes:
@@ -101,14 +98,11 @@ class MusicTheoryEngine:
                 corrected_note = (note // 12) * 12 + closest
                 corrected_notes.append(corrected_note)
 
-        is_valid = (notes == corrected_notes)
+        is_valid = notes == corrected_notes
         return is_valid, corrected_notes
 
     def suggest_chord_progression(
-        self,
-        key: str = 'C',
-        num_chords: int = 4,
-        style: str = 'lofi'
+        self, key: str = "C", num_chords: int = 4, style: str = "lofi"
     ) -> List[Tuple[int, str]]:
         """Suggest a chord progression.
 
@@ -121,15 +115,15 @@ class MusicTheoryEngine:
             List of (root_note, chord_quality) tuples
         """
         if key not in self.key_signatures:
-            key = 'C'
+            key = "C"
 
         key_info = self.key_signatures[key]
-        root = key_info['root']
-        scale = key_info['scale']
-        mode = key_info['mode']
+        root = key_info["root"]
+        scale = key_info["scale"]
+        mode = key_info["mode"]
 
         # Select progression pool based on style
-        if style == 'lofi':
+        if style == "lofi":
             progressions = self.LOFI_PROGRESSIONS
         else:
             progressions = self.COMMON_PROGRESSIONS
@@ -150,20 +144,20 @@ class MusicTheoryEngine:
             chord_root = scale[scale_index]
 
             # Determine chord quality based on scale degree
-            if mode == 'major':
+            if mode == "major":
                 if degree in [1, 4, 5]:
-                    quality = 'major'
+                    quality = "major"
                 elif degree in [2, 3, 6]:
-                    quality = 'minor'
+                    quality = "minor"
                 else:
-                    quality = 'diminished'
+                    quality = "diminished"
             else:  # minor mode
                 if degree in [3, 6, 7]:
-                    quality = 'major'
+                    quality = "major"
                 elif degree in [1, 4, 5]:
-                    quality = 'minor'
+                    quality = "minor"
                 else:
-                    quality = 'diminished'
+                    quality = "diminished"
 
             chords.append((chord_root, quality))
 
@@ -179,7 +173,7 @@ class MusicTheoryEngine:
             Dictionary with harmony analysis
         """
         if not notes:
-            return {'error': 'No notes provided'}
+            return {"error": "No notes provided"}
 
         # Count pitch class occurrences
         pitch_classes = [note % 12 for note in notes]
@@ -195,12 +189,12 @@ class MusicTheoryEngine:
         chords = self._detect_chords(notes)
 
         return {
-            'likely_key': likely_key,
-            'pitch_class_distribution': pitch_counts.tolist(),
-            'consonance_score': consonance,
-            'detected_chords': chords,
-            'total_notes': len(notes),
-            'unique_pitches': len(set(notes)),
+            "likely_key": likely_key,
+            "pitch_class_distribution": pitch_counts.tolist(),
+            "consonance_score": consonance,
+            "detected_chords": chords,
+            "total_notes": len(notes),
+            "unique_pitches": len(set(notes)),
         }
 
     def _detect_key(self, pitch_counts: np.ndarray) -> str:
@@ -212,11 +206,11 @@ class MusicTheoryEngine:
         Returns:
             Detected key string
         """
-        best_key = 'C'
+        best_key = "C"
         best_score = 0
 
         for key, key_info in self.key_signatures.items():
-            scale_notes = set(key_info['scale'])
+            scale_notes = set(key_info["scale"])
 
             # Score = sum of counts for in-scale notes
             score = sum(pitch_counts[note] for note in scale_notes)
@@ -268,7 +262,7 @@ class MusicTheoryEngine:
 
         # Slide window through notes
         for i in range(0, len(notes) - window + 1, window):
-            window_notes = notes[i:i + window]
+            window_notes = notes[i : i + window]
             pitch_classes = set(note % 12 for note in window_notes)
 
             # Try to match chord patterns
@@ -292,17 +286,17 @@ class MusicTheoryEngine:
 
         # Common chord templates (intervals from root)
         chord_types = {
-            frozenset([0, 4, 7]): 'major',
-            frozenset([0, 3, 7]): 'minor',
-            frozenset([0, 3, 6]): 'diminished',
-            frozenset([0, 4, 8]): 'augmented',
-            frozenset([0, 4, 7, 11]): 'maj7',
-            frozenset([0, 3, 7, 10]): 'min7',
-            frozenset([0, 4, 7, 10]): 'dom7',
+            frozenset([0, 4, 7]): "major",
+            frozenset([0, 3, 7]): "minor",
+            frozenset([0, 3, 6]): "diminished",
+            frozenset([0, 4, 8]): "augmented",
+            frozenset([0, 4, 7, 11]): "maj7",
+            frozenset([0, 3, 7, 10]): "min7",
+            frozenset([0, 4, 7, 10]): "dom7",
         }
 
         # Try each possible root
-        note_names = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']
+        note_names = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
 
         for root in pitch_classes:
             # Normalize to root
@@ -320,23 +314,23 @@ class RhythmEngine:
 
     # Common time signatures
     TIME_SIGNATURES = {
-        '4/4': (4, 4),
-        '3/4': (3, 4),
-        '6/8': (6, 8),
-        '5/4': (5, 4),
+        "4/4": (4, 4),
+        "3/4": (3, 4),
+        "6/8": (6, 8),
+        "5/4": (5, 4),
     }
 
     # Lo-fi rhythm patterns (as ratios of measure)
     LOFI_PATTERNS = [
-        [0, 0.25, 0.5, 0.75],              # Quarter notes
-        [0, 0.25, 0.5, 0.625, 0.75],       # With swing
-        [0, 0.333, 0.667],                 # Triplets
-        [0, 0.25, 0.375, 0.5, 0.75, 0.875], # Syncopated
+        [0, 0.25, 0.5, 0.75],  # Quarter notes
+        [0, 0.25, 0.5, 0.625, 0.75],  # With swing
+        [0, 0.333, 0.667],  # Triplets
+        [0, 0.25, 0.375, 0.5, 0.75, 0.875],  # Syncopated
     ]
 
     def generate_rhythm_pattern(
         self,
-        time_signature: str = '4/4',
+        time_signature: str = "4/4",
         complexity: float = 0.5,
         swing: float = 0.0,
     ) -> List[float]:
@@ -351,7 +345,7 @@ class RhythmEngine:
             List of note onset times (as fraction of measure)
         """
         if time_signature not in self.TIME_SIGNATURES:
-            time_signature = '4/4'
+            time_signature = "4/4"
 
         beats, unit = self.TIME_SIGNATURES[time_signature]
 
@@ -394,7 +388,7 @@ class RhythmEngine:
             Dictionary with rhythm analysis
         """
         if len(note_times) < 2:
-            return {'error': 'Not enough notes'}
+            return {"error": "Not enough notes"}
 
         # Calculate inter-onset intervals
         iois = np.diff(sorted(note_times))
@@ -411,12 +405,12 @@ class RhythmEngine:
         syncopation = self._detect_syncopation(iois)
 
         return {
-            'tempo_bpm': tempo,
-            'median_ioi': median_ioi,
-            'ioi_std': ioi_std,
-            'regularity': regularity,
-            'syncopation_score': syncopation,
-            'total_notes': len(note_times),
+            "tempo_bpm": tempo,
+            "median_ioi": median_ioi,
+            "ioi_std": ioi_std,
+            "regularity": regularity,
+            "syncopation_score": syncopation,
+            "total_notes": len(note_times),
         }
 
     def _detect_syncopation(self, iois: np.ndarray) -> float:

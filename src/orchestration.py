@@ -14,13 +14,15 @@ License: MIT
 """
 
 from dataclasses import dataclass
-from typing import List, Dict, Tuple, Optional, Set
 from enum import Enum
+from typing import Dict, List, Optional, Set, Tuple
+
 import numpy as np
 
 
 class InstrumentFamily(Enum):
     """Instrument family classifications."""
+
     STRINGS = "strings"
     WOODWINDS = "woodwinds"
     BRASS = "brass"
@@ -34,6 +36,7 @@ class InstrumentFamily(Enum):
 @dataclass
 class InstrumentCharacteristics:
     """Characteristics of a musical instrument."""
+
     name: str
     midi_program: int
     family: InstrumentFamily
@@ -62,299 +65,299 @@ class InstrumentDatabase:
         instruments = {}
 
         # === KEYBOARDS ===
-        instruments['acoustic_grand_piano'] = InstrumentCharacteristics(
-            name='Acoustic Grand Piano',
+        instruments["acoustic_grand_piano"] = InstrumentCharacteristics(
+            name="Acoustic Grand Piano",
             midi_program=0,
             family=InstrumentFamily.KEYBOARDS,
             range_low=21,  # A0
             range_high=108,  # C8
             comfortable_low=28,  # E1
             comfortable_high=96,  # C7
-            timbre_tags=['bright', 'percussive', 'resonant'],
+            timbre_tags=["bright", "percussive", "resonant"],
             dynamic_range=0.95,
             agility=0.9,
             sustain=0.8,
             blend_score=0.7,
             solo_score=0.95,
-            typical_roles=['melody', 'harmony', 'bass', 'rhythm']
+            typical_roles=["melody", "harmony", "bass", "rhythm"],
         )
 
-        instruments['electric_piano'] = InstrumentCharacteristics(
-            name='Electric Piano',
+        instruments["electric_piano"] = InstrumentCharacteristics(
+            name="Electric Piano",
             midi_program=4,
             family=InstrumentFamily.KEYBOARDS,
             range_low=28,
             range_high=103,
             comfortable_low=36,
             comfortable_high=96,
-            timbre_tags=['mellow', 'warm', 'percussive'],
+            timbre_tags=["mellow", "warm", "percussive"],
             dynamic_range=0.85,
             agility=0.85,
             sustain=0.6,
             blend_score=0.8,
             solo_score=0.85,
-            typical_roles=['melody', 'harmony', 'rhythm']
+            typical_roles=["melody", "harmony", "rhythm"],
         )
 
         # === GUITARS ===
-        instruments['acoustic_guitar_nylon'] = InstrumentCharacteristics(
-            name='Acoustic Guitar (nylon)',
+        instruments["acoustic_guitar_nylon"] = InstrumentCharacteristics(
+            name="Acoustic Guitar (nylon)",
             midi_program=24,
             family=InstrumentFamily.GUITARS,
             range_low=40,  # E2
             range_high=84,  # C6
             comfortable_low=40,
             comfortable_high=79,
-            timbre_tags=['warm', 'mellow', 'plucked'],
+            timbre_tags=["warm", "mellow", "plucked"],
             dynamic_range=0.7,
             agility=0.8,
             sustain=0.4,
             blend_score=0.75,
             solo_score=0.9,
-            typical_roles=['melody', 'harmony', 'rhythm']
+            typical_roles=["melody", "harmony", "rhythm"],
         )
 
-        instruments['acoustic_guitar_steel'] = InstrumentCharacteristics(
-            name='Acoustic Guitar (steel)',
+        instruments["acoustic_guitar_steel"] = InstrumentCharacteristics(
+            name="Acoustic Guitar (steel)",
             midi_program=25,
             family=InstrumentFamily.GUITARS,
             range_low=40,
             range_high=84,
             comfortable_low=40,
             comfortable_high=79,
-            timbre_tags=['bright', 'crisp', 'plucked'],
+            timbre_tags=["bright", "crisp", "plucked"],
             dynamic_range=0.75,
             agility=0.8,
             sustain=0.5,
             blend_score=0.75,
             solo_score=0.9,
-            typical_roles=['melody', 'harmony', 'rhythm']
+            typical_roles=["melody", "harmony", "rhythm"],
         )
 
-        instruments['electric_guitar_clean'] = InstrumentCharacteristics(
-            name='Electric Guitar (clean)',
+        instruments["electric_guitar_clean"] = InstrumentCharacteristics(
+            name="Electric Guitar (clean)",
             midi_program=27,
             family=InstrumentFamily.GUITARS,
             range_low=40,
             range_high=88,
             comfortable_low=40,
             comfortable_high=84,
-            timbre_tags=['bright', 'clear', 'sustained'],
+            timbre_tags=["bright", "clear", "sustained"],
             dynamic_range=0.8,
             agility=0.85,
             sustain=0.7,
             blend_score=0.8,
             solo_score=0.95,
-            typical_roles=['melody', 'harmony', 'rhythm']
+            typical_roles=["melody", "harmony", "rhythm"],
         )
 
         # === BASS ===
-        instruments['acoustic_bass'] = InstrumentCharacteristics(
-            name='Acoustic Bass',
+        instruments["acoustic_bass"] = InstrumentCharacteristics(
+            name="Acoustic Bass",
             midi_program=32,
             family=InstrumentFamily.BASS,
             range_low=28,  # E1
             range_high=67,  # G4
             comfortable_low=28,
             comfortable_high=55,
-            timbre_tags=['warm', 'deep', 'resonant'],
+            timbre_tags=["warm", "deep", "resonant"],
             dynamic_range=0.8,
             agility=0.7,
             sustain=0.6,
             blend_score=0.9,
             solo_score=0.6,
-            typical_roles=['bass']
+            typical_roles=["bass"],
         )
 
-        instruments['electric_bass_finger'] = InstrumentCharacteristics(
-            name='Electric Bass (finger)',
+        instruments["electric_bass_finger"] = InstrumentCharacteristics(
+            name="Electric Bass (finger)",
             midi_program=33,
             family=InstrumentFamily.BASS,
             range_low=28,
             range_high=67,
             comfortable_low=28,
             comfortable_high=60,
-            timbre_tags=['warm', 'punchy', 'percussive'],
+            timbre_tags=["warm", "punchy", "percussive"],
             dynamic_range=0.85,
             agility=0.8,
             sustain=0.5,
             blend_score=0.9,
             solo_score=0.7,
-            typical_roles=['bass', 'rhythm']
+            typical_roles=["bass", "rhythm"],
         )
 
         # === STRINGS ===
-        instruments['violin'] = InstrumentCharacteristics(
-            name='Violin',
+        instruments["violin"] = InstrumentCharacteristics(
+            name="Violin",
             midi_program=40,
             family=InstrumentFamily.STRINGS,
             range_low=55,  # G3
             range_high=103,  # G7
             comfortable_low=55,
             comfortable_high=93,
-            timbre_tags=['bright', 'expressive', 'singing'],
+            timbre_tags=["bright", "expressive", "singing"],
             dynamic_range=0.95,
             agility=0.9,
             sustain=0.95,
             blend_score=0.9,
             solo_score=0.95,
-            typical_roles=['melody', 'harmony']
+            typical_roles=["melody", "harmony"],
         )
 
-        instruments['cello'] = InstrumentCharacteristics(
-            name='Cello',
+        instruments["cello"] = InstrumentCharacteristics(
+            name="Cello",
             midi_program=42,
             family=InstrumentFamily.STRINGS,
             range_low=36,  # C2
             range_high=84,  # C6
             comfortable_low=36,
             comfortable_high=76,
-            timbre_tags=['warm', 'rich', 'expressive'],
+            timbre_tags=["warm", "rich", "expressive"],
             dynamic_range=0.95,
             agility=0.8,
             sustain=0.95,
             blend_score=0.85,
             solo_score=0.9,
-            typical_roles=['melody', 'harmony', 'bass']
+            typical_roles=["melody", "harmony", "bass"],
         )
 
-        instruments['string_ensemble'] = InstrumentCharacteristics(
-            name='String Ensemble',
+        instruments["string_ensemble"] = InstrumentCharacteristics(
+            name="String Ensemble",
             midi_program=48,
             family=InstrumentFamily.STRINGS,
             range_low=36,
             range_high=96,
             comfortable_low=40,
             comfortable_high=88,
-            timbre_tags=['lush', 'warm', 'sustained'],
+            timbre_tags=["lush", "warm", "sustained"],
             dynamic_range=0.9,
             agility=0.7,
             sustain=0.95,
             blend_score=0.95,
             solo_score=0.7,
-            typical_roles=['harmony', 'pad']
+            typical_roles=["harmony", "pad"],
         )
 
         # === BRASS ===
-        instruments['trumpet'] = InstrumentCharacteristics(
-            name='Trumpet',
+        instruments["trumpet"] = InstrumentCharacteristics(
+            name="Trumpet",
             midi_program=56,
             family=InstrumentFamily.BRASS,
             range_low=55,  # F#3
             range_high=94,  # A#6
             comfortable_low=60,
             comfortable_high=84,
-            timbre_tags=['bright', 'brilliant', 'powerful'],
+            timbre_tags=["bright", "brilliant", "powerful"],
             dynamic_range=0.9,
             agility=0.85,
             sustain=0.9,
             blend_score=0.7,
             solo_score=0.9,
-            typical_roles=['melody', 'harmony']
+            typical_roles=["melody", "harmony"],
         )
 
-        instruments['trombone'] = InstrumentCharacteristics(
-            name='Trombone',
+        instruments["trombone"] = InstrumentCharacteristics(
+            name="Trombone",
             midi_program=57,
             family=InstrumentFamily.BRASS,
             range_low=40,  # E2
             range_high=79,  # G5
             comfortable_low=45,
             comfortable_high=72,
-            timbre_tags=['warm', 'smooth', 'powerful'],
+            timbre_tags=["warm", "smooth", "powerful"],
             dynamic_range=0.9,
             agility=0.6,
             sustain=0.9,
             blend_score=0.8,
             solo_score=0.8,
-            typical_roles=['harmony', 'bass']
+            typical_roles=["harmony", "bass"],
         )
 
         # === WOODWINDS ===
-        instruments['flute'] = InstrumentCharacteristics(
-            name='Flute',
+        instruments["flute"] = InstrumentCharacteristics(
+            name="Flute",
             midi_program=73,
             family=InstrumentFamily.WOODWINDS,
             range_low=60,  # C4
             range_high=96,  # C7
             comfortable_low=65,
             comfortable_high=89,
-            timbre_tags=['bright', 'airy', 'pure'],
+            timbre_tags=["bright", "airy", "pure"],
             dynamic_range=0.85,
             agility=0.95,
             sustain=0.7,
             blend_score=0.85,
             solo_score=0.9,
-            typical_roles=['melody']
+            typical_roles=["melody"],
         )
 
-        instruments['clarinet'] = InstrumentCharacteristics(
-            name='Clarinet',
+        instruments["clarinet"] = InstrumentCharacteristics(
+            name="Clarinet",
             midi_program=71,
             family=InstrumentFamily.WOODWINDS,
             range_low=50,  # D3
             range_high=94,  # A#6
             comfortable_low=55,
             comfortable_high=86,
-            timbre_tags=['warm', 'mellow', 'expressive'],
+            timbre_tags=["warm", "mellow", "expressive"],
             dynamic_range=0.9,
             agility=0.9,
             sustain=0.8,
             blend_score=0.9,
             solo_score=0.9,
-            typical_roles=['melody', 'harmony']
+            typical_roles=["melody", "harmony"],
         )
 
-        instruments['saxophone'] = InstrumentCharacteristics(
-            name='Alto Sax',
+        instruments["saxophone"] = InstrumentCharacteristics(
+            name="Alto Sax",
             midi_program=65,
             family=InstrumentFamily.WOODWINDS,
             range_low=49,  # C#3
             range_high=81,  # A5
             comfortable_low=53,
             comfortable_high=77,
-            timbre_tags=['warm', 'expressive', 'jazzy'],
+            timbre_tags=["warm", "expressive", "jazzy"],
             dynamic_range=0.9,
             agility=0.85,
             sustain=0.85,
             blend_score=0.75,
             solo_score=0.95,
-            typical_roles=['melody', 'harmony']
+            typical_roles=["melody", "harmony"],
         )
 
         # === SYNTHS ===
-        instruments['synth_pad'] = InstrumentCharacteristics(
-            name='Synth Pad',
+        instruments["synth_pad"] = InstrumentCharacteristics(
+            name="Synth Pad",
             midi_program=88,
             family=InstrumentFamily.SYNTH,
             range_low=24,
             range_high=96,
             comfortable_low=36,
             comfortable_high=84,
-            timbre_tags=['lush', 'atmospheric', 'sustained'],
+            timbre_tags=["lush", "atmospheric", "sustained"],
             dynamic_range=0.7,
             agility=0.5,
             sustain=0.98,
             blend_score=0.95,
             solo_score=0.6,
-            typical_roles=['pad', 'harmony']
+            typical_roles=["pad", "harmony"],
         )
 
-        instruments['synth_lead'] = InstrumentCharacteristics(
-            name='Synth Lead',
+        instruments["synth_lead"] = InstrumentCharacteristics(
+            name="Synth Lead",
             midi_program=80,
             family=InstrumentFamily.SYNTH,
             range_low=36,
             range_high=96,
             comfortable_low=48,
             comfortable_high=84,
-            timbre_tags=['bright', 'cutting', 'electronic'],
+            timbre_tags=["bright", "cutting", "electronic"],
             dynamic_range=0.8,
             agility=0.95,
             sustain=0.9,
             blend_score=0.6,
             solo_score=0.95,
-            typical_roles=['melody', 'lead']
+            typical_roles=["melody", "lead"],
         )
 
         return instruments
@@ -387,11 +390,11 @@ class VoiceSpacing:
             Dictionary with spacing analysis
         """
         if len(notes) < 2:
-            return {'is_good': True, 'issues': []}
+            return {"is_good": True, "issues": []}
 
         issues = []
         sorted_notes = sorted(notes)
-        intervals = [sorted_notes[i+1] - sorted_notes[i] for i in range(len(sorted_notes)-1)]
+        intervals = [sorted_notes[i + 1] - sorted_notes[i] for i in range(len(sorted_notes) - 1)]
 
         # Check for large gaps (>12 semitones) in lower voices
         for i, interval in enumerate(intervals[:-1]):  # Not the highest voice
@@ -410,15 +413,15 @@ class VoiceSpacing:
         spacing_quality = 1.0 - (len(issues) * 0.2)
 
         return {
-            'is_good': len(issues) == 0,
-            'issues': issues,
-            'intervals': intervals,
-            'avg_interval': avg_interval,
-            'quality_score': max(0.0, spacing_quality)
+            "is_good": len(issues) == 0,
+            "issues": issues,
+            "intervals": intervals,
+            "avg_interval": avg_interval,
+            "quality_score": max(0.0, spacing_quality),
         }
 
     @staticmethod
-    def optimize_spacing(notes: List[int], target_register: str = 'mid') -> List[int]:
+    def optimize_spacing(notes: List[int], target_register: str = "mid") -> List[int]:
         """
         Optimize voice spacing by octave displacement.
 
@@ -433,11 +436,7 @@ class VoiceSpacing:
             return notes
 
         # Define target ranges
-        target_ranges = {
-            'low': (36, 60),
-            'mid': (48, 72),
-            'high': (60, 84)
-        }
+        target_ranges = {"low": (36, 60), "mid": (48, 72), "high": (60, 84)}
 
         target_low, target_high = target_ranges[target_register]
 
@@ -468,7 +467,7 @@ class VoiceSpacing:
         return final
 
     @staticmethod
-    def double_notes(notes: List[int], doubling_strategy: str = 'root_fifth') -> List[int]:
+    def double_notes(notes: List[int], doubling_strategy: str = "root_fifth") -> List[int]:
         """
         Double notes according to orchestration principles.
 
@@ -485,11 +484,11 @@ class VoiceSpacing:
         result = list(notes)
         root = notes[0]  # Assume root is lowest note
 
-        if doubling_strategy == 'root':
+        if doubling_strategy == "root":
             # Double root in higher octave
             result.append(root + 12)
 
-        elif doubling_strategy == 'root_fifth':
+        elif doubling_strategy == "root_fifth":
             # Double root and fifth (if present)
             result.append(root + 12)
             # Check for fifth (7 semitones above root)
@@ -499,11 +498,11 @@ class VoiceSpacing:
                     result.append(note + 12)
                     break
 
-        elif doubling_strategy == 'all':
+        elif doubling_strategy == "all":
             # Double all notes
             result.extend([n + 12 for n in notes])
 
-        elif doubling_strategy == 'octaves':
+        elif doubling_strategy == "octaves":
             # Double each note at octave
             result.extend([n + 12 for n in notes])
 
@@ -518,10 +517,12 @@ class OrchestrationEngine:
         self.instrument_db = InstrumentDatabase()
         self.voice_spacing = VoiceSpacing()
 
-    def arrange_melody(self,
-                       melody_notes: List[int],
-                       arrangement_style: str = 'full',
-                       instrumentation: Optional[List[str]] = None) -> Dict[str, List[int]]:
+    def arrange_melody(
+        self,
+        melody_notes: List[int],
+        arrangement_style: str = "full",
+        instrumentation: Optional[List[str]] = None,
+    ) -> Dict[str, List[int]]:
         """
         Arrange a melody for multiple instruments.
 
@@ -545,9 +546,7 @@ class OrchestrationEngine:
 
             # Transpose melody to comfortable range
             transposed = self._transpose_to_range(
-                melody_notes,
-                inst.comfortable_low,
-                inst.comfortable_high
+                melody_notes, inst.comfortable_low, inst.comfortable_high
             )
 
             arrangement[inst_name] = transposed
@@ -556,29 +555,17 @@ class OrchestrationEngine:
 
     def _select_instruments(self, style: str) -> List[str]:
         """Select instruments based on arrangement style."""
-        if style == 'minimal':
-            return ['acoustic_grand_piano', 'acoustic_bass']
+        if style == "minimal":
+            return ["acoustic_grand_piano", "acoustic_bass"]
 
-        elif style == 'full':
-            return [
-                'acoustic_grand_piano',
-                'electric_bass_finger',
-                'string_ensemble',
-                'synth_pad'
-            ]
+        elif style == "full":
+            return ["acoustic_grand_piano", "electric_bass_finger", "string_ensemble", "synth_pad"]
 
-        elif style == 'orchestral':
-            return [
-                'violin',
-                'cello',
-                'flute',
-                'clarinet',
-                'trumpet',
-                'trombone'
-            ]
+        elif style == "orchestral":
+            return ["violin", "cello", "flute", "clarinet", "trumpet", "trombone"]
 
         else:
-            return ['acoustic_grand_piano']
+            return ["acoustic_grand_piano"]
 
     def _transpose_to_range(self, notes: List[int], low: int, high: int) -> List[int]:
         """Transpose notes to fit within instrument range."""
@@ -622,7 +609,7 @@ class OrchestrationEngine:
             all_notes.extend(notes)
 
         if not all_notes:
-            return {'overall_balance': 0.0}
+            return {"overall_balance": 0.0}
 
         low_count = sum(1 for n in all_notes if n < 48)
         mid_count = sum(1 for n in all_notes if 48 <= n < 72)
@@ -635,7 +622,7 @@ class OrchestrationEngine:
         mid_balance = 1.0 - abs(mid_count / total - 0.4)
         high_balance = 1.0 - abs(high_count / total - 0.3)
 
-        scores['register_balance'] = (low_balance + mid_balance + high_balance) / 3
+        scores["register_balance"] = (low_balance + mid_balance + high_balance) / 3
 
         # Check family balance
         families = []
@@ -645,17 +632,16 @@ class OrchestrationEngine:
                 families.append(inst.family.value)
 
         family_diversity = len(set(families)) / len(families) if families else 0
-        scores['family_diversity'] = family_diversity
+        scores["family_diversity"] = family_diversity
 
         # Overall balance
-        scores['overall_balance'] = (scores['register_balance'] + scores['family_diversity']) / 2
+        scores["overall_balance"] = (scores["register_balance"] + scores["family_diversity"]) / 2
 
         return scores
 
-    def suggest_instrumentation(self,
-                                melody_range: Tuple[int, int],
-                                genre: str = 'lofi',
-                                num_instruments: int = 4) -> List[str]:
+    def suggest_instrumentation(
+        self, melody_range: Tuple[int, int], genre: str = "lofi", num_instruments: int = 4
+    ) -> List[str]:
         """
         Suggest instrumentation based on context.
 
@@ -668,13 +654,23 @@ class OrchestrationEngine:
             List of suggested instrument names
         """
         genre_preferences = {
-            'lofi': ['acoustic_grand_piano', 'electric_bass_finger', 'synth_pad', 'electric_guitar_clean'],
-            'jazz': ['acoustic_grand_piano', 'acoustic_bass', 'saxophone', 'electric_guitar_clean'],
-            'classical': ['violin', 'cello', 'flute', 'clarinet'],
-            'electronic': ['synth_lead', 'synth_pad', 'electric_bass_finger', 'acoustic_grand_piano'],
+            "lofi": [
+                "acoustic_grand_piano",
+                "electric_bass_finger",
+                "synth_pad",
+                "electric_guitar_clean",
+            ],
+            "jazz": ["acoustic_grand_piano", "acoustic_bass", "saxophone", "electric_guitar_clean"],
+            "classical": ["violin", "cello", "flute", "clarinet"],
+            "electronic": [
+                "synth_lead",
+                "synth_pad",
+                "electric_bass_finger",
+                "acoustic_grand_piano",
+            ],
         }
 
-        preferred = genre_preferences.get(genre, ['acoustic_grand_piano', 'electric_bass_finger'])
+        preferred = genre_preferences.get(genre, ["acoustic_grand_piano", "electric_bass_finger"])
 
         # Filter by range compatibility
         low, high = melody_range
@@ -691,7 +687,7 @@ class OrchestrationEngine:
 
         # Fill up to num_instruments
         while len(suggestions) < num_instruments:
-            suggestions.append('acoustic_grand_piano')
+            suggestions.append("acoustic_grand_piano")
 
         return suggestions[:num_instruments]
 
@@ -701,9 +697,9 @@ class SATBVoicing:
 
     # Standard SATB ranges
     SOPRANO_RANGE = (60, 81)  # C4-A5
-    ALTO_RANGE = (53, 74)     # F3-D5
-    TENOR_RANGE = (48, 69)    # C3-A4
-    BASS_RANGE = (40, 62)     # E2-D4
+    ALTO_RANGE = (53, 74)  # F3-D5
+    TENOR_RANGE = (48, 69)  # C3-A4
+    BASS_RANGE = (40, 62)  # E2-D4
 
     @staticmethod
     def create_satb_voicing(chord_notes: List[int]) -> Dict[str, int]:
@@ -751,29 +747,24 @@ class SATBVoicing:
         while soprano > SATBVoicing.SOPRANO_RANGE[1]:
             soprano -= 12
 
-        return {
-            'soprano': soprano,
-            'alto': alto,
-            'tenor': tenor,
-            'bass': bass
-        }
+        return {"soprano": soprano, "alto": alto, "tenor": tenor, "bass": bass}
 
 
 # Example usage and testing
-if __name__ == '__main__':
+if __name__ == "__main__":
     # Initialize engine
     engine = OrchestrationEngine()
 
     # Test instrument database
     print("=== Instrument Database ===")
-    piano = engine.instrument_db.get_instrument('acoustic_grand_piano')
+    piano = engine.instrument_db.get_instrument("acoustic_grand_piano")
     print(f"Piano range: {piano.range_low}-{piano.range_high}")
     print(f"Piano roles: {piano.typical_roles}")
 
     # Test arrangement
     print("\n=== Melody Arrangement ===")
     melody = [60, 62, 64, 65, 67, 69, 71, 72]  # C major scale
-    arrangement = engine.arrange_melody(melody, arrangement_style='full')
+    arrangement = engine.arrange_melody(melody, arrangement_style="full")
     for inst, notes in arrangement.items():
         print(f"{inst}: {notes[:4]}...")
 
@@ -793,9 +784,11 @@ if __name__ == '__main__':
     # Test SATB
     print("\n=== SATB Voicing ===")
     satb = SATBVoicing.create_satb_voicing([0, 4, 7])  # C major
-    print(f"Soprano: {satb['soprano']}, Alto: {satb['alto']}, Tenor: {satb['tenor']}, Bass: {satb['bass']}")
+    print(
+        f"Soprano: {satb['soprano']}, Alto: {satb['alto']}, Tenor: {satb['tenor']}, Bass: {satb['bass']}"
+    )
 
     # Test instrumentation suggestion
     print("\n=== Instrumentation Suggestion ===")
-    suggestions = engine.suggest_instrumentation((60, 84), genre='lofi')
+    suggestions = engine.suggest_instrumentation((60, 84), genre="lofi")
     print(f"Suggested instruments: {suggestions}")

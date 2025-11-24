@@ -17,15 +17,13 @@ License: MIT
 """
 
 import json
-import time
-from datetime import datetime, timedelta
-from typing import List, Dict, Optional, Tuple
-from dataclasses import dataclass, asdict
-from pathlib import Path
 import logging
 import random
-from collections import defaultdict
-import math
+import time
+from dataclasses import asdict, dataclass
+from datetime import datetime
+from pathlib import Path
+from typing import Dict, List, Optional
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -34,6 +32,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class Variation:
     """A single variation in an A/B test."""
+
     variation_id: str
     variation_name: str  # "A", "B", "C"
 
@@ -64,13 +63,13 @@ class Variation:
 
     def update_metrics(self, metrics: Dict):
         """Update performance metrics and calculate derived values."""
-        self.impressions = metrics.get('impressions', self.impressions)
-        self.views = metrics.get('views', self.views)
-        self.clicks = metrics.get('clicks', self.clicks)
-        self.watch_time = metrics.get('watch_time', self.watch_time)
-        self.likes = metrics.get('likes', self.likes)
-        self.comments = metrics.get('comments', self.comments)
-        self.shares = metrics.get('shares', self.shares)
+        self.impressions = metrics.get("impressions", self.impressions)
+        self.views = metrics.get("views", self.views)
+        self.clicks = metrics.get("clicks", self.clicks)
+        self.watch_time = metrics.get("watch_time", self.watch_time)
+        self.likes = metrics.get("likes", self.likes)
+        self.comments = metrics.get("comments", self.comments)
+        self.shares = metrics.get("shares", self.shares)
 
         # Calculate CTR
         if self.impressions > 0:
@@ -89,6 +88,7 @@ class Variation:
 @dataclass
 class ABTest:
     """An A/B test experiment."""
+
     test_id: str
     test_name: str
     created_at: str
@@ -167,11 +167,11 @@ class ABTestManager:
             List of Variation objects
         """
         variations = []
-        variation_names = ['A', 'B', 'C', 'D', 'E'][:num_variations]
+        variation_names = ["A", "B", "C", "D", "E"][:num_variations]
 
-        base_title = base_content.get('title', '')
-        base_description = base_content.get('description', '')
-        base_tags = base_content.get('tags', [])
+        base_title = base_content.get("title", "")
+        base_description = base_content.get("description", "")
+        base_tags = base_content.get("tags", [])
 
         for i, name in enumerate(variation_names):
             # Create title variations
@@ -217,15 +217,20 @@ class ABTestManager:
                 variation_name=name,
                 title=title,
                 description=description,
-                tags=tags
+                tags=tags,
             )
             variations.append(variation)
 
         logger.info(f"Created {len(variations)} variations")
         return variations
 
-    def create_test(self, test_name: str, base_content: Dict,
-                   num_variations: int = 3, test_duration_days: int = 7) -> ABTest:
+    def create_test(
+        self,
+        test_name: str,
+        base_content: Dict,
+        num_variations: int = 3,
+        test_duration_days: int = 7,
+    ) -> ABTest:
         """
         Create a new A/B test.
 
@@ -247,7 +252,7 @@ class ABTestManager:
             test_name=test_name,
             created_at=datetime.now().isoformat(),
             variations=variations,
-            test_duration_days=test_duration_days
+            test_duration_days=test_duration_days,
         )
 
         # Store test
@@ -276,8 +281,10 @@ class ABTestManager:
         for variation in test.variations:
             if variation.variation_id == variation_id:
                 variation.update_metrics(metrics)
-                logger.info(f"Updated metrics for {variation.variation_name}: "
-                          f"{variation.views} views, {variation.ctr:.2f}% CTR")
+                logger.info(
+                    f"Updated metrics for {variation.variation_name}: "
+                    f"{variation.views} views, {variation.ctr:.2f}% CTR"
+                )
                 break
 
         # Save updated test
@@ -301,49 +308,49 @@ class ABTestManager:
 
         if not test.has_sufficient_data():
             return {
-                'status': 'insufficient_data',
-                'message': f'Need at least {test.min_sample_size} views per variation',
-                'current_data': {v.variation_name: v.views for v in test.variations}
+                "status": "insufficient_data",
+                "message": f"Need at least {test.min_sample_size} views per variation",
+                "current_data": {v.variation_name: v.views for v in test.variations},
             }
 
         # Calculate metrics for each variation
         results = {
-            'test_id': test_id,
-            'test_name': test.test_name,
-            'analyzed_at': datetime.now().isoformat(),
-            'variations': []
+            "test_id": test_id,
+            "test_name": test.test_name,
+            "analyzed_at": datetime.now().isoformat(),
+            "variations": [],
         }
 
         for variation in test.variations:
             var_result = {
-                'name': variation.variation_name,
-                'title': variation.title,
-                'metrics': {
-                    'views': variation.views,
-                    'ctr': round(variation.ctr, 2),
-                    'engagement_rate': round(variation.engagement_rate, 2),
-                    'avg_view_duration': round(variation.avg_view_duration, 2),
-                    'likes': variation.likes,
-                    'comments': variation.comments
-                }
+                "name": variation.variation_name,
+                "title": variation.title,
+                "metrics": {
+                    "views": variation.views,
+                    "ctr": round(variation.ctr, 2),
+                    "engagement_rate": round(variation.engagement_rate, 2),
+                    "avg_view_duration": round(variation.avg_view_duration, 2),
+                    "likes": variation.likes,
+                    "comments": variation.comments,
+                },
             }
-            results['variations'].append(var_result)
+            results["variations"].append(var_result)
 
         # Determine winner based on primary metric (views or CTR)
         # Sort by engagement rate (combination of multiple factors)
-        ranked = sorted(test.variations,
-                       key=lambda v: (v.engagement_rate, v.ctr, v.views),
-                       reverse=True)
+        ranked = sorted(
+            test.variations, key=lambda v: (v.engagement_rate, v.ctr, v.views), reverse=True
+        )
 
         winner = ranked[0]
-        results['winner'] = {
-            'variation_name': winner.variation_name,
-            'title': winner.title,
-            'improvement_vs_baseline': self._calculate_improvement(test.variations[0], winner)
+        results["winner"] = {
+            "variation_name": winner.variation_name,
+            "title": winner.title,
+            "improvement_vs_baseline": self._calculate_improvement(test.variations[0], winner),
         }
 
         # Statistical significance test (simplified chi-square)
-        results['statistical_significance'] = self._test_significance(test.variations)
+        results["statistical_significance"] = self._test_significance(test.variations)
 
         # Save results
         test.results = results
@@ -357,14 +364,19 @@ class ABTestManager:
         improvements = {}
 
         if baseline.views > 0:
-            improvements['views'] = round(((winner.views - baseline.views) / baseline.views) * 100, 2)
+            improvements["views"] = round(
+                ((winner.views - baseline.views) / baseline.views) * 100, 2
+            )
 
         if baseline.ctr > 0:
-            improvements['ctr'] = round(((winner.ctr - baseline.ctr) / baseline.ctr) * 100, 2)
+            improvements["ctr"] = round(((winner.ctr - baseline.ctr) / baseline.ctr) * 100, 2)
 
         if baseline.engagement_rate > 0:
-            improvements['engagement'] = round(
-                ((winner.engagement_rate - baseline.engagement_rate) / baseline.engagement_rate) * 100, 2)
+            improvements["engagement"] = round(
+                ((winner.engagement_rate - baseline.engagement_rate) / baseline.engagement_rate)
+                * 100,
+                2,
+            )
 
         return improvements
 
@@ -375,14 +387,14 @@ class ABTestManager:
         Uses chi-square test for CTR comparison.
         """
         if len(variations) < 2:
-            return {'is_significant': False, 'reason': 'Need at least 2 variations'}
+            return {"is_significant": False, "reason": "Need at least 2 variations"}
 
         # Calculate chi-square for CTR
         total_impressions = sum(v.impressions for v in variations)
         total_clicks = sum(v.clicks for v in variations)
 
         if total_impressions == 0:
-            return {'is_significant': False, 'reason': 'No impression data'}
+            return {"is_significant": False, "reason": "No impression data"}
 
         expected_ctr = total_clicks / total_impressions if total_impressions > 0 else 0
 
@@ -403,12 +415,15 @@ class ABTestManager:
         is_significant = chi_square > critical_value
 
         return {
-            'is_significant': is_significant,
-            'chi_square': round(chi_square, 3),
-            'critical_value': critical_value,
-            'confidence_level': '95%',
-            'interpretation': 'Results are statistically significant' if is_significant
-                            else 'Results are not statistically significant'
+            "is_significant": is_significant,
+            "chi_square": round(chi_square, 3),
+            "critical_value": critical_value,
+            "confidence_level": "95%",
+            "interpretation": (
+                "Results are statistically significant"
+                if is_significant
+                else "Results are not statistically significant"
+            ),
         }
 
     def auto_select_winner(self, test_id: str) -> Optional[str]:
@@ -435,7 +450,7 @@ class ABTestManager:
         results = self.analyze_test(test_id)
 
         # Check statistical significance
-        if not results.get('statistical_significance', {}).get('is_significant', False):
+        if not results.get("statistical_significance", {}).get("is_significant", False):
             logger.warning(f"Test {test_id} results not statistically significant")
             # Still select winner but with warning
 
@@ -449,7 +464,7 @@ class ABTestManager:
 
         self._save_test(test)
 
-        winner_name = results['winner']['variation_name']
+        winner_name = results["winner"]["variation_name"]
         logger.info(f"Auto-selected winner: Variation {winner_name}")
 
         return test.winner_id
@@ -476,16 +491,16 @@ class ABTestManager:
             return None
 
         return {
-            'title': winner.title,
-            'description': winner.description,
-            'tags': winner.tags,
-            'thumbnail_path': winner.thumbnail_path,
-            'variation_name': winner.variation_name,
-            'performance': {
-                'views': winner.views,
-                'ctr': winner.ctr,
-                'engagement_rate': winner.engagement_rate
-            }
+            "title": winner.title,
+            "description": winner.description,
+            "tags": winner.tags,
+            "thumbnail_path": winner.thumbnail_path,
+            "variation_name": winner.variation_name,
+            "performance": {
+                "views": winner.views,
+                "ctr": winner.ctr,
+                "engagement_rate": winner.engagement_rate,
+            },
         }
 
     def generate_report(self, test_id: str, output_file: Optional[str] = None) -> Dict:
@@ -509,23 +524,23 @@ class ABTestManager:
             test.results = self.analyze_test(test_id)
 
         report = {
-            'test_summary': {
-                'test_id': test.test_id,
-                'test_name': test.test_name,
-                'status': test.status,
-                'created_at': test.created_at,
-                'started_at': test.started_at,
-                'ended_at': test.ended_at,
-                'duration_days': test.test_duration_days
+            "test_summary": {
+                "test_id": test.test_id,
+                "test_name": test.test_name,
+                "status": test.status,
+                "created_at": test.created_at,
+                "started_at": test.started_at,
+                "ended_at": test.ended_at,
+                "duration_days": test.test_duration_days,
             },
-            'variations': [asdict(v) for v in test.variations],
-            'results': test.results,
-            'winner': self.get_winner_content(test_id) if test.winner_id else None,
-            'recommendations': self._generate_recommendations(test)
+            "variations": [asdict(v) for v in test.variations],
+            "results": test.results,
+            "winner": self.get_winner_content(test_id) if test.winner_id else None,
+            "recommendations": self._generate_recommendations(test),
         }
 
         if output_file:
-            with open(output_file, 'w') as f:
+            with open(output_file, "w") as f:
                 json.dump(report, f, indent=2, default=str)
             logger.info(f"Report saved to {output_file}")
 
@@ -538,8 +553,8 @@ class ABTestManager:
         if not test.results:
             return recommendations
 
-        winner_data = test.results.get('winner', {})
-        improvements = winner_data.get('improvement_vs_baseline', {})
+        winner_data = test.results.get("winner", {})
+        improvements = winner_data.get("improvement_vs_baseline", {})
 
         # Title recommendations
         winner_var = next((v for v in test.variations if v.variation_id == test.winner_id), None)
@@ -550,25 +565,31 @@ class ABTestManager:
                 recommendations.append("Emoji in titles improve click-through rate")
 
         # Engagement recommendations
-        if improvements.get('engagement', 0) > 10:
-            recommendations.append(f"Winner variation improved engagement by {improvements['engagement']}%")
+        if improvements.get("engagement", 0) > 10:
+            recommendations.append(
+                f"Winner variation improved engagement by {improvements['engagement']}%"
+            )
 
         # CTR recommendations
-        if improvements.get('ctr', 0) > 15:
+        if improvements.get("ctr", 0) > 15:
             recommendations.append(f"Winning title format increased CTR by {improvements['ctr']}%")
 
         # Statistical significance
-        if test.results.get('statistical_significance', {}).get('is_significant'):
-            recommendations.append("Results are statistically significant - confidently use winning variation")
+        if test.results.get("statistical_significance", {}).get("is_significant"):
+            recommendations.append(
+                "Results are statistically significant - confidently use winning variation"
+            )
         else:
-            recommendations.append("Results not statistically significant - consider running longer test")
+            recommendations.append(
+                "Results not statistically significant - consider running longer test"
+            )
 
         return recommendations
 
     def _save_test(self, test: ABTest):
         """Save test to storage."""
         file_path = self.storage_path / f"{test.test_id}.json"
-        with open(file_path, 'w') as f:
+        with open(file_path, "w") as f:
             json.dump(asdict(test), f, indent=2, default=str)
 
     def _load_tests(self):
@@ -578,18 +599,18 @@ class ABTestManager:
 
         for file_path in self.storage_path.glob("*.json"):
             try:
-                with open(file_path, 'r') as f:
+                with open(file_path, "r") as f:
                     data = json.load(f)
 
                     # Reconstruct variations
-                    variations = [Variation(**v) for v in data['variations']]
-                    data['variations'] = variations
+                    variations = [Variation(**v) for v in data["variations"]]
+                    data["variations"] = variations
 
                     # Create ABTest object
                     test = ABTest(**data)
 
                     # Store in appropriate dict
-                    if test.status in ['completed', 'winner_selected']:
+                    if test.status in ["completed", "winner_selected"]:
                         self.completed_tests[test.test_id] = test
                     else:
                         self.active_tests[test.test_id] = test
@@ -605,9 +626,9 @@ if __name__ == "__main__":
 
     # Create base content
     base_content = {
-        'title': "Chill Lofi Beats for Studying",
-        'description': "Relaxing lofi hip hop music perfect for studying, working, or just chilling.",
-        'tags': ["lofi", "study music", "chill beats", "hip hop", "relaxing music"]
+        "title": "Chill Lofi Beats for Studying",
+        "description": "Relaxing lofi hip hop music perfect for studying, working, or just chilling.",
+        "tags": ["lofi", "study music", "chill beats", "hip hop", "relaxing music"],
     }
 
     # Create A/B test
@@ -615,7 +636,7 @@ if __name__ == "__main__":
         test_name="Title Format Test - Study Beats",
         base_content=base_content,
         num_variations=3,
-        test_duration_days=7
+        test_duration_days=7,
     )
 
     print(f"\n=== Created A/B Test: {test.test_name} ===")
@@ -628,15 +649,42 @@ if __name__ == "__main__":
 
     # Simulate metric updates (in real usage, these come from YouTube Analytics)
     print("\n=== Simulating Performance Data ===")
-    manager.update_variation_metrics(test.test_id, test.variations[0].variation_id, {
-        'impressions': 1000, 'clicks': 50, 'views': 45, 'watch_time': 1800, 'likes': 5, 'comments': 2
-    })
-    manager.update_variation_metrics(test.test_id, test.variations[1].variation_id, {
-        'impressions': 1000, 'clicks': 65, 'views': 60, 'watch_time': 2400, 'likes': 8, 'comments': 3
-    })
-    manager.update_variation_metrics(test.test_id, test.variations[2].variation_id, {
-        'impressions': 1000, 'clicks': 55, 'views': 50, 'watch_time': 2000, 'likes': 6, 'comments': 2
-    })
+    manager.update_variation_metrics(
+        test.test_id,
+        test.variations[0].variation_id,
+        {
+            "impressions": 1000,
+            "clicks": 50,
+            "views": 45,
+            "watch_time": 1800,
+            "likes": 5,
+            "comments": 2,
+        },
+    )
+    manager.update_variation_metrics(
+        test.test_id,
+        test.variations[1].variation_id,
+        {
+            "impressions": 1000,
+            "clicks": 65,
+            "views": 60,
+            "watch_time": 2400,
+            "likes": 8,
+            "comments": 3,
+        },
+    )
+    manager.update_variation_metrics(
+        test.test_id,
+        test.variations[2].variation_id,
+        {
+            "impressions": 1000,
+            "clicks": 55,
+            "views": 50,
+            "watch_time": 2000,
+            "likes": 6,
+            "comments": 2,
+        },
+    )
 
     # Analyze results
     print("\n=== Analyzing Test Results ===")
@@ -645,14 +693,16 @@ if __name__ == "__main__":
     if results:
         print(f"\nWinner: Variation {results['winner']['variation_name']}")
         print(f"Title: {results['winner']['title']}")
-        print(f"\nImprovements vs Baseline:")
-        for metric, value in results['winner']['improvement_vs_baseline'].items():
+        print("\nImprovements vs Baseline:")
+        for metric, value in results["winner"]["improvement_vs_baseline"].items():
             print(f"  {metric}: {value:+.1f}%")
 
-        print(f"\nStatistical Significance: {results['statistical_significance']['interpretation']}")
+        print(
+            f"\nStatistical Significance: {results['statistical_significance']['interpretation']}"
+        )
 
     # Generate report
     report = manager.generate_report(test.test_id, "ab_test_report.json")
-    print(f"\n=== Recommendations ===")
-    for rec in report['recommendations']:
+    print("\n=== Recommendations ===")
+    for rec in report["recommendations"]:
         print(f"  • {rec}")

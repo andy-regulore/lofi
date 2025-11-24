@@ -9,12 +9,10 @@ Features:
 """
 
 import logging
-from pathlib import Path
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, Optional
 
-import numpy as np
 import librosa
-import soundfile as sf
+import numpy as np
 from scipy import signal
 
 logger = logging.getLogger(__name__)
@@ -27,7 +25,7 @@ class NeuralVocoder:
     like HiFi-GAN, WaveGlow, or DiffWave. For production, integrate one of these.
     """
 
-    def __init__(self, model_path: Optional[str] = None, device: str = 'cuda'):
+    def __init__(self, model_path: Optional[str] = None, device: str = "cuda"):
         """Initialize neural vocoder.
 
         Args:
@@ -130,7 +128,6 @@ class AdvancedLoFiEffects:
         saturated = np.tanh(audio * drive + bias)
 
         # Add even harmonics (characteristic of tape)
-        fundamental = audio
         second_harmonic = 0.1 * np.tanh(2 * audio * drive)
         third_harmonic = 0.05 * np.tanh(3 * audio * drive)
 
@@ -162,11 +159,11 @@ class AdvancedLoFiEffects:
 
         # Wow (0.5-2 Hz)
         wow_freq = np.random.uniform(0.5, 2.0)
-        wow = np.sin(2 * np.pi * wow_freq * t + np.random.uniform(0, 2*np.pi))
+        wow = np.sin(2 * np.pi * wow_freq * t + np.random.uniform(0, 2 * np.pi))
 
         # Flutter (4-10 Hz)
         flutter_freq = np.random.uniform(4, 10)
-        flutter = np.sin(2 * np.pi * flutter_freq * t + np.random.uniform(0, 2*np.pi))
+        flutter = np.sin(2 * np.pi * flutter_freq * t + np.random.uniform(0, 2 * np.pi))
 
         # Random walk for tape speed variation
         speed_variation = np.cumsum(np.random.randn(len(audio)) * 0.00001)
@@ -208,12 +205,14 @@ class AdvancedLoFiEffects:
         # Rumble (low-frequency noise, <30Hz)
         rumble_freq = np.random.uniform(15, 30)
         t = np.arange(len(audio)) / self.sample_rate
-        rumble = rumble_amount * np.sin(2 * np.pi * rumble_freq * t + np.random.uniform(0, 2*np.pi))
+        rumble = rumble_amount * np.sin(
+            2 * np.pi * rumble_freq * t + np.random.uniform(0, 2 * np.pi)
+        )
 
         # Surface noise (band-limited noise)
         surface_noise = np.random.randn(len(audio)) * 0.003
         # Filter to 2-8kHz range
-        sos = signal.butter(4, [2000, 8000], 'bandpass', fs=self.sample_rate, output='sos')
+        sos = signal.butter(4, [2000, 8000], "bandpass", fs=self.sample_rate, output="sos")
         surface_noise = signal.sosfiltfilt(sos, surface_noise)
 
         # Combine all vinyl characteristics
@@ -224,7 +223,7 @@ class AdvancedLoFiEffects:
     def vintage_eq_curve(
         self,
         audio: np.ndarray,
-        style: str = 'lofi',
+        style: str = "lofi",
     ) -> np.ndarray:
         """Apply vintage EQ curves.
 
@@ -235,16 +234,16 @@ class AdvancedLoFiEffects:
         Returns:
             EQ'd audio
         """
-        if style == 'lofi':
+        if style == "lofi":
             # Lo-fi: rolled off highs, boosted lows/mids
             eq_points = [
-                (60, 3.0),    # Sub bass boost
-                (120, 2.0),   # Bass boost
-                (500, 1.0),   # Low-mids
-                (2000, -1.0), # Upper mids cut
-                (8000, -4.0), # Highs cut
+                (60, 3.0),  # Sub bass boost
+                (120, 2.0),  # Bass boost
+                (500, 1.0),  # Low-mids
+                (2000, -1.0),  # Upper mids cut
+                (8000, -4.0),  # Highs cut
             ]
-        elif style == 'vintage':
+        elif style == "vintage":
             # Vintage: warm and smooth
             eq_points = [
                 (100, 2.0),
@@ -252,14 +251,14 @@ class AdvancedLoFiEffects:
                 (5000, -1.0),
                 (10000, -2.0),
             ]
-        elif style == 'telephone':
+        elif style == "telephone":
             # Telephone: extreme bandpass
             eq_points = [
                 (300, 0),
                 (3000, 0),
             ]
             # Apply bandpass filter directly
-            sos = signal.butter(4, [300, 3000], 'bandpass', fs=self.sample_rate, output='sos')
+            sos = signal.butter(4, [300, 3000], "bandpass", fs=self.sample_rate, output="sos")
             return signal.sosfiltfilt(sos, audio)
         else:
             return audio
@@ -312,7 +311,7 @@ class AdvancedLoFiEffects:
     def apply_all_lofi_effects(
         self,
         audio: np.ndarray,
-        preset: str = 'classic',
+        preset: str = "classic",
     ) -> np.ndarray:
         """Apply complete lo-fi effects chain.
 
@@ -323,26 +322,26 @@ class AdvancedLoFiEffects:
         Returns:
             Processed audio
         """
-        if preset == 'classic':
-            audio = self.vintage_eq_curve(audio, style='lofi')
+        if preset == "classic":
+            audio = self.vintage_eq_curve(audio, style="lofi")
             audio = self.vinyl_simulation(audio, dust_density=0.02, crackle_intensity=0.015)
             audio = self.analog_wow_flutter(audio, wow_depth=0.003, flutter_depth=0.001)
             audio = self.vintage_tape_saturation(audio, drive=1.3)
 
-        elif preset == 'heavy':
-            audio = self.vintage_eq_curve(audio, style='lofi')
+        elif preset == "heavy":
+            audio = self.vintage_eq_curve(audio, style="lofi")
             audio = self.vinyl_simulation(audio, dust_density=0.04, crackle_intensity=0.025)
             audio = self.analog_wow_flutter(audio, wow_depth=0.005, flutter_depth=0.002)
             audio = self.vintage_tape_saturation(audio, drive=2.0)
 
-        elif preset == 'subtle':
-            audio = self.vintage_eq_curve(audio, style='vintage')
+        elif preset == "subtle":
+            audio = self.vintage_eq_curve(audio, style="vintage")
             audio = self.vinyl_simulation(audio, dust_density=0.01, crackle_intensity=0.008)
             audio = self.analog_wow_flutter(audio, wow_depth=0.001, flutter_depth=0.0005)
             audio = self.vintage_tape_saturation(audio, drive=1.1)
 
-        elif preset == 'vintage':
-            audio = self.vintage_eq_curve(audio, style='vintage')
+        elif preset == "vintage":
+            audio = self.vintage_eq_curve(audio, style="vintage")
             audio = self.vintage_tape_saturation(audio, drive=1.5, bias=0.15)
 
         return audio
@@ -489,22 +488,22 @@ class StemSeparator:
             Dictionary of frequency bands as pseudo-stems
         """
         # Bass (<250 Hz)
-        sos_bass = signal.butter(4, 250, 'low', fs=sample_rate, output='sos')
+        sos_bass = signal.butter(4, 250, "low", fs=sample_rate, output="sos")
         bass = signal.sosfiltfilt(sos_bass, audio)
 
         # Mids (250 Hz - 4 kHz)
-        sos_mids = signal.butter(4, [250, 4000], 'bandpass', fs=sample_rate, output='sos')
+        sos_mids = signal.butter(4, [250, 4000], "bandpass", fs=sample_rate, output="sos")
         mids = signal.sosfiltfilt(sos_mids, audio)
 
         # Highs (>4 kHz)
-        sos_highs = signal.butter(4, 4000, 'high', fs=sample_rate, output='sos')
+        sos_highs = signal.butter(4, 4000, "high", fs=sample_rate, output="sos")
         highs = signal.sosfiltfilt(sos_highs, audio)
 
         return {
-            'bass': bass,
-            'mids': mids,
-            'highs': highs,
-            'other': audio - (bass + mids + highs),
+            "bass": bass,
+            "mids": mids,
+            "highs": highs,
+            "other": audio - (bass + mids + highs),
         }
 
 
@@ -542,7 +541,9 @@ class ProfessionalMixer:
         gain_reduction = np.zeros_like(sidechain_db)
         above_threshold = sidechain_db > threshold
 
-        gain_reduction[above_threshold] = (sidechain_db[above_threshold] - threshold) * (1 - 1/ratio)
+        gain_reduction[above_threshold] = (sidechain_db[above_threshold] - threshold) * (
+            1 - 1 / ratio
+        )
 
         # Apply envelope follower (simplified)
         # In production, use proper attack/release envelope

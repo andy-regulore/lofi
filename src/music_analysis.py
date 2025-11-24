@@ -8,13 +8,13 @@ Features:
 - Quality metrics dashboard
 """
 
-import logging
-from typing import Dict, List, Optional, Tuple
-import numpy as np
 import json
+import logging
 from pathlib import Path
+from typing import Dict, List, Optional, Tuple
 
 import librosa
+import numpy as np
 import pretty_midi
 
 logger = logging.getLogger(__name__)
@@ -95,11 +95,11 @@ class MIRMetrics:
         zcr_mean = float(np.mean(zcr))
 
         return {
-            'spectral_centroid_mean': centroid_mean,
-            'spectral_centroid_std': centroid_std,
-            'spectral_rolloff_mean': rolloff_mean,
-            'spectral_contrast_mean': contrast_mean,
-            'zero_crossing_rate_mean': zcr_mean,
+            "spectral_centroid_mean": centroid_mean,
+            "spectral_centroid_std": centroid_std,
+            "spectral_rolloff_mean": rolloff_mean,
+            "spectral_contrast_mean": contrast_mean,
+            "zero_crossing_rate_mean": zcr_mean,
         }
 
     def _compute_rhythm_metrics(self, audio: np.ndarray) -> Dict[str, float]:
@@ -126,10 +126,10 @@ class MIRMetrics:
             rhythm_regularity = 0.0
 
         return {
-            'tempo': float(tempo),
-            'num_beats': len(beats),
-            'beat_strength': beat_strength,
-            'rhythm_regularity': rhythm_regularity,
+            "tempo": float(tempo),
+            "num_beats": len(beats),
+            "beat_strength": beat_strength,
+            "rhythm_regularity": rhythm_regularity,
         }
 
     def _compute_tonal_metrics(self, audio: np.ndarray) -> Dict[str, float]:
@@ -155,9 +155,9 @@ class MIRMetrics:
         chroma_std = float(np.mean(np.std(chroma, axis=1)))
 
         return {
-            'tonal_centroid': tonal_centroid,
-            'harmonic_to_noise_ratio': hnr,
-            'key_clarity': chroma_std,
+            "tonal_centroid": tonal_centroid,
+            "harmonic_to_noise_ratio": hnr,
+            "key_clarity": chroma_std,
         }
 
     def _compute_dynamics_metrics(self, audio: np.ndarray) -> Dict[str, float]:
@@ -181,10 +181,10 @@ class MIRMetrics:
         loudness_variation = rms_std / (rms_mean + 1e-8)
 
         return {
-            'rms_mean': rms_mean,
-            'rms_std': rms_std,
-            'dynamic_range_db': dynamic_range,
-            'loudness_variation': float(loudness_variation),
+            "rms_mean": rms_mean,
+            "rms_std": rms_std,
+            "dynamic_range_db": dynamic_range,
+            "loudness_variation": float(loudness_variation),
         }
 
     def _compute_midi_metrics(self, midi_path: str) -> Dict[str, float]:
@@ -231,11 +231,11 @@ class MIRMetrics:
         avg_polyphony = float(np.mean(polyphony_counts)) if polyphony_counts else 0
 
         return {
-            'pitch_range': pitch_range,
-            'pitch_variety': float(pitch_variety),
-            'note_density': float(note_density),
-            'avg_polyphony': avg_polyphony,
-            'duration': float(duration),
+            "pitch_range": pitch_range,
+            "pitch_variety": float(pitch_variety),
+            "note_density": float(note_density),
+            "avg_polyphony": avg_polyphony,
+            "duration": float(duration),
         }
 
 
@@ -282,10 +282,7 @@ class PerplexityCalculator:
 
             # Calculate cross-entropy loss
             loss_fct = torch.nn.CrossEntropyLoss()
-            loss = loss_fct(
-                shift_logits.view(-1, shift_logits.size(-1)),
-                shift_labels.view(-1)
-            )
+            loss = loss_fct(shift_logits.view(-1, shift_logits.size(-1)), shift_labels.view(-1))
 
             # Perplexity = exp(loss)
             perplexity = torch.exp(loss).item()
@@ -307,11 +304,11 @@ class PerplexityCalculator:
             Conditional perplexity
         """
         # Create conditioning prefix
-        if hasattr(self.model, 'create_conditioning_prefix'):
+        if hasattr(self.model, "create_conditioning_prefix"):
             prefix = self.model.create_conditioning_prefix(
-                tempo=conditioning.get('tempo', 75),
-                key=conditioning.get('key', 'C'),
-                mood=conditioning.get('mood', 'chill'),
+                tempo=conditioning.get("tempo", 75),
+                key=conditioning.get("key", "C"),
+                mood=conditioning.get("mood", "chill"),
             )
             conditioned_tokens = prefix + tokens
         else:
@@ -354,11 +351,11 @@ class HumanEvaluationFramework:
             evaluator_id: Optional evaluator identifier
         """
         evaluation = {
-            'track_id': track_id,
-            'scores': scores,
-            'comments': comments,
-            'evaluator_id': evaluator_id,
-            'timestamp': str(np.datetime64('now')),
+            "track_id": track_id,
+            "scores": scores,
+            "comments": comments,
+            "evaluator_id": evaluator_id,
+            "timestamp": str(np.datetime64("now")),
         }
 
         self.evaluations.append(evaluation)
@@ -366,7 +363,7 @@ class HumanEvaluationFramework:
 
     def _save(self):
         """Save evaluations."""
-        with open(self.output_file, 'w') as f:
+        with open(self.output_file, "w") as f:
             json.dump(self.evaluations, f, indent=2)
 
     def get_statistics(
@@ -383,7 +380,7 @@ class HumanEvaluationFramework:
         """
         evals = self.evaluations
         if track_id:
-            evals = [e for e in evals if e['track_id'] == track_id]
+            evals = [e for e in evals if e["track_id"] == track_id]
 
         if not evals:
             return {}
@@ -391,7 +388,7 @@ class HumanEvaluationFramework:
         # Collect all scores
         all_scores = {}
         for eval_data in evals:
-            for aspect, score in eval_data['scores'].items():
+            for aspect, score in eval_data["scores"].items():
                 if aspect not in all_scores:
                     all_scores[aspect] = []
                 all_scores[aspect].append(score)
@@ -400,12 +397,12 @@ class HumanEvaluationFramework:
         stats = {}
         for aspect, scores in all_scores.items():
             stats[aspect] = {
-                'mean': float(np.mean(scores)),
-                'std': float(np.std(scores)),
-                'median': float(np.median(scores)),
-                'min': float(np.min(scores)),
-                'max': float(np.max(scores)),
-                'count': len(scores),
+                "mean": float(np.mean(scores)),
+                "std": float(np.std(scores)),
+                "median": float(np.median(scores)),
+                "min": float(np.min(scores)),
+                "max": float(np.max(scores)),
+                "count": len(scores),
             }
 
         return stats
@@ -451,12 +448,12 @@ class ABTestingFramework:
             evaluator_id: Optional evaluator ID
         """
         result = {
-            'variant_a': variant_a_id,
-            'variant_b': variant_b_id,
-            'winner': winner,
-            'metrics': metrics or {},
-            'evaluator_id': evaluator_id,
-            'timestamp': str(np.datetime64('now')),
+            "variant_a": variant_a_id,
+            "variant_b": variant_b_id,
+            "winner": winner,
+            "metrics": metrics or {},
+            "evaluator_id": evaluator_id,
+            "timestamp": str(np.datetime64("now")),
         }
 
         self.results.append(result)
@@ -464,7 +461,7 @@ class ABTestingFramework:
 
     def _save(self):
         """Save results."""
-        with open(self.results_file, 'w') as f:
+        with open(self.results_file, "w") as f:
             json.dump(self.results, f, indent=2)
 
     def get_win_rates(self) -> Dict[str, Dict[str, float]]:
@@ -476,35 +473,36 @@ class ABTestingFramework:
         variant_stats = {}
 
         for result in self.results:
-            for variant_key in ['variant_a', 'variant_b']:
+            for variant_key in ["variant_a", "variant_b"]:
                 variant_id = result[variant_key]
 
                 if variant_id not in variant_stats:
                     variant_stats[variant_id] = {
-                        'wins': 0,
-                        'losses': 0,
-                        'ties': 0,
-                        'total': 0,
+                        "wins": 0,
+                        "losses": 0,
+                        "ties": 0,
+                        "total": 0,
                     }
 
-                variant_stats[variant_id]['total'] += 1
+                variant_stats[variant_id]["total"] += 1
 
                 # Determine outcome
-                if result['winner'] == 'tie':
-                    variant_stats[variant_id]['ties'] += 1
-                elif (result['winner'] == 'a' and variant_key == 'variant_a') or \
-                     (result['winner'] == 'b' and variant_key == 'variant_b'):
-                    variant_stats[variant_id]['wins'] += 1
+                if result["winner"] == "tie":
+                    variant_stats[variant_id]["ties"] += 1
+                elif (result["winner"] == "a" and variant_key == "variant_a") or (
+                    result["winner"] == "b" and variant_key == "variant_b"
+                ):
+                    variant_stats[variant_id]["wins"] += 1
                 else:
-                    variant_stats[variant_id]['losses'] += 1
+                    variant_stats[variant_id]["losses"] += 1
 
         # Calculate rates
         for variant_id, stats in variant_stats.items():
-            total = stats['total']
+            total = stats["total"]
             if total > 0:
-                stats['win_rate'] = stats['wins'] / total
-                stats['loss_rate'] = stats['losses'] / total
-                stats['tie_rate'] = stats['ties'] / total
+                stats["win_rate"] = stats["wins"] / total
+                stats["loss_rate"] = stats["losses"] / total
+                stats["tie_rate"] = stats["ties"] / total
 
         return variant_stats
 
@@ -532,10 +530,10 @@ class ABTestingFramework:
         ties = 0
 
         for result in self.results:
-            if result['variant_a'] == variant_a_id and result['variant_b'] == variant_b_id:
-                if result['winner'] == 'a':
+            if result["variant_a"] == variant_a_id and result["variant_b"] == variant_b_id:
+                if result["winner"] == "a":
                     a_wins += 1
-                elif result['winner'] == 'b':
+                elif result["winner"] == "b":
                     b_wins += 1
                 else:
                     ties += 1
@@ -543,24 +541,27 @@ class ABTestingFramework:
         total_comparisons = a_wins + b_wins + ties
 
         if total_comparisons == 0:
-            return {'error': 'No direct comparisons found'}
+            return {"error": "No direct comparisons found"}
 
         # Binomial test (ignoring ties)
         trials = a_wins + b_wins
         if trials == 0:
-            return {'error': 'All comparisons were ties'}
+            return {"error": "All comparisons were ties"}
 
         from scipy import stats
+
         p_value = stats.binom_test(a_wins, trials, 0.5)
 
         return {
-            'a_wins': a_wins,
-            'b_wins': b_wins,
-            'ties': ties,
-            'total_comparisons': total_comparisons,
-            'p_value': float(p_value),
-            'significant': p_value < alpha,
-            'winner': variant_a_id if a_wins > b_wins else (variant_b_id if b_wins > a_wins else 'tie'),
+            "a_wins": a_wins,
+            "b_wins": b_wins,
+            "ties": ties,
+            "total_comparisons": total_comparisons,
+            "p_value": float(p_value),
+            "significant": p_value < alpha,
+            "winner": (
+                variant_a_id if a_wins > b_wins else (variant_b_id if b_wins > a_wins else "tie")
+            ),
         }
 
 
@@ -598,10 +599,10 @@ class QualityDashboard:
             metadata: Optional metadata
         """
         record = {
-            'generation_id': generation_id,
-            'timestamp': str(np.datetime64('now')),
-            'metrics': metrics,
-            'metadata': metadata or {},
+            "generation_id": generation_id,
+            "timestamp": str(np.datetime64("now")),
+            "metrics": metrics,
+            "metadata": metadata or {},
         }
 
         self.metrics_history.append(record)
@@ -609,7 +610,7 @@ class QualityDashboard:
 
     def _save(self):
         """Save metrics."""
-        with open(self.metrics_file, 'w') as f:
+        with open(self.metrics_file, "w") as f:
             json.dump(self.metrics_history, f, indent=2)
 
     def get_summary_statistics(
@@ -632,34 +633,34 @@ class QualityDashboard:
         # Filter by time window if specified
         records = self.metrics_history
         if time_window:
-            cutoff = np.datetime64('now') - np.timedelta64(time_window, 'h')
-            records = [r for r in records if np.datetime64(r['timestamp']) >= cutoff]
+            cutoff = np.datetime64("now") - np.timedelta64(time_window, "h")
+            records = [r for r in records if np.datetime64(r["timestamp"]) >= cutoff]
 
         if not records:
             return {}
 
         # Collect metrics
         if metric_name:
-            values = [r['metrics'].get(metric_name) for r in records if metric_name in r['metrics']]
+            values = [r["metrics"].get(metric_name) for r in records if metric_name in r["metrics"]]
 
             if not values:
                 return {}
 
             return {
-                'count': len(values),
-                'mean': float(np.mean(values)),
-                'std': float(np.std(values)),
-                'median': float(np.median(values)),
-                'min': float(np.min(values)),
-                'max': float(np.max(values)),
-                'percentile_25': float(np.percentile(values, 25)),
-                'percentile_75': float(np.percentile(values, 75)),
+                "count": len(values),
+                "mean": float(np.mean(values)),
+                "std": float(np.std(values)),
+                "median": float(np.median(values)),
+                "min": float(np.min(values)),
+                "max": float(np.max(values)),
+                "percentile_25": float(np.percentile(values, 25)),
+                "percentile_75": float(np.percentile(values, 75)),
             }
         else:
             # All metrics
             all_metric_names = set()
             for record in records:
-                all_metric_names.update(record['metrics'].keys())
+                all_metric_names.update(record["metrics"].keys())
 
             summary = {}
             for name in all_metric_names:
@@ -684,13 +685,17 @@ class QualityDashboard:
             Drift detection results
         """
         if len(self.metrics_history) < window_size * 2:
-            return {'error': 'Insufficient data'}
+            return {"error": "Insufficient data"}
 
         # Get recent and baseline values
-        all_values = [r['metrics'].get(metric_name) for r in self.metrics_history if metric_name in r['metrics']]
+        all_values = [
+            r["metrics"].get(metric_name)
+            for r in self.metrics_history
+            if metric_name in r["metrics"]
+        ]
 
         if len(all_values) < window_size * 2:
-            return {'error': 'Insufficient metric data'}
+            return {"error": "Insufficient metric data"}
 
         baseline = all_values[:window_size]
         recent = all_values[-window_size:]
@@ -699,16 +704,16 @@ class QualityDashboard:
         recent_mean = np.mean(recent)
 
         if baseline_mean == 0:
-            return {'error': 'Baseline mean is zero'}
+            return {"error": "Baseline mean is zero"}
 
         relative_change = (recent_mean - baseline_mean) / baseline_mean
 
         drift_detected = abs(relative_change) > threshold
 
         return {
-            'baseline_mean': float(baseline_mean),
-            'recent_mean': float(recent_mean),
-            'relative_change': float(relative_change),
-            'drift_detected': drift_detected,
-            'threshold': threshold,
+            "baseline_mean": float(baseline_mean),
+            "recent_mean": float(recent_mean),
+            "relative_change": float(relative_change),
+            "drift_detected": drift_detected,
+            "threshold": threshold,
         }

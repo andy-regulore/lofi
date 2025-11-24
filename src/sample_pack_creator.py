@@ -12,19 +12,20 @@ Author: Claude
 License: MIT
 """
 
-import numpy as np
-from pathlib import Path
-from typing import List, Dict, Optional
-import librosa
-import soundfile as sf
 import json
 from datetime import datetime
+from pathlib import Path
+from typing import Dict, List, Optional
+
+import librosa
+import numpy as np
+import soundfile as sf
 
 
 class SamplePackCreator:
     """Create commercial sample packs from generated music."""
 
-    def __init__(self, output_dir: str = 'output/sample_packs'):
+    def __init__(self, output_dir: str = "output/sample_packs"):
         """
         Initialize sample pack creator.
 
@@ -35,10 +36,7 @@ class SamplePackCreator:
         self.output_dir.mkdir(parents=True, exist_ok=True)
 
     def create_pack_from_tracks(
-        self,
-        track_list: List[str],
-        pack_name: str,
-        pack_type: str = 'full'
+        self, track_list: List[str], pack_name: str, pack_type: str = "full"
     ) -> Dict:
         """
         Create sample pack from list of tracks.
@@ -62,21 +60,21 @@ class SamplePackCreator:
         samples = {}
 
         # Extract different types of samples
-        if pack_type in ['drums', 'full']:
-            samples['drums'] = self._extract_drum_samples(track_list, pack_dir)
+        if pack_type in ["drums", "full"]:
+            samples["drums"] = self._extract_drum_samples(track_list, pack_dir)
 
-        if pack_type in ['melodic', 'full']:
-            samples['melodic'] = self._extract_melodic_loops(track_list, pack_dir)
+        if pack_type in ["melodic", "full"]:
+            samples["melodic"] = self._extract_melodic_loops(track_list, pack_dir)
 
-        if pack_type in ['midi', 'full']:
-            samples['midi'] = self._extract_midi_files(track_list, pack_dir)
+        if pack_type in ["midi", "full"]:
+            samples["midi"] = self._extract_midi_files(track_list, pack_dir)
 
         # Create pack metadata
         metadata = self._create_pack_metadata(pack_name, pack_type, samples)
 
         # Save metadata
-        metadata_file = pack_dir / 'pack_info.json'
-        with open(metadata_file, 'w') as f:
+        metadata_file = pack_dir / "pack_info.json"
+        with open(metadata_file, "w") as f:
             json.dump(metadata, f, indent=2)
 
         # Create README
@@ -87,13 +85,9 @@ class SamplePackCreator:
 
         return metadata
 
-    def _extract_drum_samples(
-        self,
-        track_list: List[str],
-        output_dir: Path
-    ) -> List[str]:
+    def _extract_drum_samples(self, track_list: List[str], output_dir: Path) -> List[str]:
         """Extract one-shot drum samples."""
-        drum_dir = output_dir / 'drums'
+        drum_dir = output_dir / "drums"
         drum_dir.mkdir(exist_ok=True)
 
         samples = []
@@ -106,10 +100,7 @@ class SamplePackCreator:
 
                 # Detect onsets (drum hits)
                 onset_frames = librosa.onset.onset_detect(
-                    y=audio,
-                    sr=sr,
-                    units='samples',
-                    backtrack=True
+                    y=audio, sr=sr, units="samples", backtrack=True
                 )
 
                 # Extract samples around onsets
@@ -138,13 +129,9 @@ class SamplePackCreator:
         print(f"     Extracted {len(samples)} drum samples")
         return samples
 
-    def _extract_melodic_loops(
-        self,
-        track_list: List[str],
-        output_dir: Path
-    ) -> List[str]:
+    def _extract_melodic_loops(self, track_list: List[str], output_dir: Path) -> List[str]:
         """Extract melodic loops."""
-        loop_dir = output_dir / 'melodic_loops'
+        loop_dir = output_dir / "melodic_loops"
         loop_dir.mkdir(exist_ok=True)
 
         loops = []
@@ -182,13 +169,9 @@ class SamplePackCreator:
         print(f"     Extracted {len(loops)} melodic loops")
         return loops
 
-    def _extract_midi_files(
-        self,
-        track_list: List[str],
-        output_dir: Path
-    ) -> List[str]:
+    def _extract_midi_files(self, track_list: List[str], output_dir: Path) -> List[str]:
         """Copy/organize MIDI files."""
-        midi_dir = output_dir / 'midi'
+        midi_dir = output_dir / "midi"
         midi_dir.mkdir(exist_ok=True)
 
         midi_files = []
@@ -198,12 +181,13 @@ class SamplePackCreator:
         # Find corresponding MIDI files
         for track_path in track_list:
             track_path = Path(track_path)
-            midi_path = track_path.with_suffix('.mid')
+            midi_path = track_path.with_suffix(".mid")
 
             if midi_path.exists():
                 # Copy to pack
                 dest_path = midi_dir / f"{track_path.stem}.mid"
                 import shutil
+
                 shutil.copy(midi_path, dest_path)
                 midi_files.append(str(dest_path))
 
@@ -214,7 +198,7 @@ class SamplePackCreator:
         """Classify drum sample by frequency content."""
         # Get frequency spectrum
         fft = np.fft.fft(sample)
-        freqs = np.fft.fftfreq(len(fft), 1/sr)
+        freqs = np.fft.fftfreq(len(fft), 1 / sr)
 
         # Get magnitude in different frequency bands
         low_energy = np.mean(np.abs(fft[(freqs > 20) & (freqs < 150)]))
@@ -223,31 +207,24 @@ class SamplePackCreator:
 
         # Classify based on dominant frequency range
         if low_energy > mid_energy and low_energy > high_energy:
-            return 'kick'
+            return "kick"
         elif high_energy > low_energy and high_energy > mid_energy:
-            return 'hat'
+            return "hat"
         else:
-            return 'snare'
+            return "snare"
 
-    def _create_pack_metadata(
-        self,
-        pack_name: str,
-        pack_type: str,
-        samples: Dict
-    ) -> Dict:
+    def _create_pack_metadata(self, pack_name: str, pack_type: str, samples: Dict) -> Dict:
         """Create pack metadata."""
         return {
-            'name': pack_name,
-            'type': pack_type,
-            'created_at': datetime.now().isoformat(),
-            'total_samples': sum(len(v) for v in samples.values()),
-            'contents': {
-                k: len(v) for k, v in samples.items()
-            },
-            'license': 'Royalty-free for commercial use',
-            'format': 'WAV 44.1kHz 24-bit',
-            'genre': 'Lo-Fi / Chill Hop',
-            'price_suggested': self._calculate_price(samples)
+            "name": pack_name,
+            "type": pack_type,
+            "created_at": datetime.now().isoformat(),
+            "total_samples": sum(len(v) for v in samples.values()),
+            "contents": {k: len(v) for k, v in samples.items()},
+            "license": "Royalty-free for commercial use",
+            "format": "WAV 44.1kHz 24-bit",
+            "genre": "Lo-Fi / Chill Hop",
+            "price_suggested": self._calculate_price(samples),
         }
 
     def _calculate_price(self, samples: Dict) -> float:
@@ -275,7 +252,7 @@ class SamplePackCreator:
 ## Contents
 
 """
-        for category, count in metadata['contents'].items():
+        for category, count in metadata["contents"].items():
             readme_content += f"- {category.capitalize()}: {count} samples\n"
 
         readme_content += f"""
@@ -305,15 +282,12 @@ For questions or support, contact us at support@lofibeats.ai
 Made with ❤️ by LoFi AI
 """
 
-        readme_file = pack_dir / 'README.md'
-        with open(readme_file, 'w') as f:
+        readme_file = pack_dir / "README.md"
+        with open(readme_file, "w") as f:
             f.write(readme_content)
 
 
-def quick_create_pack(
-    track_directory: str = 'output/audio',
-    pack_name: str = None
-) -> str:
+def quick_create_pack(track_directory: str = "output/audio", pack_name: str = None) -> str:
     """
     Quick function to create a sample pack.
 
@@ -330,7 +304,7 @@ def quick_create_pack(
     creator = SamplePackCreator()
 
     # Get tracks
-    tracks = list(Path(track_directory).glob('*.wav'))
+    tracks = list(Path(track_directory).glob("*.wav"))
 
     if not tracks:
         print(f"❌ No tracks found in {track_directory}")
@@ -338,22 +312,20 @@ def quick_create_pack(
 
     # Create pack
     metadata = creator.create_pack_from_tracks(
-        [str(t) for t in tracks],
-        pack_name,
-        pack_type='full'
+        [str(t) for t in tracks], pack_name, pack_type="full"
     )
 
     pack_dir = creator.output_dir / pack_name
     return str(pack_dir)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     import argparse
 
-    parser = argparse.ArgumentParser(description='Create sample packs from tracks')
-    parser.add_argument('--tracks', default='output/audio', help='Track directory')
-    parser.add_argument('--name', help='Pack name')
-    parser.add_argument('--type', default='full', choices=['drums', 'melodic', 'midi', 'full'])
+    parser = argparse.ArgumentParser(description="Create sample packs from tracks")
+    parser.add_argument("--tracks", default="output/audio", help="Track directory")
+    parser.add_argument("--name", help="Pack name")
+    parser.add_argument("--type", default="full", choices=["drums", "melodic", "midi", "full"])
 
     args = parser.parse_args()
 

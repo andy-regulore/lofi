@@ -16,17 +16,16 @@ Author: Claude
 License: MIT
 """
 
-from datetime import datetime, timedelta
-from typing import List, Dict, Optional, Tuple
-from dataclasses import dataclass
-from enum import Enum
 import re
-import json
-from pathlib import Path
+from dataclasses import dataclass
+from datetime import datetime
+from enum import Enum
+from typing import Dict, List, Optional, Tuple
 
 
 class Platform(Enum):
     """Platforms."""
+
     YOUTUBE = "youtube"
     INSTAGRAM = "instagram"
     TIKTOK = "tiktok"
@@ -36,6 +35,7 @@ class Platform(Enum):
 
 class CommentType(Enum):
     """Comment categories."""
+
     POSITIVE = "positive"
     QUESTION = "question"
     FEEDBACK = "feedback"
@@ -47,17 +47,19 @@ class CommentType(Enum):
 
 class UserSegment(Enum):
     """User segments."""
-    SUPERFAN = "superfan"          # High engagement, frequent comments
-    REGULAR = "regular"             # Regular engagement
-    CASUAL = "casual"               # Occasional engagement
-    NEW = "new"                     # First-time commenter
-    INFLUENCER = "influencer"       # High follower count
+
+    SUPERFAN = "superfan"  # High engagement, frequent comments
+    REGULAR = "regular"  # Regular engagement
+    CASUAL = "casual"  # Occasional engagement
+    NEW = "new"  # First-time commenter
+    INFLUENCER = "influencer"  # High follower count
     POTENTIAL_COLLAB = "potential_collab"  # Other content creators
 
 
 @dataclass
 class Comment:
     """Comment data."""
+
     id: str
     platform: Platform
     author: str
@@ -73,6 +75,7 @@ class Comment:
 @dataclass
 class UserProfile:
     """User profile."""
+
     user_id: str
     username: str
     platform: Platform
@@ -90,31 +93,69 @@ class SentimentAnalyzer:
 
     # Keyword lists for simple sentiment analysis
     POSITIVE_KEYWORDS = [
-        'love', 'amazing', 'great', 'awesome', 'perfect', 'beautiful',
-        'excellent', 'wonderful', 'fantastic', 'best', 'incredible',
-        'chill', 'relaxing', 'peaceful', 'vibe', 'mood', '🔥', '❤️', '😍',
-        'thank', 'thanks', 'appreciate', 'helpful', 'inspiring'
+        "love",
+        "amazing",
+        "great",
+        "awesome",
+        "perfect",
+        "beautiful",
+        "excellent",
+        "wonderful",
+        "fantastic",
+        "best",
+        "incredible",
+        "chill",
+        "relaxing",
+        "peaceful",
+        "vibe",
+        "mood",
+        "🔥",
+        "❤️",
+        "😍",
+        "thank",
+        "thanks",
+        "appreciate",
+        "helpful",
+        "inspiring",
     ]
 
     NEGATIVE_KEYWORDS = [
-        'hate', 'bad', 'terrible', 'awful', 'worst', 'sucks',
-        'boring', 'annoying', 'trash', 'garbage', 'disappointing'
+        "hate",
+        "bad",
+        "terrible",
+        "awful",
+        "worst",
+        "sucks",
+        "boring",
+        "annoying",
+        "trash",
+        "garbage",
+        "disappointing",
     ]
 
     QUESTION_KEYWORDS = [
-        'how', 'what', 'when', 'where', 'why', 'who', 'which',
-        'can you', 'could you', 'would you', '?'
+        "how",
+        "what",
+        "when",
+        "where",
+        "why",
+        "who",
+        "which",
+        "can you",
+        "could you",
+        "would you",
+        "?",
     ]
 
     SPAM_PATTERNS = [
-        r'check out my',
-        r'visit my channel',
-        r'subscribe to',
-        r'click here',
-        r'free download',
-        r'bit\.ly',
-        r'won \$\d+',
-        r'congratulations you',
+        r"check out my",
+        r"visit my channel",
+        r"subscribe to",
+        r"click here",
+        r"free download",
+        r"bit\.ly",
+        r"won \$\d+",
+        r"congratulations you",
     ]
 
     @classmethod
@@ -161,7 +202,7 @@ class SentimentAnalyzer:
                 return CommentType.SPAM
 
         # Check for toxic content
-        if any(word in text_lower for word in ['hate', 'kill', 'die', 'stupid']):
+        if any(word in text_lower for word in ["hate", "kill", "die", "stupid"]):
             # Simple toxicity check - in production use Perspective API
             return CommentType.TOXIC
 
@@ -170,11 +211,13 @@ class SentimentAnalyzer:
             return CommentType.QUESTION
 
         # Check for collaboration requests
-        if any(kw in text_lower for kw in ['collab', 'collaborate', 'work together', 'feature']):
+        if any(kw in text_lower for kw in ["collab", "collaborate", "work together", "feature"]):
             return CommentType.COLLABORATION
 
         # Check for feedback
-        if any(kw in text_lower for kw in ['suggest', 'idea', 'should', 'could', 'would be better']):
+        if any(
+            kw in text_lower for kw in ["suggest", "idea", "should", "could", "would be better"]
+        ):
             return CommentType.FEEDBACK
 
         # Check sentiment
@@ -221,14 +264,13 @@ class ResponseTemplates:
     }
 
     PERSONALIZATION_PATTERNS = {
-        'username': '{username}',
-        'time_of_day': '{time_greeting}',
-        'video_title': '{video_title}',
+        "username": "{username}",
+        "time_of_day": "{time_greeting}",
+        "video_title": "{video_title}",
     }
 
     @classmethod
-    def get_response(cls, comment_type: CommentType,
-                    personalization: Optional[Dict] = None) -> str:
+    def get_response(cls, comment_type: CommentType, personalization: Optional[Dict] = None) -> str:
         """
         Get response template.
 
@@ -250,13 +292,14 @@ class ResponseTemplates:
         # Apply personalization
         if personalization:
             for key, value in personalization.items():
-                template = template.replace(f'{{{key}}}', str(value))
+                template = template.replace(f"{{{key}}}", str(value))
 
         return template
 
     @classmethod
-    def personalize_response(cls, template: str, comment: Comment,
-                           user_profile: Optional[UserProfile] = None) -> str:
+    def personalize_response(
+        cls, template: str, comment: Comment, user_profile: Optional[UserProfile] = None
+    ) -> str:
         """
         Personalize response template.
 
@@ -270,7 +313,7 @@ class ResponseTemplates:
         """
         # Add username if superfan
         if user_profile and user_profile.segment == UserSegment.SUPERFAN:
-            if '{username}' not in template:
+            if "{username}" not in template:
                 template = f"Hey {comment.author}! " + template
 
         # Add time-appropriate greeting
@@ -282,7 +325,7 @@ class ResponseTemplates:
         else:
             time_greeting = "Good evening"
 
-        template = template.replace('{time_greeting}', time_greeting)
+        template = template.replace("{time_greeting}", time_greeting)
 
         return template
 
@@ -313,7 +356,7 @@ class UserSegmenter:
                 total_comments=1,
                 avg_sentiment=SentimentAnalyzer.analyze_sentiment(comment.text),
                 first_seen=comment.timestamp,
-                last_seen=comment.timestamp
+                last_seen=comment.timestamp,
             )
         else:
             # Update existing profile
@@ -323,7 +366,9 @@ class UserSegmenter:
 
             # Update average sentiment
             new_sentiment = SentimentAnalyzer.analyze_sentiment(comment.text)
-            profile.avg_sentiment = (profile.avg_sentiment * (profile.total_comments - 1) + new_sentiment) / profile.total_comments
+            profile.avg_sentiment = (
+                profile.avg_sentiment * (profile.total_comments - 1) + new_sentiment
+            ) / profile.total_comments
 
             # Re-segment
             profile.segment = self._determine_segment(profile)
@@ -376,7 +421,11 @@ class UserSegmenter:
         Returns:
             List of potential collaborators
         """
-        return [p for p in self.user_profiles.values() if p.segment == UserSegment.INFLUENCER or p.follower_count > 5000]
+        return [
+            p
+            for p in self.user_profiles.values()
+            if p.segment == UserSegment.INFLUENCER or p.follower_count > 5000
+        ]
 
 
 class EngagementBot:
@@ -415,6 +464,7 @@ class EngagementBot:
         if comment_type == CommentType.POSITIVE:
             # Respond to 30% of positive comments
             import random
+
             return random.random() < 0.3
 
         # Respond to feedback
@@ -423,8 +473,12 @@ class EngagementBot:
 
         return False
 
-    def generate_response(self, comment: Comment, comment_type: CommentType,
-                         user_profile: Optional[UserProfile] = None) -> str:
+    def generate_response(
+        self,
+        comment: Comment,
+        comment_type: CommentType,
+        user_profile: Optional[UserProfile] = None,
+    ) -> str:
         """
         Generate response for comment.
 
@@ -440,9 +494,7 @@ class EngagementBot:
         response = self.response_templates.get_response(comment_type)
 
         # Personalize
-        response = self.response_templates.personalize_response(
-            response, comment, user_profile
-        )
+        response = self.response_templates.personalize_response(response, comment, user_profile)
 
         return response
 
@@ -525,7 +577,7 @@ class CommunityAnalytics:
             Dict with sentiment percentages
         """
         if not self.comments:
-            return {'positive': 0, 'neutral': 0, 'negative': 0}
+            return {"positive": 0, "neutral": 0, "negative": 0}
 
         sentiments = [SentimentAnalyzer.analyze_sentiment(c.text) for c in self.comments]
 
@@ -536,9 +588,9 @@ class CommunityAnalytics:
         total = len(sentiments)
 
         return {
-            'positive': (positive / total) * 100,
-            'neutral': (neutral / total) * 100,
-            'negative': (negative / total) * 100
+            "positive": (positive / total) * 100,
+            "neutral": (neutral / total) * 100,
+            "negative": (negative / total) * 100,
         }
 
     def get_comment_type_distribution(self) -> Dict[CommentType, int]:
@@ -654,6 +706,7 @@ class CommunityManager:
             if comment_type == CommentType.POSITIVE:
                 # Maybe pin (don't pin every superfan comment)
                 import random
+
                 if random.random() < 0.1:
                     self.bot.pin_comment(comment)
 
@@ -672,20 +725,20 @@ class CommunityManager:
             Insights dict
         """
         insights = {
-            'total_comments': len(self.analytics.comments),
-            'sentiment_distribution': self.analytics.get_sentiment_distribution(),
-            'comment_types': self.analytics.get_comment_type_distribution(),
-            'peak_hours': self.analytics.get_peak_activity_times(),
-            'top_commenters': self.analytics.get_top_commenters(10),
-            'superfans': len(self.segmenter.get_superfans()),
-            'potential_collabs': len(self.segmenter.get_potential_collabs()),
+            "total_comments": len(self.analytics.comments),
+            "sentiment_distribution": self.analytics.get_sentiment_distribution(),
+            "comment_types": self.analytics.get_comment_type_distribution(),
+            "peak_hours": self.analytics.get_peak_activity_times(),
+            "top_commenters": self.analytics.get_top_commenters(10),
+            "superfans": len(self.segmenter.get_superfans()),
+            "potential_collabs": len(self.segmenter.get_potential_collabs()),
         }
 
         return insights
 
 
 # Example usage
-if __name__ == '__main__':
+if __name__ == "__main__":
     print("=== Community Management System ===\n")
 
     # Initialize manager
@@ -693,37 +746,72 @@ if __name__ == '__main__':
 
     # Simulate comments
     sample_comments = [
-        Comment("1", Platform.YOUTUBE, "StudyBuddy", "user1",
-                "This is perfect for studying! Love the vibe 🎵",
-                datetime.now(), 15, 0),
-        Comment("2", Platform.YOUTUBE, "MusicFan", "user2",
-                "How do you make these beats? Any tips?",
-                datetime.now(), 5, 2),
-        Comment("3", Platform.YOUTUBE, "ChillSeeker", "user3",
-                "So relaxing ❤️ been listening for hours",
-                datetime.now(), 8, 0),
-        Comment("4", Platform.YOUTUBE, "ProducerJoe", "user4",
-                "Hey, I'm a producer too. Would love to collab!",
-                datetime.now(), 3, 0),
-        Comment("5", Platform.YOUTUBE, "SpamBot", "user5",
-                "Check out my channel for free beats! Click here: bit.ly/spam",
-                datetime.now(), 0, 0),
+        Comment(
+            "1",
+            Platform.YOUTUBE,
+            "StudyBuddy",
+            "user1",
+            "This is perfect for studying! Love the vibe 🎵",
+            datetime.now(),
+            15,
+            0,
+        ),
+        Comment(
+            "2",
+            Platform.YOUTUBE,
+            "MusicFan",
+            "user2",
+            "How do you make these beats? Any tips?",
+            datetime.now(),
+            5,
+            2,
+        ),
+        Comment(
+            "3",
+            Platform.YOUTUBE,
+            "ChillSeeker",
+            "user3",
+            "So relaxing ❤️ been listening for hours",
+            datetime.now(),
+            8,
+            0,
+        ),
+        Comment(
+            "4",
+            Platform.YOUTUBE,
+            "ProducerJoe",
+            "user4",
+            "Hey, I'm a producer too. Would love to collab!",
+            datetime.now(),
+            3,
+            0,
+        ),
+        Comment(
+            "5",
+            Platform.YOUTUBE,
+            "SpamBot",
+            "user5",
+            "Check out my channel for free beats! Click here: bit.ly/spam",
+            datetime.now(),
+            0,
+            0,
+        ),
     ]
 
     print("1. Processing Comments:")
     for comment in sample_comments:
         manager.process_comment(comment)
 
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("\n2. Community Insights:")
     insights = manager.get_community_insights()
     print(f"Total comments: {insights['total_comments']}")
     print(f"\nSentiment distribution:")
-    for sentiment, pct in insights['sentiment_distribution'].items():
+    for sentiment, pct in insights["sentiment_distribution"].items():
         print(f"  {sentiment}: {pct:.1f}%")
 
     print(f"\nComment types:")
-    for comment_type, count in insights['comment_types'].items():
+    for comment_type, count in insights["comment_types"].items():
         print(f"  {comment_type.value}: {count}")
 
     print(f"\nCommunity health:")

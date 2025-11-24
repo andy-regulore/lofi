@@ -18,12 +18,12 @@ License: MIT
 """
 
 import json
-import time
-from datetime import datetime, timedelta
-from typing import List, Dict, Optional, Set
-from dataclasses import dataclass, asdict
-from collections import defaultdict
 import logging
+import time
+from collections import defaultdict
+from dataclasses import asdict, dataclass
+from datetime import datetime
+from typing import Dict, List, Optional
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -32,6 +32,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class VideoAnalytics:
     """Analytics for a single video."""
+
     video_id: str
     title: str
     published_at: str
@@ -54,7 +55,7 @@ class VideoAnalytics:
             self.engagement_rate = ((self.likes + self.comments) / self.views) * 100
 
         # Views per day
-        pub_date = datetime.fromisoformat(self.published_at.replace('Z', '+00:00'))
+        pub_date = datetime.fromisoformat(self.published_at.replace("Z", "+00:00"))
         days_old = (datetime.now().astimezone() - pub_date).days + 1
         self.views_per_day = self.views / days_old if days_old > 0 else 0
 
@@ -62,6 +63,7 @@ class VideoAnalytics:
 @dataclass
 class ChannelAnalytics:
     """Analytics for a YouTube channel."""
+
     channel_id: str
     channel_name: str
     subscriber_count: int
@@ -109,9 +111,9 @@ class CompetitorAnalyzer:
     def _load_api_key(self) -> Optional[str]:
         """Load API key from config."""
         try:
-            with open('config.json', 'r') as f:
+            with open("config.json", "r") as f:
                 config = json.load(f)
-                return config.get('youtube_api_key')
+                return config.get("youtube_api_key")
         except Exception as e:
             logger.warning(f"Could not load API key from config: {e}")
             return None
@@ -135,9 +137,9 @@ class CompetitorAnalyzer:
         try:
             url = f"{self.base_url}/channels"
             params = {
-                'part': 'snippet,statistics,contentDetails',
-                'id': channel_id,
-                'key': self.api_key
+                "part": "snippet,statistics,contentDetails",
+                "id": channel_id,
+                "key": self.api_key,
             }
 
             response = requests.get(url, params=params, timeout=10)
@@ -145,8 +147,8 @@ class CompetitorAnalyzer:
 
             data = response.json()
 
-            if 'items' in data and len(data['items']) > 0:
-                return data['items'][0]
+            if "items" in data and len(data["items"]) > 0:
+                return data["items"][0]
             else:
                 logger.warning(f"Channel not found: {channel_id}")
                 return None
@@ -178,15 +180,15 @@ class CompetitorAnalyzer:
             if not channel_info:
                 return []
 
-            uploads_playlist_id = channel_info['contentDetails']['relatedPlaylists']['uploads']
+            uploads_playlist_id = channel_info["contentDetails"]["relatedPlaylists"]["uploads"]
 
             # Get videos from uploads playlist
             url = f"{self.base_url}/playlistItems"
             params = {
-                'part': 'snippet,contentDetails',
-                'playlistId': uploads_playlist_id,
-                'maxResults': min(max_results, 50),
-                'key': self.api_key
+                "part": "snippet,contentDetails",
+                "playlistId": uploads_playlist_id,
+                "maxResults": min(max_results, 50),
+                "key": self.api_key,
             }
 
             response = requests.get(url, params=params, timeout=10)
@@ -195,19 +197,19 @@ class CompetitorAnalyzer:
             data = response.json()
 
             videos = []
-            if 'items' in data:
+            if "items" in data:
                 # Get detailed stats for each video
-                video_ids = [item['contentDetails']['videoId'] for item in data['items']]
+                video_ids = [item["contentDetails"]["videoId"] for item in data["items"]]
                 video_stats = self.get_video_stats(video_ids)
 
-                for item, stats in zip(data['items'], video_stats):
+                for item, stats in zip(data["items"], video_stats):
                     video_info = {
-                        'video_id': item['contentDetails']['videoId'],
-                        'title': item['snippet']['title'],
-                        'description': item['snippet']['description'],
-                        'published_at': item['snippet']['publishedAt'],
-                        'thumbnail_url': item['snippet']['thumbnails']['high']['url'],
-                        **stats
+                        "video_id": item["contentDetails"]["videoId"],
+                        "title": item["snippet"]["title"],
+                        "description": item["snippet"]["description"],
+                        "published_at": item["snippet"]["publishedAt"],
+                        "thumbnail_url": item["snippet"]["thumbnails"]["high"]["url"],
+                        **stats,
                     }
                     videos.append(video_info)
 
@@ -236,9 +238,9 @@ class CompetitorAnalyzer:
         try:
             url = f"{self.base_url}/videos"
             params = {
-                'part': 'statistics,contentDetails,snippet',
-                'id': ','.join(video_ids[:50]),  # API limit
-                'key': self.api_key
+                "part": "statistics,contentDetails,snippet",
+                "id": ",".join(video_ids[:50]),  # API limit
+                "key": self.api_key,
             }
 
             response = requests.get(url, params=params, timeout=10)
@@ -247,22 +249,22 @@ class CompetitorAnalyzer:
             data = response.json()
 
             stats_list = []
-            if 'items' in data:
-                for item in data['items']:
-                    stats = item['statistics']
-                    content = item['contentDetails']
-                    snippet = item['snippet']
+            if "items" in data:
+                for item in data["items"]:
+                    stats = item["statistics"]
+                    content = item["contentDetails"]
+                    snippet = item["snippet"]
 
                     # Parse duration (ISO 8601 format)
-                    duration_str = content.get('duration', 'PT0S')
+                    duration_str = content.get("duration", "PT0S")
                     duration_seconds = self._parse_duration(duration_str)
 
                     stats_dict = {
-                        'views': int(stats.get('viewCount', 0)),
-                        'likes': int(stats.get('likeCount', 0)),
-                        'comments': int(stats.get('commentCount', 0)),
-                        'duration': duration_seconds,
-                        'tags': snippet.get('tags', [])
+                        "views": int(stats.get("viewCount", 0)),
+                        "likes": int(stats.get("likeCount", 0)),
+                        "comments": int(stats.get("commentCount", 0)),
+                        "duration": duration_seconds,
+                        "tags": snippet.get("tags", []),
                     }
                     stats_list.append(stats_dict)
 
@@ -270,13 +272,15 @@ class CompetitorAnalyzer:
 
         except Exception as e:
             logger.error(f"Error fetching video stats: {e}")
-            return [{'views': 0, 'likes': 0, 'comments': 0, 'duration': 0, 'tags': []}] * len(video_ids)
+            return [{"views": 0, "likes": 0, "comments": 0, "duration": 0, "tags": []}] * len(
+                video_ids
+            )
 
     def _parse_duration(self, duration_str: str) -> int:
         """Parse ISO 8601 duration to seconds."""
         import re
 
-        pattern = r'PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?'
+        pattern = r"PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?"
         match = re.match(pattern, duration_str)
 
         if match:
@@ -305,8 +309,8 @@ class CompetitorAnalyzer:
         if not channel_info:
             return None
 
-        snippet = channel_info['snippet']
-        stats = channel_info['statistics']
+        snippet = channel_info["snippet"]
+        stats = channel_info["statistics"]
 
         # Get recent videos
         videos = self.get_channel_videos(channel_id, max_results=video_limit)
@@ -315,16 +319,16 @@ class CompetitorAnalyzer:
         video_analytics = []
         for video in videos:
             va = VideoAnalytics(
-                video_id=video['video_id'],
-                title=video['title'],
-                published_at=video['published_at'],
-                views=video['views'],
-                likes=video['likes'],
-                comments=video['comments'],
-                duration=video['duration'],
-                tags=video['tags'],
-                description=video['description'],
-                thumbnail_url=video['thumbnail_url']
+                video_id=video["video_id"],
+                title=video["title"],
+                published_at=video["published_at"],
+                views=video["views"],
+                likes=video["likes"],
+                comments=video["comments"],
+                duration=video["duration"],
+                tags=video["tags"],
+                description=video["description"],
+                thumbnail_url=video["thumbnail_url"],
             )
             video_analytics.append(va)
 
@@ -334,8 +338,12 @@ class CompetitorAnalyzer:
 
             # Calculate upload frequency
             if len(video_analytics) >= 2:
-                first_date = datetime.fromisoformat(video_analytics[-1].published_at.replace('Z', '+00:00'))
-                last_date = datetime.fromisoformat(video_analytics[0].published_at.replace('Z', '+00:00'))
+                first_date = datetime.fromisoformat(
+                    video_analytics[-1].published_at.replace("Z", "+00:00")
+                )
+                last_date = datetime.fromisoformat(
+                    video_analytics[0].published_at.replace("Z", "+00:00")
+                )
                 weeks = max((last_date - first_date).days / 7, 1)
                 upload_frequency = len(video_analytics) / weeks
             else:
@@ -350,15 +358,15 @@ class CompetitorAnalyzer:
         # Create channel analytics
         analytics = ChannelAnalytics(
             channel_id=channel_id,
-            channel_name=snippet['title'],
-            subscriber_count=int(stats.get('subscriberCount', 0)),
-            total_views=int(stats.get('viewCount', 0)),
-            video_count=int(stats.get('videoCount', 0)),
+            channel_name=snippet["title"],
+            subscriber_count=int(stats.get("subscriberCount", 0)),
+            total_views=int(stats.get("viewCount", 0)),
+            video_count=int(stats.get("videoCount", 0)),
             analyzed_at=datetime.now().isoformat(),
             avg_engagement_rate=avg_engagement,
             upload_frequency=upload_frequency,
             recent_videos=video_analytics[:20],
-            top_videos=top_videos
+            top_videos=top_videos,
         )
 
         # Calculate average views per video
@@ -397,22 +405,26 @@ class CompetitorAnalyzer:
 
         # Create comparison report
         report = {
-            'analyzed_at': datetime.now().isoformat(),
-            'channels': [asdict(a) for a in analyses],
-            'rankings': {
-                'by_subscribers': sorted(analyses, key=lambda a: a.subscriber_count, reverse=True),
-                'by_avg_views': sorted(analyses, key=lambda a: a.avg_views_per_video, reverse=True),
-                'by_engagement': sorted(analyses, key=lambda a: a.avg_engagement_rate, reverse=True),
-                'by_upload_frequency': sorted(analyses, key=lambda a: a.upload_frequency, reverse=True)
+            "analyzed_at": datetime.now().isoformat(),
+            "channels": [asdict(a) for a in analyses],
+            "rankings": {
+                "by_subscribers": sorted(analyses, key=lambda a: a.subscriber_count, reverse=True),
+                "by_avg_views": sorted(analyses, key=lambda a: a.avg_views_per_video, reverse=True),
+                "by_engagement": sorted(
+                    analyses, key=lambda a: a.avg_engagement_rate, reverse=True
+                ),
+                "by_upload_frequency": sorted(
+                    analyses, key=lambda a: a.upload_frequency, reverse=True
+                ),
             },
-            'insights': self._generate_insights(analyses)
+            "insights": self._generate_insights(analyses),
         }
 
         # Convert rankings to simple format
-        for rank_type in report['rankings']:
-            report['rankings'][rank_type] = [
-                {'channel': a.channel_name, 'value': getattr(a, rank_type.replace('by_', ''))}
-                for a in report['rankings'][rank_type]
+        for rank_type in report["rankings"]:
+            report["rankings"][rank_type] = [
+                {"channel": a.channel_name, "value": getattr(a, rank_type.replace("by_", ""))}
+                for a in report["rankings"][rank_type]
             ]
 
         return report
@@ -430,51 +442,59 @@ class CompetitorAnalyzer:
         avg_engagement = sum(a.avg_engagement_rate for a in analyses) / len(analyses)
         avg_frequency = sum(a.upload_frequency for a in analyses) / len(analyses)
 
-        insights.append({
-            'type': 'benchmark',
-            'description': 'Industry averages',
-            'metrics': {
-                'avg_subscribers': int(avg_subs),
-                'avg_views_per_video': int(avg_views),
-                'avg_engagement_rate': round(avg_engagement, 2),
-                'avg_upload_frequency': round(avg_frequency, 2)
+        insights.append(
+            {
+                "type": "benchmark",
+                "description": "Industry averages",
+                "metrics": {
+                    "avg_subscribers": int(avg_subs),
+                    "avg_views_per_video": int(avg_views),
+                    "avg_engagement_rate": round(avg_engagement, 2),
+                    "avg_upload_frequency": round(avg_frequency, 2),
+                },
             }
-        })
+        )
 
         # Find top performer
         top_channel = max(analyses, key=lambda a: a.subscriber_count)
-        insights.append({
-            'type': 'top_performer',
-            'description': f"{top_channel.channel_name} is the top channel by subscribers",
-            'metrics': {
-                'subscribers': top_channel.subscriber_count,
-                'avg_views': int(top_channel.avg_views_per_video),
-                'engagement_rate': round(top_channel.avg_engagement_rate, 2)
+        insights.append(
+            {
+                "type": "top_performer",
+                "description": f"{top_channel.channel_name} is the top channel by subscribers",
+                "metrics": {
+                    "subscribers": top_channel.subscriber_count,
+                    "avg_views": int(top_channel.avg_views_per_video),
+                    "engagement_rate": round(top_channel.avg_engagement_rate, 2),
+                },
             }
-        })
+        )
 
         # Find best engagement
         best_engagement = max(analyses, key=lambda a: a.avg_engagement_rate)
         if best_engagement != top_channel:
-            insights.append({
-                'type': 'high_engagement',
-                'description': f"{best_engagement.channel_name} has the highest engagement rate",
-                'metrics': {
-                    'engagement_rate': round(best_engagement.avg_engagement_rate, 2),
-                    'strategy': 'Study their content format and community interaction'
+            insights.append(
+                {
+                    "type": "high_engagement",
+                    "description": f"{best_engagement.channel_name} has the highest engagement rate",
+                    "metrics": {
+                        "engagement_rate": round(best_engagement.avg_engagement_rate, 2),
+                        "strategy": "Study their content format and community interaction",
+                    },
                 }
-            })
+            )
 
         # Upload frequency insights
         most_active = max(analyses, key=lambda a: a.upload_frequency)
-        insights.append({
-            'type': 'upload_frequency',
-            'description': f"{most_active.channel_name} uploads most frequently",
-            'metrics': {
-                'videos_per_week': round(most_active.upload_frequency, 2),
-                'recommendation': 'Consider increasing upload frequency to match'
+        insights.append(
+            {
+                "type": "upload_frequency",
+                "description": f"{most_active.channel_name} uploads most frequently",
+                "metrics": {
+                    "videos_per_week": round(most_active.upload_frequency, 2),
+                    "recommendation": "Consider increasing upload frequency to match",
+                },
             }
-        })
+        )
 
         return insights
 
@@ -496,19 +516,19 @@ class CompetitorAnalyzer:
         for channel_id in channel_ids:
             videos = self.get_channel_videos(channel_id, max_results=20)
             for video in videos:
-                all_titles.append(video['title'].lower())
-                all_tags.extend([tag.lower() for tag in video['tags']])
+                all_titles.append(video["title"].lower())
+                all_tags.extend([tag.lower() for tag in video["tags"]])
             time.sleep(0.5)
 
         # Count word frequency in titles
-        from collections import Counter
         import re
+        from collections import Counter
 
         # Extract words from titles
         words = []
         for title in all_titles:
             # Remove common words
-            title_words = re.findall(r'\b\w{4,}\b', title)  # Words with 4+ chars
+            title_words = re.findall(r"\b\w{4,}\b", title)  # Words with 4+ chars
             words.extend(title_words)
 
         # Count frequencies
@@ -521,30 +541,36 @@ class CompetitorAnalyzer:
         # Top keywords in titles
         for word, count in word_freq.most_common(20):
             if count >= 3:  # Appears in at least 3 videos
-                trending.append({
-                    'keyword': word,
-                    'frequency': count,
-                    'source': 'title',
-                    'opportunity': 'high' if count >= 5 else 'medium'
-                })
+                trending.append(
+                    {
+                        "keyword": word,
+                        "frequency": count,
+                        "source": "title",
+                        "opportunity": "high" if count >= 5 else "medium",
+                    }
+                )
 
         # Top tags
         for tag, count in tag_freq.most_common(20):
             if count >= 3:
-                trending.append({
-                    'keyword': tag,
-                    'frequency': count,
-                    'source': 'tag',
-                    'opportunity': 'high' if count >= 5 else 'medium'
-                })
+                trending.append(
+                    {
+                        "keyword": tag,
+                        "frequency": count,
+                        "source": "tag",
+                        "opportunity": "high" if count >= 5 else "medium",
+                    }
+                )
 
         # Sort by frequency
-        trending.sort(key=lambda x: x['frequency'], reverse=True)
+        trending.sort(key=lambda x: x["frequency"], reverse=True)
 
         logger.info(f"Identified {len(trending)} trending topics")
         return trending
 
-    def generate_report(self, channel_ids: List[str], output_file: str = "competitor_report.json") -> Dict:
+    def generate_report(
+        self, channel_ids: List[str], output_file: str = "competitor_report.json"
+    ) -> Dict:
         """
         Generate a comprehensive competitor analysis report.
 
@@ -565,14 +591,14 @@ class CompetitorAnalyzer:
 
         # Compile report
         report = {
-            'generated_at': datetime.now().isoformat(),
-            'channel_comparison': comparison,
-            'trending_topics': trending,
-            'recommendations': self._generate_recommendations(comparison, trending)
+            "generated_at": datetime.now().isoformat(),
+            "channel_comparison": comparison,
+            "trending_topics": trending,
+            "recommendations": self._generate_recommendations(comparison, trending),
         }
 
         # Save report
-        with open(output_file, 'w') as f:
+        with open(output_file, "w") as f:
             json.dump(report, f, indent=2, default=str)
 
         logger.info(f"Report saved to {output_file}")
@@ -582,33 +608,39 @@ class CompetitorAnalyzer:
         """Generate actionable recommendations."""
         recommendations = []
 
-        if comparison and 'insights' in comparison:
-            benchmarks = next((i for i in comparison['insights'] if i['type'] == 'benchmark'), None)
+        if comparison and "insights" in comparison:
+            benchmarks = next((i for i in comparison["insights"] if i["type"] == "benchmark"), None)
 
             if benchmarks:
-                recommendations.append({
-                    'category': 'upload_frequency',
-                    'priority': 'high',
-                    'action': f"Upload at least {benchmarks['metrics']['avg_upload_frequency']:.1f} videos per week",
-                    'reason': 'Match industry average'
-                })
+                recommendations.append(
+                    {
+                        "category": "upload_frequency",
+                        "priority": "high",
+                        "action": f"Upload at least {benchmarks['metrics']['avg_upload_frequency']:.1f} videos per week",
+                        "reason": "Match industry average",
+                    }
+                )
 
-                recommendations.append({
-                    'category': 'engagement',
-                    'priority': 'high',
-                    'action': f"Target {benchmarks['metrics']['avg_engagement_rate']:.1f}% engagement rate",
-                    'reason': 'Industry benchmark'
-                })
+                recommendations.append(
+                    {
+                        "category": "engagement",
+                        "priority": "high",
+                        "action": f"Target {benchmarks['metrics']['avg_engagement_rate']:.1f}% engagement rate",
+                        "reason": "Industry benchmark",
+                    }
+                )
 
         # Trending topic recommendations
         if trending:
-            top_trends = [t['keyword'] for t in trending[:5]]
-            recommendations.append({
-                'category': 'content',
-                'priority': 'high',
-                'action': f"Create content around: {', '.join(top_trends)}",
-                'reason': 'Currently trending across competitors'
-            })
+            top_trends = [t["keyword"] for t in trending[:5]]
+            recommendations.append(
+                {
+                    "category": "content",
+                    "priority": "high",
+                    "action": f"Create content around: {', '.join(top_trends)}",
+                    "reason": "Currently trending across competitors",
+                }
+            )
 
         return recommendations
 

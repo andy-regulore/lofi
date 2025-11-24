@@ -19,17 +19,19 @@ Author: Claude
 License: MIT
 """
 
-from PIL import Image, ImageDraw, ImageFont, ImageFilter, ImageEnhance
-from typing import List, Dict, Tuple, Optional
-from dataclasses import dataclass
-from enum import Enum
-import random
 import io
 import os
+import random
+from dataclasses import dataclass
+from enum import Enum
+from typing import Dict, List, Optional, Tuple
+
+from PIL import Image, ImageDraw, ImageEnhance, ImageFilter, ImageFont
 
 
 class ThumbnailStyle(Enum):
     """Thumbnail aesthetic styles."""
+
     ANIME = "anime"
     NATURE = "nature"
     CITYSCAPE = "cityscape"
@@ -42,6 +44,7 @@ class ThumbnailStyle(Enum):
 
 class ColorGrading(Enum):
     """Color grading presets."""
+
     WARM = "warm"
     COOL = "cool"
     VINTAGE = "vintage"
@@ -55,6 +58,7 @@ class ColorGrading(Enum):
 @dataclass
 class ThumbnailConfig:
     """Configuration for thumbnail generation."""
+
     width: int = 1280
     height: int = 720
     style: ThumbnailStyle = ThumbnailStyle.ANIME
@@ -70,53 +74,53 @@ class LoFiColorPalettes:
     """Lo-Fi color palettes for different moods."""
 
     PALETTES = {
-        'warm': {
-            'primary': (255, 200, 150),    # Warm orange
-            'secondary': (255, 230, 200),   # Cream
-            'accent': (200, 150, 100),      # Brown
-            'background': (40, 35, 30),     # Dark brown
+        "warm": {
+            "primary": (255, 200, 150),  # Warm orange
+            "secondary": (255, 230, 200),  # Cream
+            "accent": (200, 150, 100),  # Brown
+            "background": (40, 35, 30),  # Dark brown
         },
-        'cool': {
-            'primary': (150, 180, 255),     # Cool blue
-            'secondary': (200, 220, 255),   # Light blue
-            'accent': (100, 120, 180),      # Deep blue
-            'background': (25, 30, 40),     # Dark blue
+        "cool": {
+            "primary": (150, 180, 255),  # Cool blue
+            "secondary": (200, 220, 255),  # Light blue
+            "accent": (100, 120, 180),  # Deep blue
+            "background": (25, 30, 40),  # Dark blue
         },
-        'vintage': {
-            'primary': (220, 200, 180),     # Sepia
-            'secondary': (255, 240, 220),   # Off-white
-            'accent': (150, 120, 90),       # Brown
-            'background': (50, 40, 30),     # Dark sepia
+        "vintage": {
+            "primary": (220, 200, 180),  # Sepia
+            "secondary": (255, 240, 220),  # Off-white
+            "accent": (150, 120, 90),  # Brown
+            "background": (50, 40, 30),  # Dark sepia
         },
-        'vibrant': {
-            'primary': (255, 100, 150),     # Hot pink
-            'secondary': (255, 200, 100),   # Yellow
-            'accent': (100, 200, 255),      # Cyan
-            'background': (30, 30, 50),     # Dark purple
+        "vibrant": {
+            "primary": (255, 100, 150),  # Hot pink
+            "secondary": (255, 200, 100),  # Yellow
+            "accent": (100, 200, 255),  # Cyan
+            "background": (30, 30, 50),  # Dark purple
         },
-        'muted': {
-            'primary': (180, 170, 160),     # Gray-beige
-            'secondary': (200, 190, 180),   # Light gray
-            'accent': (140, 130, 120),      # Dark gray
-            'background': (40, 38, 36),     # Charcoal
+        "muted": {
+            "primary": (180, 170, 160),  # Gray-beige
+            "secondary": (200, 190, 180),  # Light gray
+            "accent": (140, 130, 120),  # Dark gray
+            "background": (40, 38, 36),  # Charcoal
         },
-        'cyberpunk': {
-            'primary': (255, 0, 150),       # Magenta
-            'secondary': (0, 255, 255),     # Cyan
-            'accent': (255, 255, 0),        # Yellow
-            'background': (10, 10, 20),     # Near black
+        "cyberpunk": {
+            "primary": (255, 0, 150),  # Magenta
+            "secondary": (0, 255, 255),  # Cyan
+            "accent": (255, 255, 0),  # Yellow
+            "background": (10, 10, 20),  # Near black
         },
-        'sunset': {
-            'primary': (255, 140, 100),     # Coral
-            'secondary': (255, 200, 150),   # Peach
-            'accent': (200, 80, 120),       # Rose
-            'background': (30, 20, 40),     # Purple-black
+        "sunset": {
+            "primary": (255, 140, 100),  # Coral
+            "secondary": (255, 200, 150),  # Peach
+            "accent": (200, 80, 120),  # Rose
+            "background": (30, 20, 40),  # Purple-black
         },
-        'midnight': {
-            'primary': (100, 120, 180),     # Night blue
-            'secondary': (150, 160, 200),   # Light blue
-            'accent': (80, 90, 140),        # Deep blue
-            'background': (15, 18, 30),     # Midnight
+        "midnight": {
+            "primary": (100, 120, 180),  # Night blue
+            "secondary": (150, 160, 200),  # Light blue
+            "accent": (80, 90, 140),  # Deep blue
+            "background": (15, 18, 30),  # Midnight
         },
     }
 
@@ -139,17 +143,14 @@ class ThumbnailGenerator:
             PIL Image
         """
         # Get color palette
-        palette = self.color_palettes.get(config.color_grading.value, self.color_palettes['warm'])
+        palette = self.color_palettes.get(config.color_grading.value, self.color_palettes["warm"])
 
         # Create gradient background
-        img = Image.new('RGB', (config.width, config.height), palette['background'])
+        img = Image.new("RGB", (config.width, config.height), palette["background"])
 
         # Add gradient overlay
         gradient = self._create_gradient(
-            config.width,
-            config.height,
-            palette['background'],
-            palette['accent']
+            config.width, config.height, palette["background"], palette["accent"]
         )
 
         # Blend gradient
@@ -157,14 +158,14 @@ class ThumbnailGenerator:
 
         return img
 
-    def _create_gradient(self, width: int, height: int,
-                        color1: Tuple[int, int, int],
-                        color2: Tuple[int, int, int]) -> Image.Image:
+    def _create_gradient(
+        self, width: int, height: int, color1: Tuple[int, int, int], color2: Tuple[int, int, int]
+    ) -> Image.Image:
         """Create linear gradient."""
-        base = Image.new('RGB', (width, height), color1)
-        top = Image.new('RGB', (width, height), color2)
+        base = Image.new("RGB", (width, height), color1)
+        top = Image.new("RGB", (width, height), color2)
 
-        mask = Image.new('L', (width, height))
+        mask = Image.new("L", (width, height))
         mask_data = []
         for y in range(height):
             mask_data.extend([int(255 * (y / height))] * width)
@@ -173,7 +174,7 @@ class ThumbnailGenerator:
         base.paste(top, (0, 0), mask)
         return base
 
-    def apply_lofi_filter(self, img: Image.Image, style: str = 'warm') -> Image.Image:
+    def apply_lofi_filter(self, img: Image.Image, style: str = "warm") -> Image.Image:
         """
         Apply Lo-Fi aesthetic filter.
 
@@ -193,9 +194,9 @@ class ThumbnailGenerator:
 
         # Adjust brightness based on style
         brightness = ImageEnhance.Brightness(img)
-        if style in ['warm', 'vintage']:
+        if style in ["warm", "vintage"]:
             img = brightness.enhance(1.1)
-        elif style in ['cool', 'midnight']:
+        elif style in ["cool", "midnight"]:
             img = brightness.enhance(0.9)
 
         # Add slight contrast
@@ -204,17 +205,22 @@ class ThumbnailGenerator:
 
         return img
 
-    def add_overlay(self, img: Image.Image, opacity: float = 0.3,
-                   color: Tuple[int, int, int] = (0, 0, 0)) -> Image.Image:
+    def add_overlay(
+        self, img: Image.Image, opacity: float = 0.3, color: Tuple[int, int, int] = (0, 0, 0)
+    ) -> Image.Image:
         """Add dark/light overlay for text readability."""
-        overlay = Image.new('RGB', img.size, color)
+        overlay = Image.new("RGB", img.size, color)
         return Image.blend(img, overlay, alpha=opacity)
 
-    def add_text(self, img: Image.Image, text: str,
-                position: str = 'center',
-                font_size: int = 80,
-                color: Tuple[int, int, int] = (255, 255, 255),
-                font_style: str = 'bold') -> Image.Image:
+    def add_text(
+        self,
+        img: Image.Image,
+        text: str,
+        position: str = "center",
+        font_size: int = 80,
+        color: Tuple[int, int, int] = (255, 255, 255),
+        font_style: str = "bold",
+    ) -> Image.Image:
         """
         Add text overlay.
 
@@ -260,11 +266,11 @@ class ThumbnailGenerator:
         # Calculate position
         x = (img.width - text_width) // 2
 
-        if position == 'top':
+        if position == "top":
             y = img.height // 6
-        elif position == 'center':
+        elif position == "center":
             y = (img.height - text_height) // 2
-        elif position == 'bottom':
+        elif position == "bottom":
             y = img.height - img.height // 4
         else:
             y = img.height // 2
@@ -278,8 +284,9 @@ class ThumbnailGenerator:
 
         return img
 
-    def add_corner_badge(self, img: Image.Image, text: str = "LOFI",
-                        position: str = 'top-right') -> Image.Image:
+    def add_corner_badge(
+        self, img: Image.Image, text: str = "LOFI", position: str = "top-right"
+    ) -> Image.Image:
         """Add corner badge (e.g., "LOFI", "CHILL", "STUDY")."""
         draw = ImageDraw.Draw(img)
 
@@ -289,13 +296,13 @@ class ThumbnailGenerator:
         margin = 20
 
         # Position
-        if position == 'top-right':
+        if position == "top-right":
             x = img.width - badge_width - margin
             y = margin
-        elif position == 'top-left':
+        elif position == "top-left":
             x = margin
             y = margin
-        elif position == 'bottom-right':
+        elif position == "bottom-right":
             x = img.width - badge_width - margin
             y = img.height - badge_height - margin
         else:  # bottom-left
@@ -306,7 +313,7 @@ class ThumbnailGenerator:
         draw.rectangle(
             [x, y, x + badge_width, y + badge_height],
             fill=(255, 255, 255, 200),
-            outline=(200, 200, 200)
+            outline=(200, 200, 200),
         )
 
         # Draw text
@@ -344,16 +351,12 @@ class ThumbnailGenerator:
 
         # Add overlay for text readability
         palette = self.color_palettes[config.color_grading.value]
-        img = self.add_overlay(img, opacity=config.overlay_opacity, color=palette['background'])
+        img = self.add_overlay(img, opacity=config.overlay_opacity, color=palette["background"])
 
         # Add title
         if config.title_text:
             img = self.add_text(
-                img,
-                config.title_text,
-                position='center',
-                font_size=80,
-                color=palette['primary']
+                img, config.title_text, position="center", font_size=80, color=palette["primary"]
             )
 
         # Add subtitle
@@ -361,23 +364,24 @@ class ThumbnailGenerator:
             img = self.add_text(
                 img,
                 config.subtitle_text,
-                position='bottom',
+                position="bottom",
                 font_size=50,
-                color=palette['secondary']
+                color=palette["secondary"],
             )
 
         # Add corner badge
         if config.add_logo:
-            img = self.add_corner_badge(img, text="LOFI", position='top-right')
+            img = self.add_corner_badge(img, text="LOFI", position="top-right")
 
         # Add border
         if config.add_border:
-            img = self._add_border(img, width=5, color=palette['accent'])
+            img = self._add_border(img, width=5, color=palette["accent"])
 
         return img
 
-    def _add_border(self, img: Image.Image, width: int = 5,
-                   color: Tuple[int, int, int] = (255, 255, 255)) -> Image.Image:
+    def _add_border(
+        self, img: Image.Image, width: int = 5, color: Tuple[int, int, int] = (255, 255, 255)
+    ) -> Image.Image:
         """Add border to image."""
         draw = ImageDraw.Draw(img)
         w, h = img.size
@@ -385,9 +389,7 @@ class ThumbnailGenerator:
             draw.rectangle([i, i, w - i - 1, h - i - 1], outline=color)
         return img
 
-    def generate_ab_test_variations(self,
-                                    title: str,
-                                    num_variations: int = 3) -> List[Image.Image]:
+    def generate_ab_test_variations(self, title: str, num_variations: int = 3) -> List[Image.Image]:
         """
         Generate multiple thumbnail variations for A/B testing.
 
@@ -400,8 +402,13 @@ class ThumbnailGenerator:
         """
         variations = []
 
-        color_gradings = [ColorGrading.WARM, ColorGrading.COOL, ColorGrading.VIBRANT,
-                         ColorGrading.VINTAGE, ColorGrading.SUNSET]
+        color_gradings = [
+            ColorGrading.WARM,
+            ColorGrading.COOL,
+            ColorGrading.VIBRANT,
+            ColorGrading.VINTAGE,
+            ColorGrading.SUNSET,
+        ]
         styles = [ThumbnailStyle.ANIME, ThumbnailStyle.NATURE, ThumbnailStyle.MINIMAL]
 
         for i in range(num_variations):
@@ -410,7 +417,7 @@ class ThumbnailGenerator:
                 subtitle_text="Chill Beats",
                 color_grading=color_gradings[i % len(color_gradings)],
                 style=styles[i % len(styles)],
-                overlay_opacity=0.3 + (i * 0.1)
+                overlay_opacity=0.3 + (i * 0.1),
             )
 
             thumbnail = self.generate_thumbnail(config)
@@ -418,9 +425,12 @@ class ThumbnailGenerator:
 
         return variations
 
-    def batch_generate(self, titles: List[str],
-                      style: ThumbnailStyle = ThumbnailStyle.ANIME,
-                      color: ColorGrading = ColorGrading.WARM) -> List[Image.Image]:
+    def batch_generate(
+        self,
+        titles: List[str],
+        style: ThumbnailStyle = ThumbnailStyle.ANIME,
+        color: ColorGrading = ColorGrading.WARM,
+    ) -> List[Image.Image]:
         """
         Generate thumbnails for multiple tracks.
 
@@ -437,7 +447,7 @@ class ThumbnailGenerator:
         for title in titles:
             # Split title if too long
             if len(title) > 40:
-                parts = title.split(' - ')
+                parts = title.split(" - ")
                 if len(parts) == 2:
                     main_title = parts[0]
                     subtitle = parts[1]
@@ -449,10 +459,7 @@ class ThumbnailGenerator:
                 subtitle = "Lofi Hip Hop Beats"
 
             config = ThumbnailConfig(
-                title_text=main_title,
-                subtitle_text=subtitle,
-                style=style,
-                color_grading=color
+                title_text=main_title, subtitle_text=subtitle, style=style, color_grading=color
             )
 
             thumbnail = self.generate_thumbnail(config)
@@ -462,7 +469,7 @@ class ThumbnailGenerator:
 
 
 # Example usage
-if __name__ == '__main__':
+if __name__ == "__main__":
     print("=== YouTube Thumbnail Generator ===\n")
 
     generator = ThumbnailGenerator()
@@ -474,7 +481,7 @@ if __name__ == '__main__':
         subtitle_text="Study & Relax",
         color_grading=ColorGrading.WARM,
         style=ThumbnailStyle.ANIME,
-        add_logo=True
+        add_logo=True,
     )
 
     thumbnail = generator.generate_thumbnail(config)
@@ -485,10 +492,7 @@ if __name__ == '__main__':
 
     # Generate A/B test variations
     print("2. Generating A/B test variations...")
-    variations = generator.generate_ab_test_variations(
-        title="Study Session",
-        num_variations=3
-    )
+    variations = generator.generate_ab_test_variations(title="Study Session", num_variations=3)
 
     for i, var in enumerate(variations, 1):
         path = f"/tmp/lofi_thumbnail_var_{i}.png"
@@ -505,9 +509,7 @@ if __name__ == '__main__':
     ]
 
     batch_thumbnails = generator.batch_generate(
-        titles,
-        style=ThumbnailStyle.MINIMAL,
-        color=ColorGrading.COOL
+        titles, style=ThumbnailStyle.MINIMAL, color=ColorGrading.COOL
     )
 
     for i, (title, thumb) in enumerate(zip(titles, batch_thumbnails), 1):

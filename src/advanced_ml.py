@@ -1,11 +1,10 @@
 """Advanced ML features for ultra-pro generation control."""
 
 import logging
-from typing import Dict, List, Optional, Tuple, Callable
+from typing import Dict, List, Optional
 
 import numpy as np
 import torch
-import torch.nn.functional as F
 
 logger = logging.getLogger(__name__)
 
@@ -13,7 +12,7 @@ logger = logging.getLogger(__name__)
 class GradientBasedController:
     """Control generation using gradient-based optimization."""
 
-    def __init__(self, model, device: str = 'cuda'):
+    def __init__(self, model, device: str = "cuda"):
         """Initialize gradient controller.
 
         Args:
@@ -29,7 +28,7 @@ class GradientBasedController:
         target_characteristics: Dict[str, float],
         num_steps: int = 50,
         learning_rate: float = 0.01,
-        **generation_kwargs
+        **generation_kwargs,
     ) -> torch.Tensor:
         """Generate with target characteristics using gradient optimization.
 
@@ -46,15 +45,15 @@ class GradientBasedController:
         # Create learnable latent variable
         latent = torch.randn(
             input_ids.shape[0],
-            self.model.model_config['embedding_dim'],
+            self.model.model_config["embedding_dim"],
             requires_grad=True,
-            device=self.device
+            device=self.device,
         )
 
         optimizer = torch.optim.Adam([latent], lr=learning_rate)
 
         best_output = None
-        best_loss = float('inf')
+        best_loss = float("inf")
 
         for step in range(num_steps):
             optimizer.zero_grad()
@@ -62,8 +61,8 @@ class GradientBasedController:
             # Generate with current latent
             outputs = self.model.generate(
                 input_ids,
-                max_length=generation_kwargs.get('max_length', 1024),
-                temperature=generation_kwargs.get('temperature', 0.9),
+                max_length=generation_kwargs.get("max_length", 1024),
+                temperature=generation_kwargs.get("temperature", 0.9),
             )
 
             # Calculate loss based on target characteristics
@@ -82,20 +81,18 @@ class GradientBasedController:
         return best_output if best_output is not None else outputs
 
     def _calculate_characteristic_loss(
-        self,
-        outputs: torch.Tensor,
-        targets: Dict[str, float]
+        self, outputs: torch.Tensor, targets: Dict[str, float]
     ) -> torch.Tensor:
         """Calculate loss for target characteristics."""
         losses = []
 
-        if 'diversity' in targets:
+        if "diversity" in targets:
             # Diversity loss
             unique_ratio = len(torch.unique(outputs)) / outputs.numel()
-            diversity_loss = (unique_ratio - targets['diversity']) ** 2
+            diversity_loss = (unique_ratio - targets["diversity"]) ** 2
             losses.append(diversity_loss)
 
-        if 'rhythm_strength' in targets:
+        if "rhythm_strength" in targets:
             # Rhythm pattern strength (check for repeating patterns)
             # Simplified: check autocorrelation
             rhythm_loss = torch.tensor(0.0, device=self.device)
@@ -118,13 +115,14 @@ class AttentionVisualizer:
 
     def register_hooks(self):
         """Register forward hooks to capture attention weights."""
+
         def hook_fn(module, input, output):
-            if hasattr(output, 'attentions') and output.attentions is not None:
+            if hasattr(output, "attentions") and output.attentions is not None:
                 self.attention_weights.append(output.attentions)
 
         hooks = []
         for name, module in self.model.model.named_modules():
-            if 'attention' in name.lower():
+            if "attention" in name.lower():
                 hooks.append(module.register_forward_hook(hook_fn))
 
         return hooks
@@ -145,7 +143,7 @@ class AttentionVisualizer:
         import seaborn as sns
 
         fig, axes = plt.subplots(2, 2, figsize=(15, 15))
-        fig.suptitle('Attention Pattern Analysis', fontsize=16)
+        fig.suptitle("Attention Pattern Analysis", fontsize=16)
 
         # Plot attention for different layers
         for idx, (ax, attn) in enumerate(zip(axes.flat, self.attention_weights[:4])):
@@ -158,17 +156,17 @@ class AttentionVisualizer:
             sns.heatmap(
                 attn_mean[:50, :50],  # Show first 50 tokens
                 ax=ax,
-                cmap='viridis',
-                cbar_kws={'label': 'Attention Weight'}
+                cmap="viridis",
+                cbar_kws={"label": "Attention Weight"},
             )
-            ax.set_title(f'Layer {idx + 1} Attention')
-            ax.set_xlabel('Key Position')
-            ax.set_ylabel('Query Position')
+            ax.set_title(f"Layer {idx + 1} Attention")
+            ax.set_xlabel("Key Position")
+            ax.set_ylabel("Query Position")
 
         plt.tight_layout()
 
         if save_path:
-            plt.savefig(save_path, dpi=300, bbox_inches='tight')
+            plt.savefig(save_path, dpi=300, bbox_inches="tight")
             logger.info(f"Saved attention visualization to {save_path}")
 
         plt.close()
@@ -216,7 +214,7 @@ class StyleTransfer:
         style_vector: torch.Tensor,
         num_tokens: int = 1024,
         style_strength: float = 0.7,
-        **generation_kwargs
+        **generation_kwargs,
     ) -> List[int]:
         """Generate new track with style from reference.
 
@@ -234,21 +232,14 @@ class StyleTransfer:
 
         # Start with random tokens
         start_tokens = torch.randint(
-            0,
-            self.tokenizer.get_vocab_size(),
-            (1, 10),
-            device=self.model.device
+            0, self.tokenizer.get_vocab_size(), (1, 10), device=self.model.device
         )
 
         # Generate with style conditioning
         # This is a simplified version - full implementation would modify
         # the model's forward pass to incorporate style vector
 
-        outputs = self.model.generate(
-            start_tokens,
-            max_length=num_tokens,
-            **generation_kwargs
-        )
+        outputs = self.model.generate(start_tokens, max_length=num_tokens, **generation_kwargs)
 
         return outputs[0].cpu().tolist()
 
@@ -267,10 +258,7 @@ class TrackVariationGenerator:
         self.tokenizer = tokenizer
 
     def generate_variation(
-        self,
-        original_tokens: List[int],
-        variation_type: str = 'subtle',
-        **kwargs
+        self, original_tokens: List[int], variation_type: str = "subtle", **kwargs
     ) -> List[int]:
         """Generate variation of a track.
 
@@ -283,15 +271,15 @@ class TrackVariationGenerator:
             Varied token sequence
         """
         variation_params = {
-            'subtle': {'temperature': 0.8, 'top_p': 0.95, 'mask_ratio': 0.1},
-            'moderate': {'temperature': 1.0, 'top_p': 0.9, 'mask_ratio': 0.3},
-            'dramatic': {'temperature': 1.2, 'top_p': 0.85, 'mask_ratio': 0.5},
+            "subtle": {"temperature": 0.8, "top_p": 0.95, "mask_ratio": 0.1},
+            "moderate": {"temperature": 1.0, "top_p": 0.9, "mask_ratio": 0.3},
+            "dramatic": {"temperature": 1.2, "top_p": 0.85, "mask_ratio": 0.5},
         }
 
-        params = variation_params.get(variation_type, variation_params['moderate'])
+        params = variation_params.get(variation_type, variation_params["moderate"])
 
         # Mask random tokens for variation
-        mask_ratio = params['mask_ratio']
+        mask_ratio = params["mask_ratio"]
         num_mask = int(len(original_tokens) * mask_ratio)
         mask_indices = np.random.choice(len(original_tokens), num_mask, replace=False)
 
@@ -307,8 +295,8 @@ class TrackVariationGenerator:
             outputs = self.model.generate(
                 tokens_tensor,
                 max_length=len(original_tokens),
-                temperature=params['temperature'],
-                top_p=params['top_p'],
+                temperature=params["temperature"],
+                top_p=params["top_p"],
             )
 
         return outputs[0].cpu().tolist()

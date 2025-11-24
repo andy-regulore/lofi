@@ -12,10 +12,11 @@ Author: Claude
 License: MIT
 """
 
+from typing import Optional, Tuple
+
+import librosa
 import numpy as np
 from scipy import signal
-from typing import Optional, Tuple
-import librosa
 
 
 class LoFiEffectsChain:
@@ -35,7 +36,7 @@ class LoFiEffectsChain:
         audio: np.ndarray,
         crackle_amount: float = 0.015,
         pop_frequency: float = 0.5,
-        pop_intensity: float = 0.3
+        pop_intensity: float = 0.3,
     ) -> np.ndarray:
         """
         Add realistic vinyl crackle and pops.
@@ -54,12 +55,13 @@ class LoFiEffectsChain:
 
         # Filter crackle to sound more realistic (high-pass + band-pass)
         # High-pass to remove low rumble
-        b_hp, a_hp = signal.butter(2, 1000 / (self.sample_rate / 2), 'high')
+        b_hp, a_hp = signal.butter(2, 1000 / (self.sample_rate / 2), "high")
         crackle = signal.filtfilt(b_hp, a_hp, crackle)
 
         # Band-pass for characteristic vinyl hiss
-        b_bp, a_bp = signal.butter(2, [3000 / (self.sample_rate / 2),
-                                        8000 / (self.sample_rate / 2)], 'band')
+        b_bp, a_bp = signal.butter(
+            2, [3000 / (self.sample_rate / 2), 8000 / (self.sample_rate / 2)], "band"
+        )
         crackle = signal.filtfilt(b_bp, a_bp, crackle)
 
         # Generate random pops
@@ -72,16 +74,12 @@ class LoFiEffectsChain:
             if pos + pop_length < len(audio):
                 pop_env = np.exp(-np.linspace(0, 5, pop_length))
                 pop_signal = np.random.randn(pop_length) * pop_intensity * pop_env
-                crackle[pos:pos+pop_length] += pop_signal
+                crackle[pos : pos + pop_length] += pop_signal
 
         # Mix with original audio
         return audio + crackle
 
-    def add_bit_crushing(
-        self,
-        audio: np.ndarray,
-        bit_depth: int = 12
-    ) -> np.ndarray:
+    def add_bit_crushing(self, audio: np.ndarray, bit_depth: int = 12) -> np.ndarray:
         """
         Apply bit crushing for digital lo-fi grit.
 
@@ -96,17 +94,14 @@ class LoFiEffectsChain:
         audio_norm = audio / (np.max(np.abs(audio)) + 1e-8)
 
         # Quantize to target bit depth
-        levels = 2 ** bit_depth
+        levels = 2**bit_depth
         crushed = np.round(audio_norm * levels) / levels
 
         # Restore original amplitude
         return crushed * np.max(np.abs(audio))
 
     def add_wow_flutter(
-        self,
-        audio: np.ndarray,
-        rate: float = 0.3,
-        depth: float = 5.0
+        self, audio: np.ndarray, rate: float = 0.3, depth: float = 5.0
     ) -> np.ndarray:
         """
         Add wow and flutter (pitch modulation from tape speed variations).
@@ -125,9 +120,9 @@ class LoFiEffectsChain:
         # Generate LFO (Low Frequency Oscillator)
         # Use combination of sine waves for realistic variation
         lfo = (
-            np.sin(2 * np.pi * rate * t) +
-            0.5 * np.sin(2 * np.pi * rate * 1.7 * t) +
-            0.3 * np.sin(2 * np.pi * rate * 2.3 * t)
+            np.sin(2 * np.pi * rate * t)
+            + 0.5 * np.sin(2 * np.pi * rate * 1.7 * t)
+            + 0.3 * np.sin(2 * np.pi * rate * 2.3 * t)
         )
 
         # Normalize LFO
@@ -143,19 +138,12 @@ class LoFiEffectsChain:
         indices = indices / indices[-1] * (len(audio) - 1)
 
         # Interpolate to get modulated signal
-        modulated = np.interp(
-            np.arange(len(audio)),
-            indices,
-            audio
-        )
+        modulated = np.interp(np.arange(len(audio)), indices, audio)
 
         return modulated
 
     def add_tape_saturation(
-        self,
-        audio: np.ndarray,
-        drive: float = 2.0,
-        mix: float = 0.5
+        self, audio: np.ndarray, drive: float = 2.0, mix: float = 0.5
     ) -> np.ndarray:
         """
         Apply tape saturation for analog warmth and harmonic distortion.
@@ -174,16 +162,12 @@ class LoFiEffectsChain:
 
         # Apply even-harmonic emphasis (characteristic of tape)
         # This is a simple approximation using asymmetric clipping
-        saturated = saturated + 0.1 * (saturated ** 2) * np.sign(saturated)
+        saturated = saturated + 0.1 * (saturated**2) * np.sign(saturated)
 
         # Mix with dry signal
         return (1 - mix) * audio + mix * saturated
 
-    def add_analog_warmth(
-        self,
-        audio: np.ndarray,
-        warmth: float = 0.3
-    ) -> np.ndarray:
+    def add_analog_warmth(self, audio: np.ndarray, warmth: float = 0.3) -> np.ndarray:
         """
         Add analog warmth via subtle low-end boost and high-end roll-off.
 
@@ -195,21 +179,17 @@ class LoFiEffectsChain:
             Warmed audio
         """
         # Low shelf boost (80-200 Hz)
-        b_low, a_low = signal.butter(1, 200 / (self.sample_rate / 2), 'low')
+        b_low, a_low = signal.butter(1, 200 / (self.sample_rate / 2), "low")
         low_boost = signal.filtfilt(b_low, a_low, audio) * warmth * 0.3
 
         # High shelf cut (8000+ Hz)
-        b_high, a_high = signal.butter(1, 8000 / (self.sample_rate / 2), 'high')
+        b_high, a_high = signal.butter(1, 8000 / (self.sample_rate / 2), "high")
         high_cut = signal.filtfilt(b_high, a_high, audio) * (1 - warmth * 0.5)
 
         # Combine
         return audio + low_boost - (audio - high_cut)
 
-    def add_downsampling(
-        self,
-        audio: np.ndarray,
-        target_rate: int = 22050
-    ) -> np.ndarray:
+    def add_downsampling(self, audio: np.ndarray, target_rate: int = 22050) -> np.ndarray:
         """
         Downsample and upsample to reduce fidelity (lo-fi effect).
 
@@ -221,26 +201,15 @@ class LoFiEffectsChain:
             Audio with reduced fidelity
         """
         # Downsample
-        downsampled = librosa.resample(
-            audio,
-            orig_sr=self.sample_rate,
-            target_sr=target_rate
-        )
+        downsampled = librosa.resample(audio, orig_sr=self.sample_rate, target_sr=target_rate)
 
         # Upsample back to original rate
-        upsampled = librosa.resample(
-            downsampled,
-            orig_sr=target_rate,
-            target_sr=self.sample_rate
-        )
+        upsampled = librosa.resample(downsampled, orig_sr=target_rate, target_sr=self.sample_rate)
 
         return upsampled
 
     def process_full_chain(
-        self,
-        audio: np.ndarray,
-        preset: str = 'medium',
-        custom_params: Optional[dict] = None
+        self, audio: np.ndarray, preset: str = "medium", custom_params: Optional[dict] = None
     ) -> np.ndarray:
         """
         Apply complete LoFi effects chain with presets.
@@ -255,43 +224,43 @@ class LoFiEffectsChain:
         """
         # Preset configurations
         presets = {
-            'light': {
-                'bit_depth': 14,
-                'vinyl_crackle': 0.008,
-                'vinyl_pops': 0.3,
-                'wow_rate': 0.2,
-                'wow_depth': 2.0,
-                'saturation_drive': 1.5,
-                'saturation_mix': 0.3,
-                'warmth': 0.2,
-                'downsample': None
+            "light": {
+                "bit_depth": 14,
+                "vinyl_crackle": 0.008,
+                "vinyl_pops": 0.3,
+                "wow_rate": 0.2,
+                "wow_depth": 2.0,
+                "saturation_drive": 1.5,
+                "saturation_mix": 0.3,
+                "warmth": 0.2,
+                "downsample": None,
             },
-            'medium': {
-                'bit_depth': 12,
-                'vinyl_crackle': 0.015,
-                'vinyl_pops': 0.5,
-                'wow_rate': 0.3,
-                'wow_depth': 5.0,
-                'saturation_drive': 2.0,
-                'saturation_mix': 0.5,
-                'warmth': 0.3,
-                'downsample': 32000
+            "medium": {
+                "bit_depth": 12,
+                "vinyl_crackle": 0.015,
+                "vinyl_pops": 0.5,
+                "wow_rate": 0.3,
+                "wow_depth": 5.0,
+                "saturation_drive": 2.0,
+                "saturation_mix": 0.5,
+                "warmth": 0.3,
+                "downsample": 32000,
             },
-            'heavy': {
-                'bit_depth': 10,
-                'vinyl_crackle': 0.025,
-                'vinyl_pops': 0.8,
-                'wow_rate': 0.5,
-                'wow_depth': 8.0,
-                'saturation_drive': 3.0,
-                'saturation_mix': 0.7,
-                'warmth': 0.5,
-                'downsample': 22050
-            }
+            "heavy": {
+                "bit_depth": 10,
+                "vinyl_crackle": 0.025,
+                "vinyl_pops": 0.8,
+                "wow_rate": 0.5,
+                "wow_depth": 8.0,
+                "saturation_drive": 3.0,
+                "saturation_mix": 0.7,
+                "warmth": 0.5,
+                "downsample": 22050,
+            },
         }
 
         # Get parameters
-        params = presets.get(preset, presets['medium'])
+        params = presets.get(preset, presets["medium"])
         if custom_params:
             params.update(custom_params)
 
@@ -300,43 +269,28 @@ class LoFiEffectsChain:
 
         # 1. Tape saturation (first for analog warmth)
         processed = self.add_tape_saturation(
-            processed,
-            drive=params['saturation_drive'],
-            mix=params['saturation_mix']
+            processed, drive=params["saturation_drive"], mix=params["saturation_mix"]
         )
 
         # 2. Wow & flutter
         processed = self.add_wow_flutter(
-            processed,
-            rate=params['wow_rate'],
-            depth=params['wow_depth']
+            processed, rate=params["wow_rate"], depth=params["wow_depth"]
         )
 
         # 3. Bit crushing
-        processed = self.add_bit_crushing(
-            processed,
-            bit_depth=params['bit_depth']
-        )
+        processed = self.add_bit_crushing(processed, bit_depth=params["bit_depth"])
 
         # 4. Downsampling (if specified)
-        if params['downsample']:
-            processed = self.add_downsampling(
-                processed,
-                target_rate=params['downsample']
-            )
+        if params["downsample"]:
+            processed = self.add_downsampling(processed, target_rate=params["downsample"])
 
         # 5. Vinyl crackle
         processed = self.add_vinyl_crackle(
-            processed,
-            crackle_amount=params['vinyl_crackle'],
-            pop_frequency=params['vinyl_pops']
+            processed, crackle_amount=params["vinyl_crackle"], pop_frequency=params["vinyl_pops"]
         )
 
         # 6. Analog warmth (last for final tone shaping)
-        processed = self.add_analog_warmth(
-            processed,
-            warmth=params['warmth']
-        )
+        processed = self.add_analog_warmth(processed, warmth=params["warmth"])
 
         # Normalize to prevent clipping
         max_val = np.max(np.abs(processed))
@@ -347,10 +301,7 @@ class LoFiEffectsChain:
 
 
 def apply_lofi_effects(
-    audio_path: str,
-    output_path: str,
-    preset: str = 'medium',
-    sample_rate: int = 44100
+    audio_path: str, output_path: str, preset: str = "medium", sample_rate: int = 44100
 ) -> None:
     """
     Convenience function to apply LoFi effects to an audio file.
@@ -383,15 +334,19 @@ def apply_lofi_effects(
     print(f"✅ LoFi effects applied: {output_path}")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     # Demo usage
     import argparse
 
-    parser = argparse.ArgumentParser(description='Apply LoFi effects to audio file')
-    parser.add_argument('input', help='Input audio file')
-    parser.add_argument('output', help='Output audio file')
-    parser.add_argument('--preset', default='medium', choices=['light', 'medium', 'heavy'],
-                        help='Effect intensity preset')
+    parser = argparse.ArgumentParser(description="Apply LoFi effects to audio file")
+    parser.add_argument("input", help="Input audio file")
+    parser.add_argument("output", help="Output audio file")
+    parser.add_argument(
+        "--preset",
+        default="medium",
+        choices=["light", "medium", "heavy"],
+        help="Effect intensity preset",
+    )
 
     args = parser.parse_args()
 

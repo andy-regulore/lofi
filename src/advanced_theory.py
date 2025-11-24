@@ -10,7 +10,8 @@ Extensions beyond basic music theory:
 """
 
 import logging
-from typing import Dict, List, Optional, Tuple, Set
+from typing import Dict, List, Optional, Tuple
+
 import numpy as np
 
 logger = logging.getLogger(__name__)
@@ -21,38 +22,38 @@ class JazzHarmony:
 
     # Chord extensions and alterations
     EXTENSIONS = {
-        'maj7': [0, 4, 7, 11],
-        'min7': [0, 3, 7, 10],
-        'dom7': [0, 4, 7, 10],
-        'min7b5': [0, 3, 6, 10],  # Half-diminished
-        'dim7': [0, 3, 6, 9],
-        'maj9': [0, 4, 7, 11, 14],
-        'min9': [0, 3, 7, 10, 14],
-        'dom9': [0, 4, 7, 10, 14],
-        'maj11': [0, 4, 7, 11, 14, 17],
-        'dom11': [0, 4, 7, 10, 14, 17],
-        'maj13': [0, 4, 7, 11, 14, 17, 21],
-        'dom13': [0, 4, 7, 10, 14, 17, 21],
+        "maj7": [0, 4, 7, 11],
+        "min7": [0, 3, 7, 10],
+        "dom7": [0, 4, 7, 10],
+        "min7b5": [0, 3, 6, 10],  # Half-diminished
+        "dim7": [0, 3, 6, 9],
+        "maj9": [0, 4, 7, 11, 14],
+        "min9": [0, 3, 7, 10, 14],
+        "dom9": [0, 4, 7, 10, 14],
+        "maj11": [0, 4, 7, 11, 14, 17],
+        "dom11": [0, 4, 7, 10, 14, 17],
+        "maj13": [0, 4, 7, 11, 14, 17, 21],
+        "dom13": [0, 4, 7, 10, 14, 17, 21],
         # Altered dominants
-        'dom7b9': [0, 4, 7, 10, 13],
-        'dom7#9': [0, 4, 7, 10, 15],
-        'dom7b5': [0, 4, 6, 10],
-        'dom7#5': [0, 4, 8, 10],
-        'dom7alt': [0, 4, 6, 10, 13, 15],  # Altered scale
+        "dom7b9": [0, 4, 7, 10, 13],
+        "dom7#9": [0, 4, 7, 10, 15],
+        "dom7b5": [0, 4, 6, 10],
+        "dom7#5": [0, 4, 8, 10],
+        "dom7alt": [0, 4, 6, 10, 13, 15],  # Altered scale
     }
 
     # Common jazz progressions
     JAZZ_PROGRESSIONS = [
         # ii-V-I (most important)
-        ['min7', 'dom7', 'maj7'],
+        ["min7", "dom7", "maj7"],
         # iii-VI-ii-V-I
-        ['min7', 'dom7', 'min7', 'dom7', 'maj7'],
+        ["min7", "dom7", "min7", "dom7", "maj7"],
         # Coltrane changes (Giant Steps)
-        ['maj7', 'dom7', 'maj7', 'dom7', 'maj7'],
+        ["maj7", "dom7", "maj7", "dom7", "maj7"],
         # Rhythm changes (I Got Rhythm)
-        ['maj7', 'dom7', 'min7', 'dom7'],
+        ["maj7", "dom7", "min7", "dom7"],
         # Minor ii-V-i
-        ['min7b5', 'dom7', 'min7'],
+        ["min7b5", "dom7", "min7"],
     ]
 
     def __init__(self):
@@ -63,7 +64,7 @@ class JazzHarmony:
         self,
         chord_root: int,
         chord_type: str,
-        voicing_style: str = 'close',
+        voicing_style: str = "close",
         bass_note: Optional[int] = None,
     ) -> List[int]:
         """Get specific chord voicing.
@@ -78,7 +79,7 @@ class JazzHarmony:
             List of MIDI note numbers for voicing
         """
         if chord_type not in self.EXTENSIONS:
-            chord_type = 'maj7'  # Default
+            chord_type = "maj7"  # Default
 
         # Get basic chord tones
         intervals = self.EXTENSIONS[chord_type]
@@ -88,28 +89,28 @@ class JazzHarmony:
         notes = [(chord_root + interval) % 12 + base_octave for interval in intervals]
 
         # Apply voicing style
-        if voicing_style == 'close':
+        if voicing_style == "close":
             # All notes within an octave
             notes = [n if n >= base_octave else n + 12 for n in notes]
 
-        elif voicing_style == 'open':
+        elif voicing_style == "open":
             # Spread out over 2 octaves
             for i in range(1, len(notes), 2):
                 notes[i] += 12
 
-        elif voicing_style == 'drop2':
+        elif voicing_style == "drop2":
             # Drop second-highest note by an octave
             if len(notes) >= 2:
                 notes = sorted(notes)
                 notes[-2] -= 12
 
-        elif voicing_style == 'drop3':
+        elif voicing_style == "drop3":
             # Drop third-highest note by an octave
             if len(notes) >= 3:
                 notes = sorted(notes)
                 notes[-3] -= 12
 
-        elif voicing_style == 'spread':
+        elif voicing_style == "spread":
             # Wide voicing
             for i, note in enumerate(notes):
                 notes[i] = note + (i * 7)  # Spread by fifths
@@ -137,27 +138,27 @@ class JazzHarmony:
         substitutions = []
 
         # Tritone substitution (for dominants)
-        if 'dom' in chord_type:
+        if "dom" in chord_type:
             tritone_root = (chord_root + 6) % 12
             substitutions.append((tritone_root, chord_type))
 
         # Relative major/minor
-        if 'min' in chord_type:
+        if "min" in chord_type:
             relative_major = (chord_root + 3) % 12
-            substitutions.append((relative_major, chord_type.replace('min', 'maj')))
-        elif 'maj' in chord_type:
+            substitutions.append((relative_major, chord_type.replace("min", "maj")))
+        elif "maj" in chord_type:
             relative_minor = (chord_root + 9) % 12
-            substitutions.append((relative_minor, chord_type.replace('maj', 'min')))
+            substitutions.append((relative_minor, chord_type.replace("maj", "min")))
 
         # Diminished substitution
-        substitutions.append(((chord_root + 1) % 12, 'dim7'))
+        substitutions.append(((chord_root + 1) % 12, "dim7"))
 
         return substitutions
 
     def reharmonize_progression(
         self,
         progression: List[Tuple[int, str]],
-        style: str = 'jazz',
+        style: str = "jazz",
     ) -> List[Tuple[int, str]]:
         """Reharmonize a chord progression.
 
@@ -171,31 +172,31 @@ class JazzHarmony:
         reharmonized = []
 
         for i, (root, chord_type) in enumerate(progression):
-            if style == 'jazz':
+            if style == "jazz":
                 # Add ii-V before I chords
-                if 'maj7' in chord_type and i > 0:
+                if "maj7" in chord_type and i > 0:
                     # Add ii-V leading to this chord
                     ii_root = (root + 2) % 12
                     v_root = (root + 7) % 12
-                    reharmonized.append((ii_root, 'min7'))
-                    reharmonized.append((v_root, 'dom7'))
+                    reharmonized.append((ii_root, "min7"))
+                    reharmonized.append((v_root, "dom7"))
 
-            elif style == 'modal':
+            elif style == "modal":
                 # Use modal interchange
-                if 'maj' in chord_type:
+                if "maj" in chord_type:
                     # Borrow from parallel minor
-                    reharmonized.append((root, chord_type.replace('maj', 'min')))
+                    reharmonized.append((root, chord_type.replace("maj", "min")))
                 else:
                     reharmonized.append((root, chord_type))
 
-            elif style == 'chromatic':
+            elif style == "chromatic":
                 # Add chromatic approach chords
                 if i < len(progression) - 1:
                     next_root = progression[i + 1][0]
                     # Add chromatic approach
                     approach = (next_root - 1) % 12
                     reharmonized.append((root, chord_type))
-                    reharmonized.append((approach, 'dom7'))
+                    reharmonized.append((approach, "dom7"))
                 else:
                     reharmonized.append((root, chord_type))
 
@@ -232,7 +233,8 @@ class VoiceLeading:
 
         # Find optimal voice mapping (minimal motion)
         import itertools
-        min_motion = float('inf')
+
+        min_motion = float("inf")
         best_mapping = None
 
         for perm in itertools.permutations(range(len(chord2))):
@@ -267,12 +269,12 @@ class VoiceLeading:
         smoothness = 1.0 / (1.0 + min_motion / len(chord1))
 
         return {
-            'total_motion': min_motion,
-            'average_motion': min_motion / len(chord1),
-            'voice_motions': voice_motions,
-            'smoothness_score': smoothness,
-            'issues': issues,
-            'has_issues': len(issues) > 0,
+            "total_motion": min_motion,
+            "average_motion": min_motion / len(chord1),
+            "voice_motions": voice_motions,
+            "smoothness_score": smoothness,
+            "issues": issues,
+            "has_issues": len(issues) > 0,
         }
 
     def optimize_voice_leading(
@@ -306,8 +308,8 @@ class VoiceLeading:
 
                 analysis = self.analyze_voice_leading(prev_chord, test_voicing)
 
-                if analysis['smoothness_score'] > best_smoothness and not analysis['has_issues']:
-                    best_smoothness = analysis['smoothness_score']
+                if analysis["smoothness_score"] > best_smoothness and not analysis["has_issues"]:
+                    best_smoothness = analysis["smoothness_score"]
                     best_voicing = test_voicing
 
             if best_voicing is None:
@@ -323,19 +325,19 @@ class ModalInterchange:
 
     # Modes and their characteristic intervals
     MODES = {
-        'ionian': [0, 2, 4, 5, 7, 9, 11],      # Major
-        'dorian': [0, 2, 3, 5, 7, 9, 10],
-        'phrygian': [0, 1, 3, 5, 7, 8, 10],
-        'lydian': [0, 2, 4, 6, 7, 9, 11],
-        'mixolydian': [0, 2, 4, 5, 7, 9, 10],
-        'aeolian': [0, 2, 3, 5, 7, 8, 10],     # Natural minor
-        'locrian': [0, 1, 3, 5, 6, 8, 10],
+        "ionian": [0, 2, 4, 5, 7, 9, 11],  # Major
+        "dorian": [0, 2, 3, 5, 7, 9, 10],
+        "phrygian": [0, 1, 3, 5, 7, 8, 10],
+        "lydian": [0, 2, 4, 6, 7, 9, 11],
+        "mixolydian": [0, 2, 4, 5, 7, 9, 10],
+        "aeolian": [0, 2, 3, 5, 7, 8, 10],  # Natural minor
+        "locrian": [0, 1, 3, 5, 6, 8, 10],
         # Additional scales
-        'harmonic_minor': [0, 2, 3, 5, 7, 8, 11],
-        'melodic_minor': [0, 2, 3, 5, 7, 9, 11],
-        'blues': [0, 3, 5, 6, 7, 10],
-        'whole_tone': [0, 2, 4, 6, 8, 10],
-        'diminished': [0, 2, 3, 5, 6, 8, 9, 11],  # Half-whole
+        "harmonic_minor": [0, 2, 3, 5, 7, 8, 11],
+        "melodic_minor": [0, 2, 3, 5, 7, 9, 11],
+        "blues": [0, 3, 5, 6, 7, 10],
+        "whole_tone": [0, 2, 4, 6, 8, 10],
+        "diminished": [0, 2, 3, 5, 6, 8, 9, 11],  # Half-whole
     }
 
     def __init__(self):
@@ -345,8 +347,8 @@ class ModalInterchange:
     def get_borrowed_chords(
         self,
         key: int,
-        source_mode: str = 'ionian',
-        target_mode: str = 'aeolian',
+        source_mode: str = "ionian",
+        target_mode: str = "aeolian",
     ) -> List[Tuple[int, str]]:
         """Get chords borrowed from parallel mode.
 
@@ -380,11 +382,11 @@ class ModalInterchange:
             third_interval = (third - note) % 12
 
             if third_interval == 4:
-                quality = 'major'
+                quality = "major"
             elif third_interval == 3:
-                quality = 'minor'
+                quality = "minor"
             else:
-                quality = 'diminished'
+                quality = "diminished"
 
             borrowed_chords.append((note, quality))
 
@@ -394,7 +396,7 @@ class ModalInterchange:
         self,
         original_note: int,
         key: int,
-        target_mode: str = 'dorian',
+        target_mode: str = "dorian",
     ) -> List[int]:
         """Suggest modal substitutions for a note.
 
@@ -442,7 +444,7 @@ class SecondaryDominants:
     def get_secondary_dominant(
         self,
         target_chord_root: int,
-        target_chord_type: str = 'major',
+        target_chord_type: str = "major",
     ) -> Tuple[int, str]:
         """Get secondary dominant for target chord.
 
@@ -457,7 +459,7 @@ class SecondaryDominants:
         dominant_root = (target_chord_root + 7) % 12
 
         # Always use dom7 for secondary dominants
-        return (dominant_root, 'dom7')
+        return (dominant_root, "dom7")
 
     def get_secondary_diminished(
         self,
@@ -473,7 +475,7 @@ class SecondaryDominants:
         """
         # vii° of target = half step below
         dim_root = (target_chord_root - 1) % 12
-        return (dim_root, 'dim7')
+        return (dim_root, "dim7")
 
     def add_secondary_dominants(
         self,
@@ -516,7 +518,7 @@ class Reharmonization:
         self,
         melody_notes: List[int],
         original_chords: List[Tuple[int, str]],
-        style: str = 'jazz',
+        style: str = "jazz",
         complexity: float = 0.5,
     ) -> List[Tuple[int, str]]:
         """Reharmonize melody with new chords.
@@ -535,29 +537,29 @@ class Reharmonization:
         for i, (root, chord_type) in enumerate(original_chords):
             # Get melody notes for this chord
             notes_per_chord = len(melody_notes) // len(original_chords)
-            chord_melody = melody_notes[i * notes_per_chord:(i + 1) * notes_per_chord]
+            chord_melody = melody_notes[i * notes_per_chord : (i + 1) * notes_per_chord]
 
             if not chord_melody:
                 new_chords.append((root, chord_type))
                 continue
 
             # Choose reharmonization based on style and complexity
-            if style == 'jazz' and complexity > 0.6:
+            if style == "jazz" and complexity > 0.6:
                 # Use altered dominants and extensions
-                if 'dom' in chord_type:
-                    new_type = np.random.choice(['dom7#9', 'dom7b9', 'dom7alt'])
+                if "dom" in chord_type:
+                    new_type = np.random.choice(["dom7#9", "dom7b9", "dom7alt"])
                     new_chords.append((root, new_type))
                 else:
                     # Add extensions
                     if complexity > 0.8:
-                        new_type = chord_type.replace('7', '13')
+                        new_type = chord_type.replace("7", "13")
                     elif complexity > 0.7:
-                        new_type = chord_type.replace('7', '11')
+                        new_type = chord_type.replace("7", "11")
                     else:
-                        new_type = chord_type.replace('7', '9')
+                        new_type = chord_type.replace("7", "9")
                     new_chords.append((root, new_type))
 
-            elif style == 'modal' and complexity > 0.5:
+            elif style == "modal" and complexity > 0.5:
                 # Use modal interchange
                 borrowed = self.modal.get_borrowed_chords(root)
                 if borrowed and np.random.random() < complexity:
@@ -565,13 +567,13 @@ class Reharmonization:
                 else:
                     new_chords.append((root, chord_type))
 
-            elif style == 'chromatic' and complexity > 0.4:
+            elif style == "chromatic" and complexity > 0.4:
                 # Add chromatic passing chords
                 new_chords.append((root, chord_type))
                 if i < len(original_chords) - 1 and np.random.random() < complexity:
                     next_root = original_chords[i + 1][0]
                     passing = (root + next_root) // 2
-                    new_chords.append((passing, 'dim7'))
+                    new_chords.append((passing, "dim7"))
 
             else:
                 new_chords.append((root, chord_type))
@@ -603,10 +605,10 @@ class Reharmonization:
 
         # Jazz reharmonization
         if complexity > 0.6:
-            result = self.jazz.reharmonize_progression(result, style='jazz')
+            result = self.jazz.reharmonize_progression(result, style="jazz")
 
         # Modal substitutions
         if complexity > 0.7 and melody:
-            result = self.reharmonize_melody(melody, result, style='modal', complexity=complexity)
+            result = self.reharmonize_melody(melody, result, style="modal", complexity=complexity)
 
         return result

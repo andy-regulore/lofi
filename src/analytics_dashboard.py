@@ -21,15 +21,15 @@ Author: Claude
 License: MIT
 """
 
-from typing import List, Dict, Optional, Tuple
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from enum import Enum
-import json
+from typing import Dict, List, Optional, Tuple
 
 
 class Platform(Enum):
     """Content platforms."""
+
     YOUTUBE = "youtube"
     SPOTIFY = "spotify"
     APPLE_MUSIC = "apple_music"
@@ -42,6 +42,7 @@ class Platform(Enum):
 @dataclass
 class PerformanceMetrics:
     """Performance metrics for a piece of content."""
+
     platform: Platform
     content_id: str
     title: str
@@ -57,6 +58,7 @@ class PerformanceMetrics:
 @dataclass
 class AudienceInsights:
     """Audience demographic and behavioral insights."""
+
     age_distribution: Dict[str, float]  # e.g., {'18-24': 0.3, '25-34': 0.4}
     gender_distribution: Dict[str, float]  # e.g., {'male': 0.6, 'female': 0.4}
     top_countries: List[Tuple[str, float]]  # (country, percentage)
@@ -71,17 +73,13 @@ class YouTubeAnalytics:
     def __init__(self):
         """Initialize YouTube analytics."""
         self.videos = {}
-        self.channel_stats = {
-            'subscribers': 0,
-            'total_views': 0,
-            'total_watch_time_hours': 0
-        }
+        self.channel_stats = {"subscribers": 0, "total_views": 0, "total_watch_time_hours": 0}
 
     def add_video_performance(self, metrics: PerformanceMetrics):
         """Add video performance data."""
         self.videos[metrics.content_id] = metrics
 
-    def get_top_videos(self, n: int = 10, metric: str = 'views') -> List[PerformanceMetrics]:
+    def get_top_videos(self, n: int = 10, metric: str = "views") -> List[PerformanceMetrics]:
         """
         Get top performing videos.
 
@@ -92,14 +90,12 @@ class YouTubeAnalytics:
         Returns:
             Top N videos
         """
-        if metric == 'views':
-            sorted_videos = sorted(self.videos.values(),
-                                 key=lambda x: x.views_or_streams,
-                                 reverse=True)
-        elif metric == 'revenue':
-            sorted_videos = sorted(self.videos.values(),
-                                 key=lambda x: x.revenue_usd,
-                                 reverse=True)
+        if metric == "views":
+            sorted_videos = sorted(
+                self.videos.values(), key=lambda x: x.views_or_streams, reverse=True
+            )
+        elif metric == "revenue":
+            sorted_videos = sorted(self.videos.values(), key=lambda x: x.revenue_usd, reverse=True)
         else:
             sorted_videos = list(self.videos.values())
 
@@ -121,38 +117,33 @@ class YouTubeAnalytics:
         by_hour = {}
 
         for video in self.videos.values():
-            day = video.date.strftime('%A')
+            day = video.date.strftime("%A")
             hour = video.date.hour
 
             if day not in by_day:
-                by_day[day] = {'count': 0, 'avg_views': 0}
-            by_day[day]['count'] += 1
-            by_day[day]['avg_views'] += video.views_or_streams
+                by_day[day] = {"count": 0, "avg_views": 0}
+            by_day[day]["count"] += 1
+            by_day[day]["avg_views"] += video.views_or_streams
 
             if hour not in by_hour:
-                by_hour[hour] = {'count': 0, 'avg_views': 0}
-            by_hour[hour]['count'] += 1
-            by_hour[hour]['avg_views'] += video.views_or_streams
+                by_hour[hour] = {"count": 0, "avg_views": 0}
+            by_hour[hour]["count"] += 1
+            by_hour[hour]["avg_views"] += video.views_or_streams
 
         # Calculate averages
         for day_stats in by_day.values():
-            if day_stats['count'] > 0:
-                day_stats['avg_views'] /= day_stats['count']
+            if day_stats["count"] > 0:
+                day_stats["avg_views"] /= day_stats["count"]
 
         for hour_stats in by_hour.values():
-            if hour_stats['count'] > 0:
-                hour_stats['avg_views'] /= hour_stats['count']
+            if hour_stats["count"] > 0:
+                hour_stats["avg_views"] /= hour_stats["count"]
 
         # Find best day and hour
-        best_day = max(by_day.items(), key=lambda x: x[1]['avg_views'])[0]
-        best_hour = max(by_hour.items(), key=lambda x: x[1]['avg_views'])[0]
+        best_day = max(by_day.items(), key=lambda x: x[1]["avg_views"])[0]
+        best_hour = max(by_hour.items(), key=lambda x: x[1]["avg_views"])[0]
 
-        return {
-            'best_day': best_day,
-            'best_hour': best_hour,
-            'by_day': by_day,
-            'by_hour': by_hour
-        }
+        return {"best_day": best_day, "best_hour": best_hour, "by_day": by_day, "by_hour": by_hour}
 
 
 class SpotifyAnalytics:
@@ -184,9 +175,9 @@ class SpotifyAnalytics:
         """Analyze impact of playlist placements."""
         # Placeholder for playlist analysis
         return {
-            'playlist_adds': 150,
-            'streams_from_playlists': 25000,
-            'percentage_from_playlists': 0.6
+            "playlist_adds": 150,
+            "streams_from_playlists": 25000,
+            "percentage_from_playlists": 0.6,
         }
 
 
@@ -196,68 +187,69 @@ class FinancialDashboard:
     def __init__(self):
         """Initialize financial dashboard."""
         self.revenue_streams = {
-            'youtube_ads': [],
-            'spotify_streams': [],
-            'apple_music': [],
-            'sample_packs': [],
-            'patreon': [],
-            'other': []
+            "youtube_ads": [],
+            "spotify_streams": [],
+            "apple_music": [],
+            "sample_packs": [],
+            "patreon": [],
+            "other": [],
         }
         self.costs = {
-            'distribution': [],  # DistroKid, etc.
-            'api_costs': [],
-            'samples': [],
-            'software': [],
-            'marketing': [],
-            'other': []
+            "distribution": [],  # DistroKid, etc.
+            "api_costs": [],
+            "samples": [],
+            "software": [],
+            "marketing": [],
+            "other": [],
         }
 
     def add_revenue(self, source: str, amount: float, date: datetime):
         """Add revenue entry."""
         if source in self.revenue_streams:
-            self.revenue_streams[source].append({'amount': amount, 'date': date})
+            self.revenue_streams[source].append({"amount": amount, "date": date})
 
     def add_cost(self, category: str, amount: float, date: datetime, description: str = ""):
         """Add cost entry."""
         if category in self.costs:
-            self.costs[category].append({
-                'amount': amount,
-                'date': date,
-                'description': description
-            })
+            self.costs[category].append(
+                {"amount": amount, "date": date, "description": description}
+            )
 
-    def get_total_revenue(self, start_date: Optional[datetime] = None,
-                         end_date: Optional[datetime] = None) -> float:
+    def get_total_revenue(
+        self, start_date: Optional[datetime] = None, end_date: Optional[datetime] = None
+    ) -> float:
         """Calculate total revenue in period."""
         total = 0.0
 
         for stream, entries in self.revenue_streams.items():
             for entry in entries:
-                if start_date and entry['date'] < start_date:
+                if start_date and entry["date"] < start_date:
                     continue
-                if end_date and entry['date'] > end_date:
+                if end_date and entry["date"] > end_date:
                     continue
-                total += entry['amount']
+                total += entry["amount"]
 
         return total
 
-    def get_total_costs(self, start_date: Optional[datetime] = None,
-                       end_date: Optional[datetime] = None) -> float:
+    def get_total_costs(
+        self, start_date: Optional[datetime] = None, end_date: Optional[datetime] = None
+    ) -> float:
         """Calculate total costs in period."""
         total = 0.0
 
         for category, entries in self.costs.items():
             for entry in entries:
-                if start_date and entry['date'] < start_date:
+                if start_date and entry["date"] < start_date:
                     continue
-                if end_date and entry['date'] > end_date:
+                if end_date and entry["date"] > end_date:
                     continue
-                total += entry['amount']
+                total += entry["amount"]
 
         return total
 
-    def calculate_roi(self, start_date: Optional[datetime] = None,
-                     end_date: Optional[datetime] = None) -> float:
+    def calculate_roi(
+        self, start_date: Optional[datetime] = None, end_date: Optional[datetime] = None
+    ) -> float:
         """Calculate return on investment."""
         revenue = self.get_total_revenue(start_date, end_date)
         costs = self.get_total_costs(start_date, end_date)
@@ -289,7 +281,9 @@ class FinancialDashboard:
 
         # Calculate growth rate
         if len(last_3_months_revenue) >= 2:
-            growth_rate = (last_3_months_revenue[0] - last_3_months_revenue[-1]) / last_3_months_revenue[-1]
+            growth_rate = (
+                last_3_months_revenue[0] - last_3_months_revenue[-1]
+            ) / last_3_months_revenue[-1]
         else:
             growth_rate = 0.1  # Default 10% growth
 
@@ -300,7 +294,7 @@ class FinancialDashboard:
         for i in range(1, months + 1):
             future_month = now + timedelta(days=30 * i)
             projected = current_monthly * ((1 + growth_rate) ** i)
-            projections.append((future_month.strftime('%Y-%m'), projected))
+            projections.append((future_month.strftime("%Y-%m"), projected))
 
         return projections
 
@@ -311,10 +305,10 @@ class GrowthAnalytics:
     def __init__(self):
         """Initialize growth analytics."""
         self.historical_data = {
-            'subscribers': [],  # (date, count)
-            'monthly_listeners': [],
-            'total_streams': [],
-            'total_views': []
+            "subscribers": [],  # (date, count)
+            "monthly_listeners": [],
+            "total_streams": [],
+            "total_views": [],
         }
 
     def add_data_point(self, metric: str, date: datetime, value: float):
@@ -386,7 +380,7 @@ class GrowthAnalytics:
 
         value = current_value
         while value < target_value and months_to_target < 1200:  # Max 100 years
-            value *= (1 + monthly_growth_rate)
+            value *= 1 + monthly_growth_rate
             months_to_target += 1
 
         return datetime.now() + timedelta(days=30 * months_to_target)
@@ -415,35 +409,33 @@ class MasterDashboard:
         monthly_costs = self.financial.get_total_costs(
             start_date=datetime.now() - timedelta(days=30)
         )
-        roi = self.financial.calculate_roi(
-            start_date=datetime.now() - timedelta(days=30)
-        )
+        roi = self.financial.calculate_roi(start_date=datetime.now() - timedelta(days=30))
 
         # Growth
-        subscriber_growth = self.growth.calculate_growth_rate('subscribers', days=30)
+        subscriber_growth = self.growth.calculate_growth_rate("subscribers", days=30)
 
         overview = {
-            'youtube': {
-                'total_videos': len(self.youtube.videos),
-                'total_views': total_youtube_views,
-                'subscribers': self.youtube.channel_stats['subscribers'],
-                'cpm': self.youtube.calculate_cpm()
+            "youtube": {
+                "total_videos": len(self.youtube.videos),
+                "total_views": total_youtube_views,
+                "subscribers": self.youtube.channel_stats["subscribers"],
+                "cpm": self.youtube.calculate_cpm(),
             },
-            'spotify': {
-                'total_tracks': len(self.spotify.tracks),
-                'total_streams': total_spotify_streams,
-                'monthly_listeners': self.spotify.monthly_listeners
+            "spotify": {
+                "total_tracks": len(self.spotify.tracks),
+                "total_streams": total_spotify_streams,
+                "monthly_listeners": self.spotify.monthly_listeners,
             },
-            'financial': {
-                'monthly_revenue_usd': monthly_revenue,
-                'monthly_costs_usd': monthly_costs,
-                'monthly_profit_usd': monthly_revenue - monthly_costs,
-                'roi_percentage': roi
+            "financial": {
+                "monthly_revenue_usd": monthly_revenue,
+                "monthly_costs_usd": monthly_costs,
+                "monthly_profit_usd": monthly_revenue - monthly_costs,
+                "roi_percentage": roi,
             },
-            'growth': {
-                'subscriber_growth_30d': subscriber_growth,
-                '100k_subscribers_eta': self.growth.project_milestone('subscribers', 100000)
-            }
+            "growth": {
+                "subscriber_growth_30d": subscriber_growth,
+                "100k_subscribers_eta": self.growth.project_milestone("subscribers", 100000),
+            },
         }
 
         return overview
@@ -483,8 +475,10 @@ class MasterDashboard:
 
         # Growth Section
         report.append("GROWTH METRICS:")
-        report.append(f"  Subscriber Growth (30d): {overview['growth']['subscriber_growth_30d']:.1f}%")
-        eta = overview['growth']['100k_subscribers_eta']
+        report.append(
+            f"  Subscriber Growth (30d): {overview['growth']['subscriber_growth_30d']:.1f}%"
+        )
+        eta = overview["growth"]["100k_subscribers_eta"]
         if eta:
             report.append(f"  100K Subscribers ETA: {eta.strftime('%Y-%m-%d')}")
         report.append("")
@@ -495,7 +489,7 @@ class MasterDashboard:
 
 
 # Example usage
-if __name__ == '__main__':
+if __name__ == "__main__":
     print("=== Analytics Dashboard ===\n")
 
     # Initialize dashboard
@@ -513,23 +507,23 @@ if __name__ == '__main__':
             shares=20 + (i * 2),
             watch_time_minutes=5000 + (i * 500),
             revenue_usd=50 + (i * 5),
-            date=datetime.now() - timedelta(days=30 - i)
+            date=datetime.now() - timedelta(days=30 - i),
         )
         dashboard.youtube.add_video_performance(metrics)
 
     # Add financial data
-    dashboard.financial.add_revenue('youtube_ads', 500, datetime.now())
-    dashboard.financial.add_revenue('spotify_streams', 200, datetime.now())
-    dashboard.financial.add_cost('distribution', 20, datetime.now(), "DistroKid")
-    dashboard.financial.add_cost('api_costs', 10, datetime.now(), "YouTube API")
+    dashboard.financial.add_revenue("youtube_ads", 500, datetime.now())
+    dashboard.financial.add_revenue("spotify_streams", 200, datetime.now())
+    dashboard.financial.add_cost("distribution", 20, datetime.now(), "DistroKid")
+    dashboard.financial.add_cost("api_costs", 10, datetime.now(), "YouTube API")
 
     # Add growth data
     for i in range(30):
         date = datetime.now() - timedelta(days=30 - i)
         subscribers = 5000 + (i * 100)  # Growing
-        dashboard.growth.add_data_point('subscribers', date, subscribers)
+        dashboard.growth.add_data_point("subscribers", date, subscribers)
 
-    dashboard.youtube.channel_stats['subscribers'] = 8000
+    dashboard.youtube.channel_stats["subscribers"] = 8000
     dashboard.spotify.monthly_listeners = 3000
 
     # Generate report
@@ -537,7 +531,7 @@ if __name__ == '__main__':
 
     # Top performing videos
     print("\nTOP 5 VIDEOS BY VIEWS:")
-    top_videos = dashboard.youtube.get_top_videos(n=5, metric='views')
+    top_videos = dashboard.youtube.get_top_videos(n=5, metric="views")
     for i, video in enumerate(top_videos, 1):
         print(f"{i}. {video.title}: {video.views_or_streams:,} views")
 

@@ -7,21 +7,21 @@ Handles model training with HuggingFace Trainer, including:
 - Checkpoint management
 """
 
+import json
 import logging
 from pathlib import Path
 from typing import Dict, Optional
-import json
 
+import numpy as np
 import torch
 from torch.utils.data import Dataset
 from transformers import (
-    Trainer,
-    TrainingArguments,
     EarlyStoppingCallback,
+    Trainer,
     TrainerCallback,
+    TrainingArguments,
 )
 from transformers.trainer_utils import get_last_checkpoint
-import numpy as np
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -42,9 +42,7 @@ class MusicTokenDataset(Dataset):
         return len(self.sequences)
 
     def __getitem__(self, idx):
-        return {
-            'input_ids': torch.tensor(self.sequences[idx], dtype=torch.long)
-        }
+        return {"input_ids": torch.tensor(self.sequences[idx], dtype=torch.long)}
 
 
 class DataCollatorForMusicGeneration:
@@ -68,21 +66,17 @@ class DataCollatorForMusicGeneration:
             Batch dictionary with input_ids, attention_mask, labels
         """
         # Get max length in batch
-        max_length = max(len(f['input_ids']) for f in features)
+        max_length = max(len(f["input_ids"]) for f in features)
 
         # Prepare batch tensors
         batch_size = len(features)
-        input_ids = torch.full(
-            (batch_size, max_length),
-            self.pad_token_id,
-            dtype=torch.long
-        )
+        input_ids = torch.full((batch_size, max_length), self.pad_token_id, dtype=torch.long)
         attention_mask = torch.zeros((batch_size, max_length), dtype=torch.long)
 
         # Fill in sequences
         for i, feature in enumerate(features):
-            seq_len = len(feature['input_ids'])
-            input_ids[i, :seq_len] = feature['input_ids']
+            seq_len = len(feature["input_ids"])
+            input_ids[i, :seq_len] = feature["input_ids"]
             attention_mask[i, :seq_len] = 1
 
         # For causal LM, labels are the same as input_ids
@@ -91,9 +85,9 @@ class DataCollatorForMusicGeneration:
         labels[attention_mask == 0] = -100
 
         return {
-            'input_ids': input_ids,
-            'attention_mask': attention_mask,
-            'labels': labels,
+            "input_ids": input_ids,
+            "attention_mask": attention_mask,
+            "labels": labels,
         }
 
 
@@ -112,15 +106,11 @@ class MetricsCallback(TrainerCallback):
     def on_log(self, args, state, control, logs=None, **kwargs):
         """Called when logging occurs."""
         if logs:
-            self.metrics_history.append({
-                'step': state.global_step,
-                'epoch': state.epoch,
-                **logs
-            })
+            self.metrics_history.append({"step": state.global_step, "epoch": state.epoch, **logs})
 
             # Save metrics
-            metrics_file = self.output_dir / 'metrics_history.json'
-            with open(metrics_file, 'w') as f:
+            metrics_file = self.output_dir / "metrics_history.json"
+            with open(metrics_file, "w") as f:
                 json.dump(self.metrics_history, f, indent=2)
 
 
@@ -137,7 +127,7 @@ class LoFiTrainer:
         """
         self.model = model
         self.config = config
-        self.train_config = config['training']
+        self.train_config = config["training"]
         self.vocab_size = vocab_size
 
         self.trainer = None
@@ -149,32 +139,32 @@ class LoFiTrainer:
         Returns:
             TrainingArguments instance
         """
-        output_dir = self.train_config['output_dir']
+        output_dir = self.train_config["output_dir"]
 
         self.training_args = TrainingArguments(
             output_dir=output_dir,
-            num_train_epochs=self.train_config['num_epochs'],
-            per_device_train_batch_size=self.train_config['batch_size'],
-            per_device_eval_batch_size=self.train_config['batch_size'],
-            gradient_accumulation_steps=self.train_config['gradient_accumulation_steps'],
-            learning_rate=self.train_config['learning_rate'],
-            warmup_steps=self.train_config['warmup_steps'],
-            weight_decay=self.train_config['weight_decay'],
-            max_grad_norm=self.train_config['max_grad_norm'],
+            num_train_epochs=self.train_config["num_epochs"],
+            per_device_train_batch_size=self.train_config["batch_size"],
+            per_device_eval_batch_size=self.train_config["batch_size"],
+            gradient_accumulation_steps=self.train_config["gradient_accumulation_steps"],
+            learning_rate=self.train_config["learning_rate"],
+            warmup_steps=self.train_config["warmup_steps"],
+            weight_decay=self.train_config["weight_decay"],
+            max_grad_norm=self.train_config["max_grad_norm"],
             logging_dir=f"{output_dir}/logs",
-            logging_steps=self.train_config['logging_steps'],
+            logging_steps=self.train_config["logging_steps"],
             eval_strategy="steps",
-            eval_steps=self.train_config['eval_steps'],
+            eval_steps=self.train_config["eval_steps"],
             save_strategy="steps",
-            save_steps=self.train_config['save_steps'],
-            save_total_limit=self.train_config['save_total_limit'],
-            fp16=self.train_config['fp16'],
-            dataloader_num_workers=self.train_config['dataloader_num_workers'],
+            save_steps=self.train_config["save_steps"],
+            save_total_limit=self.train_config["save_total_limit"],
+            fp16=self.train_config["fp16"],
+            dataloader_num_workers=self.train_config["dataloader_num_workers"],
             load_best_model_at_end=True,
             metric_for_best_model="eval_loss",
             greater_is_better=False,
-            report_to="tensorboard" if self.config['logging']['tensorboard'] else "none",
-            seed=self.config['seed'],
+            report_to="tensorboard" if self.config["logging"]["tensorboard"] else "none",
+            seed=self.config["seed"],
         )
 
         logger.info("Training arguments prepared")
@@ -214,9 +204,7 @@ class LoFiTrainer:
             Training metrics
         """
         # Prepare datasets
-        train_dataset, eval_dataset = self.prepare_datasets(
-            train_sequences, eval_sequences
-        )
+        train_dataset, eval_dataset = self.prepare_datasets(train_sequences, eval_sequences)
 
         # Prepare training arguments
         training_args = self.prepare_training_args()
@@ -234,14 +222,16 @@ class LoFiTrainer:
             callbacks.extend(custom_callbacks)
 
         # Add early stopping if configured
-        if self.train_config.get('early_stopping_patience'):
+        if self.train_config.get("early_stopping_patience"):
             callbacks.append(
                 EarlyStoppingCallback(
-                    early_stopping_patience=self.train_config['early_stopping_patience'],
-                    early_stopping_threshold=self.train_config['early_stopping_threshold'],
+                    early_stopping_patience=self.train_config["early_stopping_patience"],
+                    early_stopping_threshold=self.train_config["early_stopping_threshold"],
                 )
             )
-            logger.info(f"Early stopping enabled with patience={self.train_config['early_stopping_patience']}")
+            logger.info(
+                f"Early stopping enabled with patience={self.train_config['early_stopping_patience']}"
+            )
 
         # Initialize trainer
         self.trainer = Trainer(
@@ -284,15 +274,15 @@ class LoFiTrainer:
         logger.info(f"  Final eval loss: {eval_metrics.get('eval_loss', 'N/A'):.4f}")
 
         # Check if target loss achieved
-        target_loss = self.train_config.get('target_eval_loss', 2.5)
-        if eval_metrics.get('eval_loss', float('inf')) < target_loss:
+        target_loss = self.train_config.get("target_eval_loss", 2.5)
+        if eval_metrics.get("eval_loss", float("inf")) < target_loss:
             logger.info(f"✓ Target evaluation loss ({target_loss}) achieved!")
         else:
             logger.warning(f"✗ Target evaluation loss ({target_loss}) not achieved")
 
         return {
-            'train_metrics': metrics,
-            'eval_metrics': eval_metrics,
+            "train_metrics": metrics,
+            "eval_metrics": eval_metrics,
         }
 
     def evaluate(self, eval_sequences):

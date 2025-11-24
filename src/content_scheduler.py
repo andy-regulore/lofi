@@ -17,17 +17,19 @@ Author: Claude
 License: MIT
 """
 
-from datetime import datetime, timedelta
-from typing import List, Dict, Optional, Tuple
-from dataclasses import dataclass
-from enum import Enum
 import json
+from dataclasses import dataclass
+from datetime import datetime, timedelta
+from enum import Enum
 from pathlib import Path
+from typing import Dict, List, Optional, Tuple
+
 import numpy as np
 
 
 class Platform(Enum):
     """Content platforms."""
+
     YOUTUBE = "youtube"
     SPOTIFY = "spotify"
     SOUNDCLOUD = "soundcloud"
@@ -38,6 +40,7 @@ class Platform(Enum):
 
 class ContentType(Enum):
     """Content types."""
+
     MUSIC_VIDEO = "music_video"
     AUDIO_ONLY = "audio_only"
     SHORT_CLIP = "short_clip"
@@ -48,6 +51,7 @@ class ContentType(Enum):
 @dataclass
 class PostMetrics:
     """Metrics for a post."""
+
     timestamp: datetime
     platform: Platform
     content_type: ContentType
@@ -61,6 +65,7 @@ class PostMetrics:
 @dataclass
 class ScheduleSlot:
     """Scheduled content slot."""
+
     timestamp: datetime
     platform: Platform
     content_type: ContentType
@@ -81,8 +86,9 @@ class TimeAnalyzer:
         """Add historical post metrics."""
         self.history.append(metrics)
 
-    def analyze_best_hours(self, platform: Platform,
-                          metric: str = 'engagement') -> Dict[int, float]:
+    def analyze_best_hours(
+        self, platform: Platform, metric: str = "engagement"
+    ) -> Dict[int, float]:
         """
         Analyze best hours of day to post.
 
@@ -111,8 +117,7 @@ class TimeAnalyzer:
 
         return hour_averages
 
-    def analyze_best_days(self, platform: Platform,
-                         metric: str = 'engagement') -> Dict[str, float]:
+    def analyze_best_days(self, platform: Platform, metric: str = "engagement") -> Dict[str, float]:
         """
         Analyze best days of week to post.
 
@@ -123,7 +128,7 @@ class TimeAnalyzer:
         Returns:
             Dict mapping day name to average metric value
         """
-        days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+        days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
         day_metrics = {day: [] for day in days}
 
         for post in self.history:
@@ -142,8 +147,7 @@ class TimeAnalyzer:
 
         return day_averages
 
-    def get_optimal_times(self, platform: Platform,
-                         count: int = 3) -> List[Tuple[str, int]]:
+    def get_optimal_times(self, platform: Platform, count: int = 3) -> List[Tuple[str, int]]:
         """
         Get top optimal posting times.
 
@@ -183,12 +187,12 @@ class TimeAnalyzer:
 
         # Example distribution for LoFi music (global audience)
         timezones = {
-            'America/New_York': 0.25,   # US East
-            'America/Los_Angeles': 0.20, # US West
-            'Europe/London': 0.20,       # UK/Western Europe
-            'Asia/Tokyo': 0.15,          # Japan
-            'Asia/Seoul': 0.10,          # South Korea
-            'Australia/Sydney': 0.10     # Australia
+            "America/New_York": 0.25,  # US East
+            "America/Los_Angeles": 0.20,  # US West
+            "Europe/London": 0.20,  # UK/Western Europe
+            "Asia/Tokyo": 0.15,  # Japan
+            "Asia/Seoul": 0.10,  # South Korea
+            "Australia/Sydney": 0.10,  # Australia
         }
 
         return timezones
@@ -227,7 +231,7 @@ class FrequencyOptimizer:
         # Calculate average time between posts
         intervals = []
         for i in range(1, len(platform_posts)):
-            delta = platform_posts[i].timestamp - platform_posts[i-1].timestamp
+            delta = platform_posts[i].timestamp - platform_posts[i - 1].timestamp
             intervals.append(delta.total_seconds() / 3600)  # hours
 
         avg_interval = np.mean(intervals) if intervals else 24
@@ -240,18 +244,18 @@ class FrequencyOptimizer:
             if i == 0:
                 continue
 
-            delta = post.timestamp - platform_posts[i-1].timestamp
+            delta = post.timestamp - platform_posts[i - 1].timestamp
             hours_since_last = delta.total_seconds() / 3600
 
             # Bucket by frequency
             if hours_since_last < 12:
-                bucket = 'very_frequent'  # Multiple per day
+                bucket = "very_frequent"  # Multiple per day
             elif hours_since_last < 24:
-                bucket = 'daily'
+                bucket = "daily"
             elif hours_since_last < 72:
-                bucket = 'every_2_3_days'
+                bucket = "every_2_3_days"
             else:
-                bucket = 'weekly'
+                bucket = "weekly"
 
             if bucket not in frequency_engagement:
                 frequency_engagement[bucket] = []
@@ -259,7 +263,7 @@ class FrequencyOptimizer:
             frequency_engagement[bucket].append(post.engagement)
 
         # Find optimal bucket
-        best_bucket = 'daily'
+        best_bucket = "daily"
         best_engagement = 0.0
 
         for bucket, engagements in frequency_engagement.items():
@@ -270,37 +274,37 @@ class FrequencyOptimizer:
 
         # Convert to recommended frequency
         frequency_map = {
-            'very_frequent': {'posts_per_week': 10, 'min_hours_between': 6},
-            'daily': {'posts_per_week': 7, 'min_hours_between': 24},
-            'every_2_3_days': {'posts_per_week': 3, 'min_hours_between': 48},
-            'weekly': {'posts_per_week': 1, 'min_hours_between': 168},
+            "very_frequent": {"posts_per_week": 10, "min_hours_between": 6},
+            "daily": {"posts_per_week": 7, "min_hours_between": 24},
+            "every_2_3_days": {"posts_per_week": 3, "min_hours_between": 48},
+            "weekly": {"posts_per_week": 1, "min_hours_between": 168},
         }
 
         return {
-            'recommended_bucket': best_bucket,
-            'posts_per_week': frequency_map[best_bucket]['posts_per_week'],
-            'min_hours_between': frequency_map[best_bucket]['min_hours_between'],
-            'avg_engagement': best_engagement,
-            'current_interval_hours': avg_interval
+            "recommended_bucket": best_bucket,
+            "posts_per_week": frequency_map[best_bucket]["posts_per_week"],
+            "min_hours_between": frequency_map[best_bucket]["min_hours_between"],
+            "avg_engagement": best_engagement,
+            "current_interval_hours": avg_interval,
         }
 
     def _default_frequency(self, platform: Platform) -> Dict:
         """Default frequency recommendations."""
         defaults = {
-            Platform.YOUTUBE: {'posts_per_week': 3, 'min_hours_between': 48},
-            Platform.TIKTOK: {'posts_per_week': 14, 'min_hours_between': 12},
-            Platform.INSTAGRAM: {'posts_per_week': 7, 'min_hours_between': 24},
-            Platform.SPOTIFY: {'posts_per_week': 2, 'min_hours_between': 72},
+            Platform.YOUTUBE: {"posts_per_week": 3, "min_hours_between": 48},
+            Platform.TIKTOK: {"posts_per_week": 14, "min_hours_between": 12},
+            Platform.INSTAGRAM: {"posts_per_week": 7, "min_hours_between": 24},
+            Platform.SPOTIFY: {"posts_per_week": 2, "min_hours_between": 72},
         }
 
-        default = defaults.get(platform, {'posts_per_week': 3, 'min_hours_between': 48})
+        default = defaults.get(platform, {"posts_per_week": 3, "min_hours_between": 48})
 
         return {
-            'recommended_bucket': 'default',
-            'posts_per_week': default['posts_per_week'],
-            'min_hours_between': default['min_hours_between'],
-            'avg_engagement': 0.0,
-            'current_interval_hours': 0.0
+            "recommended_bucket": "default",
+            "posts_per_week": default["posts_per_week"],
+            "min_hours_between": default["min_hours_between"],
+            "avg_engagement": 0.0,
+            "current_interval_hours": 0.0,
         }
 
 
@@ -311,9 +315,9 @@ class ABTestingFramework:
         """Initialize A/B testing framework."""
         self.experiments: Dict[str, Dict] = {}
 
-    def create_experiment(self, name: str, variants: List[Dict],
-                         metric: str = 'engagement',
-                         duration_days: int = 14):
+    def create_experiment(
+        self, name: str, variants: List[Dict], metric: str = "engagement", duration_days: int = 14
+    ):
         """
         Create A/B test experiment.
 
@@ -324,12 +328,12 @@ class ABTestingFramework:
             duration_days: Test duration
         """
         self.experiments[name] = {
-            'variants': variants,
-            'metric': metric,
-            'duration_days': duration_days,
-            'start_date': datetime.now(),
-            'results': {i: [] for i in range(len(variants))},
-            'status': 'running'
+            "variants": variants,
+            "metric": metric,
+            "duration_days": duration_days,
+            "start_date": datetime.now(),
+            "results": {i: [] for i in range(len(variants))},
+            "status": "running",
         }
 
         print(f"Created experiment: {name}")
@@ -348,16 +352,15 @@ class ABTestingFramework:
             Variant index
         """
         experiment = self.experiments.get(experiment_name)
-        if not experiment or experiment['status'] != 'running':
+        if not experiment or experiment["status"] != "running":
             return 0
 
         # Simple round-robin assignment
         # In production: use proper randomization with equal distribution
-        variant_counts = [len(results) for results in experiment['results'].values()]
+        variant_counts = [len(results) for results in experiment["results"].values()]
         return variant_counts.index(min(variant_counts))
 
-    def record_result(self, experiment_name: str, variant_idx: int,
-                     metric_value: float):
+    def record_result(self, experiment_name: str, variant_idx: int, metric_value: float):
         """
         Record result for variant.
 
@@ -367,7 +370,7 @@ class ABTestingFramework:
             metric_value: Metric value
         """
         if experiment_name in self.experiments:
-            self.experiments[experiment_name]['results'][variant_idx].append(metric_value)
+            self.experiments[experiment_name]["results"][variant_idx].append(metric_value)
 
     def analyze_experiment(self, experiment_name: str) -> Dict:
         """
@@ -383,30 +386,29 @@ class ABTestingFramework:
         if not experiment:
             return {}
 
-        results = experiment['results']
-        analysis = {
-            'experiment': experiment_name,
-            'variants': []
-        }
+        results = experiment["results"]
+        analysis = {"experiment": experiment_name, "variants": []}
 
         # Calculate stats for each variant
         for variant_idx, values in results.items():
             if values:
                 variant_stats = {
-                    'variant_idx': variant_idx,
-                    'sample_size': len(values),
-                    'mean': np.mean(values),
-                    'std': np.std(values),
-                    'min': np.min(values),
-                    'max': np.max(values),
+                    "variant_idx": variant_idx,
+                    "sample_size": len(values),
+                    "mean": np.mean(values),
+                    "std": np.std(values),
+                    "min": np.min(values),
+                    "max": np.max(values),
                 }
-                analysis['variants'].append(variant_stats)
+                analysis["variants"].append(variant_stats)
 
         # Determine winner
-        if analysis['variants']:
-            winner = max(analysis['variants'], key=lambda x: x['mean'])
-            analysis['winner'] = winner['variant_idx']
-            analysis['improvement'] = (winner['mean'] - np.mean([v['mean'] for v in analysis['variants']])) / np.mean([v['mean'] for v in analysis['variants']])
+        if analysis["variants"]:
+            winner = max(analysis["variants"], key=lambda x: x["mean"])
+            analysis["winner"] = winner["variant_idx"]
+            analysis["improvement"] = (
+                winner["mean"] - np.mean([v["mean"] for v in analysis["variants"]])
+            ) / np.mean([v["mean"] for v in analysis["variants"]])
 
         return analysis
 
@@ -414,8 +416,7 @@ class ABTestingFramework:
 class ContentCalendar:
     """Generate content calendar."""
 
-    def __init__(self, time_analyzer: TimeAnalyzer,
-                 frequency_optimizer: FrequencyOptimizer):
+    def __init__(self, time_analyzer: TimeAnalyzer, frequency_optimizer: FrequencyOptimizer):
         """
         Initialize content calendar.
 
@@ -427,8 +428,9 @@ class ContentCalendar:
         self.frequency_optimizer = frequency_optimizer
         self.schedule: List[ScheduleSlot] = []
 
-    def generate_calendar(self, platform: Platform, days_ahead: int = 30,
-                         content_count: int = None) -> List[ScheduleSlot]:
+    def generate_calendar(
+        self, platform: Platform, days_ahead: int = 30, content_count: int = None
+    ) -> List[ScheduleSlot]:
         """
         Generate content calendar.
 
@@ -450,8 +452,8 @@ class ContentCalendar:
 
         # Get frequency recommendation
         frequency = self.frequency_optimizer.calculate_optimal_frequency(platform)
-        posts_per_week = frequency['posts_per_week']
-        min_hours = frequency['min_hours_between']
+        posts_per_week = frequency["posts_per_week"]
+        min_hours = frequency["min_hours_between"]
 
         print(f"Recommended frequency: {posts_per_week} posts/week")
         print(f"Minimum hours between: {min_hours}")
@@ -467,8 +469,15 @@ class ContentCalendar:
         start_date = datetime.now()
 
         # Get optimal day/hour combinations
-        day_map = {'Monday': 0, 'Tuesday': 1, 'Wednesday': 2, 'Thursday': 3,
-                   'Friday': 4, 'Saturday': 5, 'Sunday': 6}
+        day_map = {
+            "Monday": 0,
+            "Tuesday": 1,
+            "Wednesday": 2,
+            "Thursday": 3,
+            "Friday": 4,
+            "Saturday": 5,
+            "Sunday": 6,
+        }
 
         for i in range(content_count):
             # Use optimal times in rotation
@@ -496,7 +505,7 @@ class ContentCalendar:
                 platform=platform,
                 content_type=ContentType.MUSIC_VIDEO,
                 title=f"LoFi Beats #{i+1}",
-                priority=5
+                priority=5,
             )
 
             schedule.append(slot)
@@ -516,13 +525,13 @@ class ContentCalendar:
         """
         # Seasonal date ranges
         seasonal_dates = {
-            'spring': (3, 1, 5, 31),      # March 1 - May 31
-            'summer': (6, 1, 8, 31),      # June 1 - August 31
-            'fall': (9, 1, 11, 30),       # September 1 - November 30
-            'winter': (12, 1, 2, 28),     # December 1 - February 28
-            'holiday': (12, 1, 12, 31),   # December
-            'back_to_school': (8, 15, 9, 15),  # August 15 - September 15
-            'new_year': (12, 25, 1, 15),  # Dec 25 - Jan 15
+            "spring": (3, 1, 5, 31),  # March 1 - May 31
+            "summer": (6, 1, 8, 31),  # June 1 - August 31
+            "fall": (9, 1, 11, 30),  # September 1 - November 30
+            "winter": (12, 1, 2, 28),  # December 1 - February 28
+            "holiday": (12, 1, 12, 31),  # December
+            "back_to_school": (8, 15, 9, 15),  # August 15 - September 15
+            "new_year": (12, 25, 1, 15),  # Dec 25 - Jan 15
         }
 
         if season not in seasonal_dates:
@@ -546,15 +555,17 @@ class ContentCalendar:
         """
         calendar_data = []
         for slot in self.schedule:
-            calendar_data.append({
-                'timestamp': slot.timestamp.isoformat(),
-                'platform': slot.platform.value,
-                'content_type': slot.content_type.value,
-                'title': slot.title,
-                'priority': slot.priority
-            })
+            calendar_data.append(
+                {
+                    "timestamp": slot.timestamp.isoformat(),
+                    "platform": slot.platform.value,
+                    "content_type": slot.content_type.value,
+                    "title": slot.title,
+                    "priority": slot.priority,
+                }
+            )
 
-        with open(output_path, 'w') as f:
+        with open(output_path, "w") as f:
             json.dump(calendar_data, f, indent=2)
 
         print(f"Calendar exported to: {output_path}")
@@ -596,19 +607,19 @@ class ContentScheduler:
             print(f"No historical data found at: {data_path}")
             return
 
-        with open(data_path, 'r') as f:
+        with open(data_path, "r") as f:
             data = json.load(f)
 
         for entry in data:
             metrics = PostMetrics(
-                timestamp=datetime.fromisoformat(entry['timestamp']),
-                platform=Platform(entry['platform']),
-                content_type=ContentType(entry['content_type']),
-                views=entry['views'],
-                engagement=entry['engagement'],
-                watch_time_minutes=entry.get('watch_time_minutes', 0),
-                click_through_rate=entry.get('click_through_rate', 0),
-                revenue=entry.get('revenue', 0)
+                timestamp=datetime.fromisoformat(entry["timestamp"]),
+                platform=Platform(entry["platform"]),
+                content_type=ContentType(entry["content_type"]),
+                views=entry["views"],
+                engagement=entry["engagement"],
+                watch_time_minutes=entry.get("watch_time_minutes", 0),
+                click_through_rate=entry.get("click_through_rate", 0),
+                revenue=entry.get("revenue", 0),
             )
 
             self.time_analyzer.add_historical_data(metrics)
@@ -663,17 +674,17 @@ class ContentScheduler:
         frequency = self.frequency_optimizer.calculate_optimal_frequency(platform)
 
         return {
-            'platform': platform.value,
-            'best_hours': best_hours,
-            'best_days': best_days,
-            'top_3_times': optimal_times,
-            'frequency': frequency,
-            'audience_timezones': self.time_analyzer.detect_audience_timezones(platform)
+            "platform": platform.value,
+            "best_hours": best_hours,
+            "best_days": best_days,
+            "top_3_times": optimal_times,
+            "frequency": frequency,
+            "audience_timezones": self.time_analyzer.detect_audience_timezones(platform),
         }
 
 
 # Example usage
-if __name__ == '__main__':
+if __name__ == "__main__":
     print("=== Content Scheduling Optimizer ===\n")
 
     # Initialize scheduler
@@ -686,14 +697,14 @@ if __name__ == '__main__':
     # Add sample data
     for i in range(50):
         metrics = PostMetrics(
-            timestamp=datetime.now() - timedelta(days=50-i),
+            timestamp=datetime.now() - timedelta(days=50 - i),
             platform=Platform.YOUTUBE,
             content_type=ContentType.MUSIC_VIDEO,
             views=np.random.randint(1000, 10000),
             engagement=np.random.uniform(0.03, 0.08),
             watch_time_minutes=np.random.uniform(50, 200),
             click_through_rate=np.random.uniform(0.02, 0.06),
-            revenue=np.random.uniform(5, 50)
+            revenue=np.random.uniform(5, 50),
         )
         scheduler.time_analyzer.add_historical_data(metrics)
         scheduler.frequency_optimizer.add_historical_data(metrics)
@@ -704,7 +715,7 @@ if __name__ == '__main__':
     recommendations = scheduler.get_posting_recommendations(Platform.YOUTUBE)
     print(f"Platform: {recommendations['platform']}")
     print(f"Top 3 posting times:")
-    for day, hour in recommendations['top_3_times']:
+    for day, hour in recommendations["top_3_times"]:
         print(f"  - {day} at {hour:02d}:00")
     print(f"Recommended frequency: {recommendations['frequency']['posts_per_week']} posts/week")
     print()
@@ -723,12 +734,12 @@ if __name__ == '__main__':
     scheduler.ab_testing.create_experiment(
         name="posting_time_test",
         variants=[
-            {'time': 'morning', 'hour': 9},
-            {'time': 'afternoon', 'hour': 15},
-            {'time': 'evening', 'hour': 21}
+            {"time": "morning", "hour": 9},
+            {"time": "afternoon", "hour": 15},
+            {"time": "evening", "hour": 21},
         ],
-        metric='engagement',
-        duration_days=14
+        metric="engagement",
+        duration_days=14,
     )
     print()
 

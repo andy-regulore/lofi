@@ -17,8 +17,8 @@ class QualityFilters(BaseModel):
     min_note_density: float = Field(ge=0, description="Minimum notes per second")
     max_note_density: float = Field(ge=0, description="Maximum notes per second")
 
-    @model_validator(mode='after')
-    def validate_ranges(self) -> 'QualityFilters':
+    @model_validator(mode="after")
+    def validate_ranges(self) -> "QualityFilters":
         """Validate that min values are less than max values."""
         if self.min_tempo >= self.max_tempo:
             raise ValueError("min_tempo must be less than max_tempo")
@@ -50,8 +50,8 @@ class TokenizationConfig(BaseModel):
     velocity_bins: int = Field(gt=0, le=128)
     duration_bins: int = Field(gt=0, le=128)
 
-    @model_validator(mode='after')
-    def validate_overlap(self) -> 'TokenizationConfig':
+    @model_validator(mode="after")
+    def validate_overlap(self) -> "TokenizationConfig":
         """Validate that overlap is less than chunk_size."""
         if self.overlap >= self.chunk_size:
             raise ValueError("overlap must be less than chunk_size")
@@ -70,15 +70,15 @@ class ModelConfig(BaseModel):
     dropout: float = Field(ge=0.0, le=1.0)
     attention_dropout: float = Field(ge=0.0, le=1.0)
 
-    @field_validator('num_heads')
+    @field_validator("num_heads")
     @classmethod
     def validate_num_heads(cls, v: int, info) -> int:
         """Validate that embedding_dim is divisible by num_heads."""
         # Note: embedding_dim might not be set yet, validate in model_validator
         return v
 
-    @model_validator(mode='after')
-    def validate_architecture(self) -> 'ModelConfig':
+    @model_validator(mode="after")
+    def validate_architecture(self) -> "ModelConfig":
         """Validate model architecture constraints."""
         if self.embedding_dim % self.num_heads != 0:
             raise ValueError(
@@ -113,8 +113,8 @@ class TrainingConfig(BaseModel):
     device: Literal["cuda", "cpu", "mps"] = "cuda"
     dataloader_num_workers: int = Field(ge=0, le=32)
 
-    @model_validator(mode='after')
-    def validate_effective_batch_size(self) -> 'TrainingConfig':
+    @model_validator(mode="after")
+    def validate_effective_batch_size(self) -> "TrainingConfig":
         """Validate effective batch size calculation."""
         expected = self.batch_size * self.gradient_accumulation_steps
         if self.effective_batch_size != expected:
@@ -132,8 +132,8 @@ class ConditioningConfig(BaseModel):
     keys: List[str] = Field(min_length=1)
     moods: List[str] = Field(min_length=1)
 
-    @model_validator(mode='after')
-    def validate_tempo_range(self) -> 'ConditioningConfig':
+    @model_validator(mode="after")
+    def validate_tempo_range(self) -> "ConditioningConfig":
         """Validate tempo range."""
         if self.tempo_range[0] >= self.tempo_range[1]:
             raise ValueError("tempo_range[0] must be less than tempo_range[1]")
@@ -155,8 +155,8 @@ class GenerationConfig(BaseModel):
     max_duration: float = Field(ge=0)
     target_duration: float = Field(ge=0)
 
-    @model_validator(mode='after')
-    def validate_durations(self) -> 'GenerationConfig':
+    @model_validator(mode="after")
+    def validate_durations(self) -> "GenerationConfig":
         """Validate duration constraints."""
         if self.min_duration >= self.max_duration:
             raise ValueError("min_duration must be less than max_duration")
@@ -200,8 +200,8 @@ class LoFiEffectsConfig(BaseModel):
     tape_wow_flutter: TapeWowFlutterConfig
     compression: CompressionConfig
 
-    @model_validator(mode='after')
-    def validate_filters(self) -> 'LoFiEffectsConfig':
+    @model_validator(mode="after")
+    def validate_filters(self) -> "LoFiEffectsConfig":
         """Validate filter configuration."""
         if self.highpass_cutoff >= self.lowpass_cutoff:
             raise ValueError("highpass_cutoff must be less than lowpass_cutoff")
@@ -259,7 +259,7 @@ class LoFiConfig(BaseModel):
     seed: int = Field(ge=0, le=2**32 - 1)
 
     @classmethod
-    def from_yaml(cls, path: str | Path) -> 'LoFiConfig':
+    def from_yaml(cls, path: str | Path) -> "LoFiConfig":
         """Load configuration from YAML file.
 
         Args:
@@ -278,7 +278,7 @@ class LoFiConfig(BaseModel):
         if not path.exists():
             raise FileNotFoundError(f"Configuration file not found: {path}")
 
-        with open(path, 'r') as f:
+        with open(path, "r") as f:
             config_dict = yaml.safe_load(f)
 
         return cls(**config_dict)
@@ -294,13 +294,8 @@ class LoFiConfig(BaseModel):
         path = Path(path)
         path.parent.mkdir(parents=True, exist_ok=True)
 
-        with open(path, 'w') as f:
-            yaml.dump(
-                self.model_dump(),
-                f,
-                default_flow_style=False,
-                sort_keys=False
-            )
+        with open(path, "w") as f:
+            yaml.dump(self.model_dump(), f, default_flow_style=False, sort_keys=False)
 
     def validate_paths(self) -> List[str]:
         """Validate that all directory paths exist or can be created.

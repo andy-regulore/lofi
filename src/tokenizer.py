@@ -7,15 +7,15 @@ This module handles:
 - Sequence chunking for model training
 """
 
+import json
 import logging
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
-import json
 
 import numpy as np
+import pretty_midi
 from miditok import REMI, TokenizerConfig
 from miditoolkit import MidiFile
-import pretty_midi
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -31,18 +31,18 @@ class LoFiTokenizer:
             config: Configuration dictionary with tokenization and quality filter settings
         """
         self.config = config
-        self.token_config = config['tokenization']
-        self.quality_filters = config['data']['quality_filters']
+        self.token_config = config["tokenization"]
+        self.quality_filters = config["data"]["quality_filters"]
 
         # Initialize MidiTok REMI tokenizer
         self.tokenizer_config = TokenizerConfig(
-            num_velocities=self.token_config['velocity_bins'],
+            num_velocities=self.token_config["velocity_bins"],
             use_chords=True,
             use_rests=True,
             use_tempos=True,
             use_time_signatures=True,
             use_programs=True,
-            nb_tempos=self.token_config['tempo_bins'],
+            nb_tempos=self.token_config["tempo_bins"],
             tempo_range=(50, 200),
         )
 
@@ -66,22 +66,30 @@ class LoFiTokenizer:
 
             # Quality checks
             checks = {
-                'tempo_ok': self.quality_filters['min_tempo'] <= metadata['tempo'] <= self.quality_filters['max_tempo'],
-                'duration_ok': self.quality_filters['min_duration'] <= metadata['duration'] <= self.quality_filters['max_duration'],
-                'has_drums': metadata['has_drums'] if self.quality_filters['require_drums'] else True,
-                'density_ok': self.quality_filters['min_note_density'] <= metadata['note_density'] <= self.quality_filters['max_note_density'],
+                "tempo_ok": self.quality_filters["min_tempo"]
+                <= metadata["tempo"]
+                <= self.quality_filters["max_tempo"],
+                "duration_ok": self.quality_filters["min_duration"]
+                <= metadata["duration"]
+                <= self.quality_filters["max_duration"],
+                "has_drums": (
+                    metadata["has_drums"] if self.quality_filters["require_drums"] else True
+                ),
+                "density_ok": self.quality_filters["min_note_density"]
+                <= metadata["note_density"]
+                <= self.quality_filters["max_note_density"],
             }
 
             passes = all(checks.values())
 
-            metadata['quality_checks'] = checks
-            metadata['passes_quality'] = passes
+            metadata["quality_checks"] = checks
+            metadata["passes_quality"] = passes
 
             return passes, metadata
 
         except Exception as e:
             logger.warning(f"Error checking quality for {midi_path}: {e}")
-            return False, {'error': str(e)}
+            return False, {"error": str(e)}
 
     def _extract_metadata(self, midi: pretty_midi.PrettyMIDI) -> Dict:
         """Extract metadata from MIDI file.
@@ -117,32 +125,32 @@ class LoFiTokenizer:
                     pitch_counts[note.pitch % 12] += 1
 
         # Map pitch class to likely key
-        key_map = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']
-        likely_key = key_map[np.argmax(pitch_counts)] if pitch_counts.sum() > 0 else 'C'
+        key_map = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
+        likely_key = key_map[np.argmax(pitch_counts)] if pitch_counts.sum() > 0 else "C"
 
         # Detect instruments
         instruments = [inst.program for inst in midi.instruments if not inst.is_drum]
 
         # Infer mood from tempo and key (simple heuristic)
         if tempo < 70:
-            mood = 'melancholic'
+            mood = "melancholic"
         elif tempo < 80:
-            mood = 'chill'
+            mood = "chill"
         elif tempo < 90:
-            mood = 'relaxed'
+            mood = "relaxed"
         else:
-            mood = 'upbeat'
+            mood = "upbeat"
 
         return {
-            'tempo': tempo,
-            'duration': duration,
-            'has_drums': has_drums,
-            'total_notes': total_notes,
-            'note_density': note_density,
-            'key': likely_key,
-            'mood': mood,
-            'instruments': instruments,
-            'num_tracks': len(midi.instruments),
+            "tempo": tempo,
+            "duration": duration,
+            "has_drums": has_drums,
+            "total_notes": total_notes,
+            "note_density": note_density,
+            "key": likely_key,
+            "mood": mood,
+            "instruments": instruments,
+            "num_tracks": len(midi.instruments),
         }
 
     def tokenize_midi(self, midi_path: str, check_quality: bool = True) -> Optional[Dict]:
@@ -170,7 +178,7 @@ class LoFiTokenizer:
             tokens = self.tokenizer(str(midi_path))
 
             # Convert to list of token IDs
-            if hasattr(tokens, 'ids'):
+            if hasattr(tokens, "ids"):
                 token_ids = tokens.ids
             elif isinstance(tokens, list):
                 token_ids = tokens
@@ -178,17 +186,18 @@ class LoFiTokenizer:
                 token_ids = tokens.tolist()
 
             return {
-                'tokens': token_ids,
-                'metadata': metadata,
-                'file_path': str(midi_path),
+                "tokens": token_ids,
+                "metadata": metadata,
+                "file_path": str(midi_path),
             }
 
         except Exception as e:
             logger.error(f"Error tokenizing {midi_path}: {e}")
             return None
 
-    def chunk_sequence(self, tokens: List[int], chunk_size: int = None,
-                      overlap: int = None) -> List[List[int]]:
+    def chunk_sequence(
+        self, tokens: List[int], chunk_size: int = None, overlap: int = None
+    ) -> List[List[int]]:
         """Chunk a token sequence into fixed-size segments.
 
         Args:
@@ -199,8 +208,8 @@ class LoFiTokenizer:
         Returns:
             List of token chunks
         """
-        chunk_size = chunk_size or self.token_config['chunk_size']
-        overlap = overlap or self.token_config['overlap']
+        chunk_size = chunk_size or self.token_config["chunk_size"]
+        overlap = overlap or self.token_config["overlap"]
 
         chunks = []
         start = 0
@@ -220,8 +229,9 @@ class LoFiTokenizer:
 
         return chunks
 
-    def tokenize_directory(self, midi_dir: str, output_dir: str,
-                          check_quality: bool = True) -> Dict:
+    def tokenize_directory(
+        self, midi_dir: str, output_dir: str, check_quality: bool = True
+    ) -> Dict:
         """Tokenize all MIDI files in a directory.
 
         Args:
@@ -237,15 +247,15 @@ class LoFiTokenizer:
         output_dir.mkdir(parents=True, exist_ok=True)
 
         # Find all MIDI files
-        midi_files = list(midi_dir.glob('**/*.mid')) + list(midi_dir.glob('**/*.midi'))
+        midi_files = list(midi_dir.glob("**/*.mid")) + list(midi_dir.glob("**/*.midi"))
         logger.info(f"Found {len(midi_files)} MIDI files")
 
         stats = {
-            'total_files': len(midi_files),
-            'processed': 0,
-            'passed_quality': 0,
-            'failed_quality': 0,
-            'errors': 0,
+            "total_files": len(midi_files),
+            "processed": 0,
+            "passed_quality": 0,
+            "failed_quality": 0,
+            "errors": 0,
         }
 
         all_metadata = []
@@ -254,29 +264,31 @@ class LoFiTokenizer:
             result = self.tokenize_midi(str(midi_file), check_quality=check_quality)
 
             if result is None:
-                stats['failed_quality'] += 1
+                stats["failed_quality"] += 1
                 continue
 
-            stats['processed'] += 1
-            stats['passed_quality'] += 1
+            stats["processed"] += 1
+            stats["passed_quality"] += 1
 
             # Save tokens
             output_file = output_dir / f"{midi_file.stem}.json"
-            with open(output_file, 'w') as f:
+            with open(output_file, "w") as f:
                 json.dump(result, f)
 
-            all_metadata.append(result['metadata'])
+            all_metadata.append(result["metadata"])
 
         # Save statistics and metadata
-        stats_file = output_dir / 'tokenization_stats.json'
-        with open(stats_file, 'w') as f:
+        stats_file = output_dir / "tokenization_stats.json"
+        with open(stats_file, "w") as f:
             json.dump(stats, f, indent=2)
 
-        metadata_file = output_dir / 'metadata.json'
-        with open(metadata_file, 'w') as f:
+        metadata_file = output_dir / "metadata.json"
+        with open(metadata_file, "w") as f:
             json.dump(all_metadata, f, indent=2)
 
-        logger.info(f"Tokenization complete: {stats['passed_quality']}/{stats['total_files']} files passed quality check")
+        logger.info(
+            f"Tokenization complete: {stats['passed_quality']}/{stats['total_files']} files passed quality check"
+        )
 
         return stats
 

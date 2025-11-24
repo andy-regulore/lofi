@@ -12,12 +12,13 @@ Author: Claude
 License: MIT
 """
 
+import math
+from typing import List, Optional, Tuple
+
+import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import numpy as np
-from typing import Optional, Tuple, List
-import math
 
 
 class WaveNetVocoder(nn.Module):
@@ -28,14 +29,16 @@ class WaveNetVocoder(nn.Module):
     dilated causal convolutions.
     """
 
-    def __init__(self,
-                 num_mels: int = 80,
-                 residual_channels: int = 512,
-                 gate_channels: int = 512,
-                 skip_channels: int = 256,
-                 num_layers: int = 30,
-                 num_cycles: int = 3,
-                 kernel_size: int = 3):
+    def __init__(
+        self,
+        num_mels: int = 80,
+        residual_channels: int = 512,
+        gate_channels: int = 512,
+        skip_channels: int = 256,
+        num_layers: int = 30,
+        num_cycles: int = 3,
+        kernel_size: int = 3,
+    ):
         """
         Initialize WaveNet vocoder.
 
@@ -58,11 +61,7 @@ class WaveNetVocoder(nn.Module):
 
         # Mel-spectrogram upsampling (to match audio rate)
         self.mel_upsampler = nn.ConvTranspose1d(
-            num_mels,
-            num_mels,
-            kernel_size=800,
-            stride=200,
-            padding=300
+            num_mels, num_mels, kernel_size=800, stride=200, padding=300
         )
 
         # Residual layers with dilated convolutions
@@ -75,12 +74,7 @@ class WaveNetVocoder(nn.Module):
 
             self.residual_layers.append(
                 WaveNetResidualBlock(
-                    residual_channels,
-                    gate_channels,
-                    skip_channels,
-                    kernel_size,
-                    dilation,
-                    num_mels
+                    residual_channels, gate_channels, skip_channels, kernel_size, dilation, num_mels
                 )
             )
 
@@ -90,7 +84,7 @@ class WaveNetVocoder(nn.Module):
             nn.Conv1d(skip_channels, skip_channels, kernel_size=1),
             nn.ReLU(),
             nn.Conv1d(skip_channels, 1, kernel_size=1),
-            nn.Tanh()
+            nn.Tanh(),
         )
 
     def forward(self, audio: torch.Tensor, mel: torch.Tensor) -> torch.Tensor:
@@ -109,9 +103,9 @@ class WaveNetVocoder(nn.Module):
 
         # Ensure same length
         if mel_upsampled.size(2) > audio.size(2):
-            mel_upsampled = mel_upsampled[:, :, :audio.size(2)]
+            mel_upsampled = mel_upsampled[:, :, : audio.size(2)]
         elif mel_upsampled.size(2) < audio.size(2):
-            audio = audio[:, :, :mel_upsampled.size(2)]
+            audio = audio[:, :, : mel_upsampled.size(2)]
 
         # Input projection
         x = self.input_conv(audio)
@@ -162,13 +156,15 @@ class WaveNetVocoder(nn.Module):
 class WaveNetResidualBlock(nn.Module):
     """Single residual block in WaveNet."""
 
-    def __init__(self,
-                 residual_channels: int,
-                 gate_channels: int,
-                 skip_channels: int,
-                 kernel_size: int,
-                 dilation: int,
-                 condition_channels: int):
+    def __init__(
+        self,
+        residual_channels: int,
+        gate_channels: int,
+        skip_channels: int,
+        kernel_size: int,
+        dilation: int,
+        condition_channels: int,
+    ):
         super().__init__()
 
         self.dilation = dilation
@@ -179,7 +175,7 @@ class WaveNetResidualBlock(nn.Module):
             gate_channels,
             kernel_size=kernel_size,
             padding=dilation * (kernel_size - 1),
-            dilation=dilation
+            dilation=dilation,
         )
 
         # Conditioning projection
@@ -189,14 +185,16 @@ class WaveNetResidualBlock(nn.Module):
         self.residual_proj = nn.Conv1d(gate_channels // 2, residual_channels, kernel_size=1)
         self.skip_proj = nn.Conv1d(gate_channels // 2, skip_channels, kernel_size=1)
 
-    def forward(self, x: torch.Tensor, condition: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
+    def forward(
+        self, x: torch.Tensor, condition: torch.Tensor
+    ) -> Tuple[torch.Tensor, torch.Tensor]:
         """Forward pass."""
         # Dilated convolution
         h = self.conv(x)
 
         # Causal: remove future
         if self.dilation > 1:
-            h = h[:, :, :-self.dilation * 2]
+            h = h[:, :, : -self.dilation * 2]
 
         # Add conditioning
         h = h + self.condition_proj(condition)
@@ -220,12 +218,14 @@ class HiFiGANGenerator(nn.Module):
     and multi-receptive field fusion.
     """
 
-    def __init__(self,
-                 num_mels: int = 80,
-                 upsample_rates: List[int] = [8, 8, 2, 2],
-                 upsample_kernel_sizes: List[int] = [16, 16, 4, 4],
-                 resblock_kernel_sizes: List[int] = [3, 7, 11],
-                 resblock_dilation_sizes: List[List[int]] = [[1, 3, 5], [1, 3, 5], [1, 3, 5]]):
+    def __init__(
+        self,
+        num_mels: int = 80,
+        upsample_rates: List[int] = [8, 8, 2, 2],
+        upsample_kernel_sizes: List[int] = [16, 16, 4, 4],
+        resblock_kernel_sizes: List[int] = [3, 7, 11],
+        resblock_dilation_sizes: List[List[int]] = [[1, 3, 5], [1, 3, 5], [1, 3, 5]],
+    ):
         """
         Initialize HiFi-GAN generator.
 
@@ -256,7 +256,7 @@ class HiFiGANGenerator(nn.Module):
                     channels // 2,
                     kernel_size=kernel_size,
                     stride=rate,
-                    padding=(kernel_size - rate) // 2
+                    padding=(kernel_size - rate) // 2,
                 )
             )
             channels = channels // 2
@@ -264,9 +264,7 @@ class HiFiGANGenerator(nn.Module):
             # Multi-receptive field fusion
             resblocks = nn.ModuleList()
             for k, d_list in zip(resblock_kernel_sizes, resblock_dilation_sizes):
-                resblocks.append(
-                    HiFiGANResBlock(channels, k, d_list)
-                )
+                resblocks.append(HiFiGANResBlock(channels, k, d_list))
             self.resblocks.append(resblocks)
 
         # Output projection
@@ -318,7 +316,7 @@ class HiFiGANResBlock(nn.Module):
                     channels,
                     kernel_size=kernel_size,
                     padding=(kernel_size - 1) * dilation // 2,
-                    dilation=dilation
+                    dilation=dilation,
                 )
             )
 
@@ -338,11 +336,13 @@ class NeuralAudioCodec(nn.Module):
     Compresses audio to discrete tokens and reconstructs.
     """
 
-    def __init__(self,
-                 num_codebooks: int = 8,
-                 codebook_size: int = 1024,
-                 hidden_dim: int = 512,
-                 num_layers: int = 4):
+    def __init__(
+        self,
+        num_codebooks: int = 8,
+        codebook_size: int = 1024,
+        hidden_dim: int = 512,
+        num_layers: int = 4,
+    ):
         """
         Initialize neural audio codec.
 
@@ -406,10 +406,12 @@ class AudioEncoder(nn.Module):
         out_channels = hidden_dim // (2 ** (num_layers - 1))
 
         for i in range(num_layers):
-            layers.extend([
-                nn.Conv1d(in_channels, out_channels, kernel_size=15, stride=2, padding=7),
-                nn.ELU(),
-            ])
+            layers.extend(
+                [
+                    nn.Conv1d(in_channels, out_channels, kernel_size=15, stride=2, padding=7),
+                    nn.ELU(),
+                ]
+            )
             in_channels = out_channels
             out_channels = min(out_channels * 2, hidden_dim)
 
@@ -431,18 +433,31 @@ class AudioDecoder(nn.Module):
         out_channels = hidden_dim // 2
 
         for i in range(num_layers - 1):
-            layers.extend([
-                nn.ConvTranspose1d(in_channels, out_channels, kernel_size=15, stride=2, padding=7, output_padding=1),
-                nn.ELU(),
-            ])
+            layers.extend(
+                [
+                    nn.ConvTranspose1d(
+                        in_channels,
+                        out_channels,
+                        kernel_size=15,
+                        stride=2,
+                        padding=7,
+                        output_padding=1,
+                    ),
+                    nn.ELU(),
+                ]
+            )
             in_channels = out_channels
             out_channels = max(out_channels // 2, 1)
 
         # Final layer
-        layers.extend([
-            nn.ConvTranspose1d(in_channels, 1, kernel_size=15, stride=2, padding=7, output_padding=1),
-            nn.Tanh()
-        ])
+        layers.extend(
+            [
+                nn.ConvTranspose1d(
+                    in_channels, 1, kernel_size=15, stride=2, padding=7, output_padding=1
+                ),
+                nn.Tanh(),
+            ]
+        )
 
         self.layers = nn.Sequential(*layers)
 
@@ -461,10 +476,9 @@ class ResidualVectorQuantizer(nn.Module):
         super().__init__()
 
         self.num_codebooks = num_codebooks
-        self.codebooks = nn.ModuleList([
-            VectorQuantizer(codebook_size, embedding_dim)
-            for _ in range(num_codebooks)
-        ])
+        self.codebooks = nn.ModuleList(
+            [VectorQuantizer(codebook_size, embedding_dim) for _ in range(num_codebooks)]
+        )
 
     def forward(self, z: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor, List[torch.Tensor]]:
         """
@@ -557,23 +571,23 @@ class VectorQuantizer(nn.Module):
 class MelSpectrogram(nn.Module):
     """Differentiable mel-spectrogram computation."""
 
-    def __init__(self,
-                 sample_rate: int = 22050,
-                 n_fft: int = 1024,
-                 hop_length: int = 256,
-                 n_mels: int = 80,
-                 f_min: float = 0.0,
-                 f_max: Optional[float] = None):
+    def __init__(
+        self,
+        sample_rate: int = 22050,
+        n_fft: int = 1024,
+        hop_length: int = 256,
+        n_mels: int = 80,
+        f_min: float = 0.0,
+        f_max: Optional[float] = None,
+    ):
         super().__init__()
 
         if f_max is None:
             f_max = sample_rate / 2
 
         # Create mel filterbank
-        mel_basis = self._create_mel_filterbank(
-            sample_rate, n_fft, n_mels, f_min, f_max
-        )
-        self.register_buffer('mel_basis', mel_basis)
+        mel_basis = self._create_mel_filterbank(sample_rate, n_fft, n_mels, f_min, f_max)
+        self.register_buffer("mel_basis", mel_basis)
 
         self.n_fft = n_fft
         self.hop_length = hop_length
@@ -595,7 +609,7 @@ class MelSpectrogram(nn.Module):
             n_fft=self.n_fft,
             hop_length=self.hop_length,
             window=self.window.to(audio.device),
-            return_complex=True
+            return_complex=True,
         )
 
         # Magnitude
@@ -610,14 +624,14 @@ class MelSpectrogram(nn.Module):
         return mel
 
     @staticmethod
-    def _create_mel_filterbank(sr: int, n_fft: int, n_mels: int, f_min: float, f_max: float) -> torch.Tensor:
+    def _create_mel_filterbank(
+        sr: int, n_fft: int, n_mels: int, f_min: float, f_max: float
+    ) -> torch.Tensor:
         """Create mel filterbank matrix."""
         # Simplified mel filterbank creation
         # In practice, use librosa.filters.mel
         mel_freqs = torch.linspace(
-            MelSpectrogram._hz_to_mel(f_min),
-            MelSpectrogram._hz_to_mel(f_max),
-            n_mels + 2
+            MelSpectrogram._hz_to_mel(f_min), MelSpectrogram._hz_to_mel(f_max), n_mels + 2
         )
         mel_freqs = MelSpectrogram._mel_to_hz(mel_freqs)
 
@@ -635,7 +649,7 @@ class MelSpectrogram(nn.Module):
 
 
 # Example usage
-if __name__ == '__main__':
+if __name__ == "__main__":
     print("=== WaveNet Vocoder ===")
     vocoder = WaveNetVocoder(num_mels=80, num_layers=20)
 

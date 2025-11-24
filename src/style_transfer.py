@@ -17,17 +17,19 @@ Author: Claude
 License: MIT
 """
 
+from dataclasses import dataclass
+from enum import Enum
+from typing import Dict, List, Optional, Tuple
+
+import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import numpy as np
-from typing import Dict, List, Tuple, Optional
-from dataclasses import dataclass
-from enum import Enum
 
 
 class StyleFeature(Enum):
     """Types of stylistic features."""
+
     RHYTHM = "rhythm"
     HARMONY = "harmony"
     MELODY = "melody"
@@ -39,6 +41,7 @@ class StyleFeature(Enum):
 @dataclass
 class StyleProfile:
     """Profile of a musical style."""
+
     name: str
     tempo_range: Tuple[float, float]
     key_preference: Dict[str, float]  # Key signatures and probabilities
@@ -61,91 +64,131 @@ class StyleDatabase:
         styles = {}
 
         # Lo-Fi Hip-Hop
-        styles['lofi'] = StyleProfile(
-            name='Lo-Fi Hip-Hop',
+        styles["lofi"] = StyleProfile(
+            name="Lo-Fi Hip-Hop",
             tempo_range=(60, 95),
-            key_preference={'C': 0.2, 'Am': 0.2, 'G': 0.15, 'Dm': 0.15, 'F': 0.1, 'Em': 0.1, 'D': 0.05, 'Bm': 0.05},
-            chord_vocabulary=['maj7', 'min7', '9', 'min9', 'maj9', '13'],
-            rhythm_patterns=['boom_bap', 'laid_back', 'offbeat_hats'],
-            instrument_preferences={
-                'electric_piano': 0.8,
-                'synth_pad': 0.6,
-                'electric_bass': 0.9,
-                'drums': 0.95,
-                'vinyl_effects': 0.7
+            key_preference={
+                "C": 0.2,
+                "Am": 0.2,
+                "G": 0.15,
+                "Dm": 0.15,
+                "F": 0.1,
+                "Em": 0.1,
+                "D": 0.05,
+                "Bm": 0.05,
             },
-            dynamics_profile={'range': 0.6, 'variation': 0.3, 'avg_loudness': 0.65},
-            articulation_style='legato'
+            chord_vocabulary=["maj7", "min7", "9", "min9", "maj9", "13"],
+            rhythm_patterns=["boom_bap", "laid_back", "offbeat_hats"],
+            instrument_preferences={
+                "electric_piano": 0.8,
+                "synth_pad": 0.6,
+                "electric_bass": 0.9,
+                "drums": 0.95,
+                "vinyl_effects": 0.7,
+            },
+            dynamics_profile={"range": 0.6, "variation": 0.3, "avg_loudness": 0.65},
+            articulation_style="legato",
         )
 
         # Jazz
-        styles['jazz'] = StyleProfile(
-            name='Jazz',
+        styles["jazz"] = StyleProfile(
+            name="Jazz",
             tempo_range=(100, 200),
-            key_preference={'Bb': 0.2, 'F': 0.2, 'Eb': 0.15, 'C': 0.1, 'G': 0.1, 'D': 0.1, 'A': 0.08, 'E': 0.07},
-            chord_vocabulary=['maj7', 'min7', 'dom7', '7b9', '7#9', '7alt', 'min7b5', 'dim7'],
-            rhythm_patterns=['swing', 'syncopated', 'polyrhythmic'],
-            instrument_preferences={
-                'acoustic_piano': 0.9,
-                'acoustic_bass': 0.9,
-                'saxophone': 0.7,
-                'trumpet': 0.6,
-                'drums_brushes': 0.8
+            key_preference={
+                "Bb": 0.2,
+                "F": 0.2,
+                "Eb": 0.15,
+                "C": 0.1,
+                "G": 0.1,
+                "D": 0.1,
+                "A": 0.08,
+                "E": 0.07,
             },
-            dynamics_profile={'range': 0.9, 'variation': 0.7, 'avg_loudness': 0.7},
-            articulation_style='mixed'
+            chord_vocabulary=["maj7", "min7", "dom7", "7b9", "7#9", "7alt", "min7b5", "dim7"],
+            rhythm_patterns=["swing", "syncopated", "polyrhythmic"],
+            instrument_preferences={
+                "acoustic_piano": 0.9,
+                "acoustic_bass": 0.9,
+                "saxophone": 0.7,
+                "trumpet": 0.6,
+                "drums_brushes": 0.8,
+            },
+            dynamics_profile={"range": 0.9, "variation": 0.7, "avg_loudness": 0.7},
+            articulation_style="mixed",
         )
 
         # Classical
-        styles['classical'] = StyleProfile(
-            name='Classical',
+        styles["classical"] = StyleProfile(
+            name="Classical",
             tempo_range=(60, 140),
-            key_preference={'C': 0.15, 'G': 0.15, 'D': 0.12, 'A': 0.1, 'F': 0.1, 'Bb': 0.08, 'Eb': 0.08, 'E': 0.07},
-            chord_vocabulary=['maj', 'min', 'dim', 'aug', 'maj7', 'dom7'],
-            rhythm_patterns=['regular', 'rubato', 'waltz'],
-            instrument_preferences={
-                'strings': 0.95,
-                'woodwinds': 0.7,
-                'brass': 0.6,
-                'piano': 0.8
+            key_preference={
+                "C": 0.15,
+                "G": 0.15,
+                "D": 0.12,
+                "A": 0.1,
+                "F": 0.1,
+                "Bb": 0.08,
+                "Eb": 0.08,
+                "E": 0.07,
             },
-            dynamics_profile={'range': 0.95, 'variation': 0.8, 'avg_loudness': 0.6},
-            articulation_style='mixed'
+            chord_vocabulary=["maj", "min", "dim", "aug", "maj7", "dom7"],
+            rhythm_patterns=["regular", "rubato", "waltz"],
+            instrument_preferences={"strings": 0.95, "woodwinds": 0.7, "brass": 0.6, "piano": 0.8},
+            dynamics_profile={"range": 0.95, "variation": 0.8, "avg_loudness": 0.6},
+            articulation_style="mixed",
         )
 
         # Electronic/EDM
-        styles['electronic'] = StyleProfile(
-            name='Electronic',
+        styles["electronic"] = StyleProfile(
+            name="Electronic",
             tempo_range=(110, 140),
-            key_preference={'Am': 0.2, 'Em': 0.18, 'Dm': 0.15, 'Gm': 0.12, 'C': 0.1, 'F': 0.1, 'G': 0.08, 'D': 0.07},
-            chord_vocabulary=['min', 'maj', 'sus2', 'sus4', 'add9'],
-            rhythm_patterns=['four_on_floor', 'breakbeat', 'sidechained'],
-            instrument_preferences={
-                'synth_lead': 0.9,
-                'synth_pad': 0.85,
-                'synth_bass': 0.9,
-                'drums_electronic': 0.95,
-                'synth_pluck': 0.7
+            key_preference={
+                "Am": 0.2,
+                "Em": 0.18,
+                "Dm": 0.15,
+                "Gm": 0.12,
+                "C": 0.1,
+                "F": 0.1,
+                "G": 0.08,
+                "D": 0.07,
             },
-            dynamics_profile={'range': 0.85, 'variation': 0.6, 'avg_loudness': 0.85},
-            articulation_style='staccato'
+            chord_vocabulary=["min", "maj", "sus2", "sus4", "add9"],
+            rhythm_patterns=["four_on_floor", "breakbeat", "sidechained"],
+            instrument_preferences={
+                "synth_lead": 0.9,
+                "synth_pad": 0.85,
+                "synth_bass": 0.9,
+                "drums_electronic": 0.95,
+                "synth_pluck": 0.7,
+            },
+            dynamics_profile={"range": 0.85, "variation": 0.6, "avg_loudness": 0.85},
+            articulation_style="staccato",
         )
 
         # Bossa Nova
-        styles['bossa_nova'] = StyleProfile(
-            name='Bossa Nova',
+        styles["bossa_nova"] = StyleProfile(
+            name="Bossa Nova",
             tempo_range=(110, 140),
-            key_preference={'C': 0.15, 'G': 0.15, 'D': 0.12, 'Am': 0.12, 'Dm': 0.1, 'Em': 0.1, 'F': 0.1, 'A': 0.08},
-            chord_vocabulary=['maj7', 'min7', 'dom7', '9', 'min9', 'maj9', 'm7b5'],
-            rhythm_patterns=['bossa_clave', 'syncopated', 'latin'],
-            instrument_preferences={
-                'nylon_guitar': 0.95,
-                'acoustic_bass': 0.8,
-                'piano': 0.7,
-                'percussion': 0.85
+            key_preference={
+                "C": 0.15,
+                "G": 0.15,
+                "D": 0.12,
+                "Am": 0.12,
+                "Dm": 0.1,
+                "Em": 0.1,
+                "F": 0.1,
+                "A": 0.08,
             },
-            dynamics_profile={'range': 0.7, 'variation': 0.5, 'avg_loudness': 0.6},
-            articulation_style='mixed'
+            chord_vocabulary=["maj7", "min7", "dom7", "9", "min9", "maj9", "m7b5"],
+            rhythm_patterns=["bossa_clave", "syncopated", "latin"],
+            instrument_preferences={
+                "nylon_guitar": 0.95,
+                "acoustic_bass": 0.8,
+                "piano": 0.7,
+                "percussion": 0.85,
+            },
+            dynamics_profile={"range": 0.7, "variation": 0.5, "avg_loudness": 0.6},
+            articulation_style="mixed",
         )
 
         return styles
@@ -260,10 +303,12 @@ class StyleDecoder(nn.Module):
         super().__init__()
 
         # Adaptive instance normalization layers
-        self.adain_layers = nn.ModuleList([
-            AdaIN(content_dim, style_dim),
-            AdaIN(content_dim, style_dim),
-        ])
+        self.adain_layers = nn.ModuleList(
+            [
+                AdaIN(content_dim, style_dim),
+                AdaIN(content_dim, style_dim),
+            ]
+        )
 
         self.decoder = nn.Sequential(
             nn.Linear(content_dim, content_dim),
@@ -373,12 +418,14 @@ class StyleTransferModel(nn.Module):
 
         return output
 
-    def loss(self,
-             output: torch.Tensor,
-             content_target: torch.Tensor,
-             style_target: torch.Tensor,
-             content_weight: float = 1.0,
-             style_weight: float = 100.0) -> Dict[str, torch.Tensor]:
+    def loss(
+        self,
+        output: torch.Tensor,
+        content_target: torch.Tensor,
+        style_target: torch.Tensor,
+        content_weight: float = 1.0,
+        style_weight: float = 100.0,
+    ) -> Dict[str, torch.Tensor]:
         """
         Compute style transfer loss.
 
@@ -405,11 +452,7 @@ class StyleTransferModel(nn.Module):
         # Total loss
         total_loss = content_weight * content_loss + style_weight * style_loss
 
-        return {
-            'total': total_loss,
-            'content': content_loss,
-            'style': style_loss
-        }
+        return {"total": total_loss, "content": content_loss, "style": style_loss}
 
 
 class GenreBlender:
@@ -419,9 +462,9 @@ class GenreBlender:
         """Initialize genre blender."""
         self.style_db = style_db
 
-    def blend_styles(self,
-                     styles: List[str],
-                     weights: Optional[List[float]] = None) -> StyleProfile:
+    def blend_styles(
+        self, styles: List[str], weights: Optional[List[float]] = None
+    ) -> StyleProfile:
         """
         Blend multiple styles with weights.
 
@@ -455,10 +498,7 @@ class GenreBlender:
 
         key_pref = {}
         for key in all_keys:
-            key_pref[key] = sum(
-                p.key_preference.get(key, 0) * w
-                for p, w in zip(profiles, weights)
-            )
+            key_pref[key] = sum(p.key_preference.get(key, 0) * w for p, w in zip(profiles, weights))
 
         # Normalize key preferences
         total_key_prob = sum(key_pref.values())
@@ -485,15 +525,18 @@ class GenreBlender:
         inst_pref = {}
         for inst in all_instruments:
             inst_pref[inst] = sum(
-                p.instrument_preferences.get(inst, 0) * w
-                for p, w in zip(profiles, weights)
+                p.instrument_preferences.get(inst, 0) * w for p, w in zip(profiles, weights)
             )
 
         # Blend dynamics
         dynamics = {
-            'range': sum(p.dynamics_profile['range'] * w for p, w in zip(profiles, weights)),
-            'variation': sum(p.dynamics_profile['variation'] * w for p, w in zip(profiles, weights)),
-            'avg_loudness': sum(p.dynamics_profile['avg_loudness'] * w for p, w in zip(profiles, weights))
+            "range": sum(p.dynamics_profile["range"] * w for p, w in zip(profiles, weights)),
+            "variation": sum(
+                p.dynamics_profile["variation"] * w for p, w in zip(profiles, weights)
+            ),
+            "avg_loudness": sum(
+                p.dynamics_profile["avg_loudness"] * w for p, w in zip(profiles, weights)
+            ),
         }
 
         # Articulation (use most weighted)
@@ -509,15 +552,12 @@ class GenreBlender:
             rhythm_patterns=rhythm_patterns,
             instrument_preferences=inst_pref,
             dynamics_profile=dynamics,
-            articulation_style=articulation
+            articulation_style=articulation,
         )
 
         return blended
 
-    def interpolate_styles(self,
-                          style_a: str,
-                          style_b: str,
-                          alpha: float) -> StyleProfile:
+    def interpolate_styles(self, style_a: str, style_b: str, alpha: float) -> StyleProfile:
         """
         Interpolate between two styles.
 
@@ -539,10 +579,9 @@ class CrossGenreHarmonizer:
         """Initialize cross-genre harmonizer."""
         self.style_db = style_db
 
-    def harmonize(self,
-                  melody_notes: List[int],
-                  source_genre: str,
-                  target_genre: str) -> List[Tuple[int, str]]:
+    def harmonize(
+        self, melody_notes: List[int], source_genre: str, target_genre: str
+    ) -> List[Tuple[int, str]]:
         """
         Harmonize melody from source genre using target genre harmony.
 
@@ -570,7 +609,7 @@ class CrossGenreHarmonizer:
 
             # Simple root finding (could be more sophisticated)
             # Use note as guide tone
-            if chord_type in ['maj7', 'maj9', 'maj', 'maj13']:
+            if chord_type in ["maj7", "maj9", "maj", "maj13"]:
                 # Major chords: note is likely 1, 3, 5, or 7
                 possible_roots = [pc, (pc - 4) % 12, (pc - 7) % 12, (pc - 11) % 12]
             else:
@@ -584,12 +623,12 @@ class CrossGenreHarmonizer:
 
 
 # Example usage
-if __name__ == '__main__':
+if __name__ == "__main__":
     print("=== Style Database ===")
     db = StyleDatabase()
     print(f"Available styles: {db.get_all_styles()}")
 
-    lofi = db.get_style('lofi')
+    lofi = db.get_style("lofi")
     print(f"\nLo-Fi profile:")
     print(f"  Tempo: {lofi.tempo_range}")
     print(f"  Top keys: {list(lofi.key_preference.items())[:3]}")
@@ -597,13 +636,13 @@ if __name__ == '__main__':
 
     print("\n=== Genre Blending ===")
     blender = GenreBlender(db)
-    blend = blender.blend_styles(['lofi', 'jazz'], weights=[0.7, 0.3])
+    blend = blender.blend_styles(["lofi", "jazz"], weights=[0.7, 0.3])
     print(f"Blended style: {blend.name}")
     print(f"  Tempo: {blend.tempo_range}")
     print(f"  Chords: {blend.chord_vocabulary}")
 
     print("\n=== Style Interpolation ===")
-    interpolated = blender.interpolate_styles('electronic', 'classical', alpha=0.5)
+    interpolated = blender.interpolate_styles("electronic", "classical", alpha=0.5)
     print(f"Interpolated: {interpolated.name}")
     print(f"  Tempo: {interpolated.tempo_range}")
 
@@ -619,13 +658,15 @@ if __name__ == '__main__':
 
     # Compute loss
     losses = model.loss(output, content, style_ref)
-    print(f"Losses: content={losses['content']:.4f}, style={losses['style']:.4f}, total={losses['total']:.4f}")
+    print(
+        f"Losses: content={losses['content']:.4f}, style={losses['style']:.4f}, total={losses['total']:.4f}"
+    )
 
     print("\n=== Cross-Genre Harmonization ===")
     harmonizer = CrossGenreHarmonizer(db)
     melody = [60, 62, 64, 65, 67]  # C major scale
-    chords = harmonizer.harmonize(melody, source_genre='lofi', target_genre='jazz')
+    chords = harmonizer.harmonize(melody, source_genre="lofi", target_genre="jazz")
     print(f"Harmonized melody with jazz chords:")
     for note, (root, chord_type) in zip(melody, chords):
-        note_names = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']
+        note_names = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
         print(f"  Note {note_names[note % 12]}: {note_names[root]}{chord_type}")
