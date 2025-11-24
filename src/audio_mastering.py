@@ -1,12 +1,11 @@
 """Advanced audio mastering with AI-driven processing."""
 
 import logging
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Tuple
 
 import librosa
 import numpy as np
 import scipy.signal as signal
-from scipy import interpolate
 
 logger = logging.getLogger(__name__)
 
@@ -26,7 +25,7 @@ class AIAudioMaster:
         self,
         audio: np.ndarray,
         target_loudness: float = -14.0,
-        target_style: str = 'lofi',
+        target_style: str = "lofi",
     ) -> Tuple[np.ndarray, Dict]:
         """Automatically master audio to target style.
 
@@ -44,28 +43,28 @@ class AIAudioMaster:
 
         # 1. Analyze audio
         analysis = self._analyze_audio(audio)
-        processing_info['input_analysis'] = analysis
+        processing_info["input_analysis"] = analysis
 
         # 2. Apply AI-driven EQ
         audio, eq_info = self._ai_eq(audio, target_style, analysis)
-        processing_info['eq'] = eq_info
+        processing_info["eq"] = eq_info
 
         # 3. Apply multiband compression
         audio, comp_info = self._multiband_compression(audio, target_style)
-        processing_info['compression'] = comp_info
+        processing_info["compression"] = comp_info
 
         # 4. Apply stereo enhancement
         if audio.ndim == 2:
             audio, stereo_info = self._stereo_enhancement(audio, target_style)
-            processing_info['stereo'] = stereo_info
+            processing_info["stereo"] = stereo_info
 
         # 5. Apply saturation/warmth
         audio, sat_info = self._saturation(audio, target_style)
-        processing_info['saturation'] = sat_info
+        processing_info["saturation"] = sat_info
 
         # 6. Final limiting and loudness normalization
         audio, limiter_info = self._final_limiting(audio, target_loudness)
-        processing_info['limiter'] = limiter_info
+        processing_info["limiter"] = limiter_info
 
         logger.info("Auto-mastering complete")
         return audio, processing_info
@@ -80,7 +79,7 @@ class AIAudioMaster:
             Analysis dictionary
         """
         # RMS and peak levels
-        rms = np.sqrt(np.mean(audio ** 2))
+        rms = np.sqrt(np.mean(audio**2))
         peak = np.max(np.abs(audio))
 
         # Spectral analysis
@@ -97,12 +96,12 @@ class AIAudioMaster:
         crest_factor = 20 * np.log10(peak / (rms + 1e-8))
 
         return {
-            'rms': float(rms),
-            'peak': float(peak),
-            'crest_factor': float(crest_factor),
-            'low_energy': float(low_energy),
-            'mid_energy': float(mid_energy),
-            'high_energy': float(high_energy),
+            "rms": float(rms),
+            "peak": float(peak),
+            "crest_factor": float(crest_factor),
+            "low_energy": float(low_energy),
+            "mid_energy": float(mid_energy),
+            "high_energy": float(high_energy),
         }
 
     def _ai_eq(
@@ -122,18 +121,18 @@ class AIAudioMaster:
             Tuple of (eq'd_audio, eq_info)
         """
         # Determine EQ curve based on style and analysis
-        if style == 'lofi':
+        if style == "lofi":
             # Lo-fi: boost lows and mids, cut highs, add character
             eq_curve = {
-                60: 2.0,      # Sub bass boost
-                120: 1.5,     # Bass boost
-                250: 1.0,     # Low-mids
-                1000: 0.5,    # Mids (slight cut for lo-fi character)
-                3000: -1.0,   # High-mids cut
-                8000: -2.5,   # Highs cut (for lo-fi warmth)
+                60: 2.0,  # Sub bass boost
+                120: 1.5,  # Bass boost
+                250: 1.0,  # Low-mids
+                1000: 0.5,  # Mids (slight cut for lo-fi character)
+                3000: -1.0,  # High-mids cut
+                8000: -2.5,  # Highs cut (for lo-fi warmth)
                 12000: -3.0,  # Air frequencies cut
             }
-        elif style == 'clean':
+        elif style == "clean":
             # Clean: balanced with slight enhancements
             eq_curve = {
                 60: 0.5,
@@ -159,16 +158,11 @@ class AIAudioMaster:
 
         for freq, gain_db in eq_curve.items():
             if gain_db != 0:
-                audio_eq = self._parametric_eq_band(
-                    audio_eq,
-                    freq,
-                    gain_db,
-                    q=1.0
-                )
+                audio_eq = self._parametric_eq_band(audio_eq, freq, gain_db, q=1.0)
 
         eq_info = {
-            'style': style,
-            'eq_curve': eq_curve,
+            "style": style,
+            "eq_curve": eq_curve,
         }
 
         return audio_eq, eq_info
@@ -232,17 +226,17 @@ class AIAudioMaster:
         bands = self._split_frequency_bands(audio, [250, 2000, 8000])
 
         # Compression settings per band based on style
-        if style == 'lofi':
+        if style == "lofi":
             settings = [
-                {'threshold': -20, 'ratio': 3.0, 'attack': 0.01, 'release': 0.1},  # Low
-                {'threshold': -18, 'ratio': 2.5, 'attack': 0.005, 'release': 0.08}, # Mid
-                {'threshold': -15, 'ratio': 2.0, 'attack': 0.001, 'release': 0.05},  # High
+                {"threshold": -20, "ratio": 3.0, "attack": 0.01, "release": 0.1},  # Low
+                {"threshold": -18, "ratio": 2.5, "attack": 0.005, "release": 0.08},  # Mid
+                {"threshold": -15, "ratio": 2.0, "attack": 0.001, "release": 0.05},  # High
             ]
         else:
             settings = [
-                {'threshold': -15, 'ratio': 2.0, 'attack': 0.01, 'release': 0.1},
-                {'threshold': -12, 'ratio': 1.5, 'attack': 0.005, 'release': 0.08},
-                {'threshold': -10, 'ratio': 1.5, 'attack': 0.001, 'release': 0.05},
+                {"threshold": -15, "ratio": 2.0, "attack": 0.01, "release": 0.1},
+                {"threshold": -12, "ratio": 1.5, "attack": 0.005, "release": 0.08},
+                {"threshold": -10, "ratio": 1.5, "attack": 0.001, "release": 0.05},
             ]
 
         # Compress each band
@@ -255,8 +249,8 @@ class AIAudioMaster:
         audio_compressed = sum(compressed_bands)
 
         comp_info = {
-            'num_bands': len(bands),
-            'settings': settings,
+            "num_bands": len(bands),
+            "settings": settings,
         }
 
         return audio_compressed, comp_info
@@ -282,7 +276,7 @@ class AIAudioMaster:
         order = 4
 
         # Low band
-        sos_low = signal.butter(order, crossover_freqs[0], 'low', fs=self.sample_rate, output='sos')
+        sos_low = signal.butter(order, crossover_freqs[0], "low", fs=self.sample_rate, output="sos")
         if audio.ndim == 1:
             low = signal.sosfiltfilt(sos_low, audio)
         else:
@@ -294,9 +288,9 @@ class AIAudioMaster:
             sos_band = signal.butter(
                 order,
                 [crossover_freqs[i], crossover_freqs[i + 1]],
-                'bandpass',
+                "bandpass",
                 fs=self.sample_rate,
-                output='sos'
+                output="sos",
             )
             if audio.ndim == 1:
                 band = signal.sosfiltfilt(sos_band, audio)
@@ -306,11 +300,7 @@ class AIAudioMaster:
 
         # High band
         sos_high = signal.butter(
-            order,
-            crossover_freqs[-1],
-            'high',
-            fs=self.sample_rate,
-            output='sos'
+            order, crossover_freqs[-1], "high", fs=self.sample_rate, output="sos"
         )
         if audio.ndim == 1:
             high = signal.sosfiltfilt(sos_high, audio)
@@ -348,7 +338,7 @@ class AIAudioMaster:
         gain_reduction = np.zeros_like(audio_db)
         above_threshold = audio_db > threshold
 
-        gain_reduction[above_threshold] = (audio_db[above_threshold] - threshold) * (1 - 1/ratio)
+        gain_reduction[above_threshold] = (audio_db[above_threshold] - threshold) * (1 - 1 / ratio)
 
         # Apply envelope (simplified)
         # In production, would use proper attack/release envelope
@@ -374,14 +364,14 @@ class AIAudioMaster:
             Tuple of (enhanced_audio, stereo_info)
         """
         if audio.shape[0] != 2:
-            return audio, {'error': 'Not stereo'}
+            return audio, {"error": "Not stereo"}
 
         # Mid-side processing
         mid = (audio[0] + audio[1]) / 2
         side = (audio[0] - audio[1]) / 2
 
         # Adjust width based on style
-        if style == 'lofi':
+        if style == "lofi":
             width_factor = 1.2  # Subtle widening
         else:
             width_factor = 1.5  # More width
@@ -393,7 +383,7 @@ class AIAudioMaster:
         enhanced = np.array([left, right])
 
         stereo_info = {
-            'width_factor': width_factor,
+            "width_factor": width_factor,
         }
 
         return enhanced, stereo_info
@@ -413,7 +403,7 @@ class AIAudioMaster:
             Tuple of (saturated_audio, saturation_info)
         """
         # Saturation amount based on style
-        if style == 'lofi':
+        if style == "lofi":
             drive = 1.5  # Moderate warmth
         else:
             drive = 1.0  # Clean
@@ -422,7 +412,7 @@ class AIAudioMaster:
         saturated = np.tanh(audio * drive) / np.tanh(drive)
 
         sat_info = {
-            'drive': drive,
+            "drive": drive,
         }
 
         return saturated, sat_info
@@ -442,7 +432,7 @@ class AIAudioMaster:
             Tuple of (limited_audio, limiter_info)
         """
         # Measure current loudness (simplified - should use pyloudnorm)
-        rms = np.sqrt(np.mean(audio ** 2))
+        rms = np.sqrt(np.mean(audio**2))
         current_db = 20 * np.log10(rms + 1e-8)
 
         # Calculate required gain
@@ -457,9 +447,9 @@ class AIAudioMaster:
         audio_limited = np.clip(audio_gained, -ceiling, ceiling)
 
         limiter_info = {
-            'target_loudness': target_loudness,
-            'gain_applied_db': gain_db,
-            'ceiling_db': -0.1,
+            "target_loudness": target_loudness,
+            "gain_applied_db": gain_db,
+            "ceiling_db": -0.1,
         }
 
         return audio_limited, limiter_info

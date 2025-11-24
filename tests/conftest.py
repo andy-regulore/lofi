@@ -15,16 +15,16 @@ import yaml
 @pytest.fixture
 def test_config() -> Dict:
     """Load test configuration."""
-    config_path = Path(__file__).parent.parent / 'config.yaml'
-    with open(config_path, 'r') as f:
+    config_path = Path(__file__).parent.parent / "config.yaml"
+    with open(config_path, "r") as f:
         config = yaml.safe_load(f)
 
     # Override for testing
-    config['training']['device'] = 'cpu'
-    config['training']['num_epochs'] = 2
-    config['training']['batch_size'] = 2
-    config['training']['fp16'] = False
-    config['training']['dataloader_num_workers'] = 0
+    config["training"]["device"] = "cpu"
+    config["training"]["num_epochs"] = 2
+    config["training"]["batch_size"] = 2
+    config["training"]["fp16"] = False
+    config["training"]["dataloader_num_workers"] = 0
 
     return config
 
@@ -45,35 +45,27 @@ def sample_midi_path(temp_dir):
     midi = pretty_midi.PrettyMIDI(initial_tempo=75)
 
     # Add piano track
-    piano = pretty_midi.Instrument(program=0, is_drum=False, name='Piano')
+    piano = pretty_midi.Instrument(program=0, is_drum=False, name="Piano")
 
     # Add some notes (C major scale)
     for i, pitch in enumerate([60, 62, 64, 65, 67, 69, 71, 72]):
-        note = pretty_midi.Note(
-            velocity=80,
-            pitch=pitch,
-            start=i * 0.5,
-            end=(i + 1) * 0.5
-        )
+        note = pretty_midi.Note(velocity=80, pitch=pitch, start=i * 0.5, end=(i + 1) * 0.5)
         piano.notes.append(note)
 
     midi.instruments.append(piano)
 
     # Add drums
-    drums = pretty_midi.Instrument(program=0, is_drum=True, name='Drums')
+    drums = pretty_midi.Instrument(program=0, is_drum=True, name="Drums")
     for i in range(16):
         note = pretty_midi.Note(
-            velocity=100,
-            pitch=36,  # Kick drum
-            start=i * 0.25,
-            end=(i + 0.1) * 0.25
+            velocity=100, pitch=36, start=i * 0.25, end=(i + 0.1) * 0.25  # Kick drum
         )
         drums.notes.append(note)
 
     midi.instruments.append(drums)
 
     # Save
-    midi_path = temp_dir / 'test_track.mid'
+    midi_path = temp_dir / "test_track.mid"
     midi.write(str(midi_path))
 
     return str(midi_path)
@@ -84,9 +76,7 @@ def sample_tokens():
     """Generate sample token sequences for testing."""
     np.random.seed(42)
     # Generate random token sequences
-    sequences = [
-        list(np.random.randint(0, 1000, size=512)) for _ in range(10)
-    ]
+    sequences = [list(np.random.randint(0, 1000, size=512)) for _ in range(10)]
     return sequences
 
 
@@ -98,25 +88,25 @@ def mock_tokenizer(test_config):
     tokenizer = MagicMock()
     tokenizer.get_vocab_size.return_value = 1000
     tokenizer.config = test_config
-    tokenizer.token_config = test_config['tokenization']
+    tokenizer.token_config = test_config["tokenization"]
     tokenizer.tokenizer_config = MagicMock()
 
     # Mock tokenization
     def mock_tokenize(midi_path, check_quality=True):
         return {
-            'tokens': list(np.random.randint(0, 1000, size=512)),
-            'metadata': {
-                'tempo': 75,
-                'duration': 30,
-                'has_drums': True,
-                'total_notes': 100,
-                'note_density': 3.33,
-                'key': 'C',
-                'mood': 'chill',
-                'instruments': [0],
-                'num_tracks': 2,
+            "tokens": list(np.random.randint(0, 1000, size=512)),
+            "metadata": {
+                "tempo": 75,
+                "duration": 30,
+                "has_drums": True,
+                "total_notes": 100,
+                "note_density": 3.33,
+                "key": "C",
+                "mood": "chill",
+                "instruments": [0],
+                "num_tracks": 2,
             },
-            'file_path': str(midi_path),
+            "file_path": str(midi_path),
         }
 
     tokenizer.tokenize_midi = mock_tokenize
@@ -130,11 +120,12 @@ def mock_tokenizer(test_config):
 def mock_model(test_config):
     """Create a mock model for testing."""
     from unittest.mock import MagicMock
+
     import torch
 
     model = MagicMock()
     model.config = test_config
-    model.model_config = test_config['model']
+    model.model_config = test_config["model"]
     model.vocab_size = 1000
 
     # Mock GPT2 model
@@ -145,7 +136,7 @@ def mock_model(test_config):
     # Mock generation
     def mock_generate(input_ids, **kwargs):
         batch_size = input_ids.shape[0]
-        max_length = kwargs.get('max_length', 1024)
+        max_length = kwargs.get("max_length", 1024)
         return torch.randint(0, 1000, (batch_size, max_length))
 
     gpt2_model.generate = mock_generate
@@ -179,16 +170,16 @@ def sample_wav_file(temp_dir, sample_audio_data):
     import soundfile as sf
 
     audio, sample_rate = sample_audio_data
-    wav_path = temp_dir / 'test_audio.wav'
+    wav_path = temp_dir / "test_audio.wav"
     sf.write(str(wav_path), audio, sample_rate)
 
     return str(wav_path)
 
 
-@pytest.fixture(scope='session')
+@pytest.fixture(scope="session")
 def device():
     """Get the device to use for testing."""
-    return 'cuda' if torch.cuda.is_available() else 'cpu'
+    return "cuda" if torch.cuda.is_available() else "cpu"
 
 
 @pytest.fixture(autouse=True)

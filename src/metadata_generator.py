@@ -19,15 +19,16 @@ License: MIT
 """
 
 import random
-from typing import List, Dict, Optional, Tuple
+import re
 from dataclasses import dataclass
 from datetime import datetime
-import re
+from typing import Dict, List, Optional, Tuple
 
 
 @dataclass
 class TrackMetadata:
     """Complete metadata for a track."""
+
     title: str
     description: str
     tags: List[str]
@@ -44,35 +45,35 @@ class MetadataGenerator:
 
     # Title templates for different moods
     TITLE_TEMPLATES = {
-        'chill': [
+        "chill": [
             "Chill {style} Beats to {activity} [{mood}]",
             "{mood} {style} Mix - {time_of_day} Vibes",
             "Relaxing {style} | {mood} Study Session",
             "{style} Beats for {activity} | {mood} Atmosphere",
             "{time_of_day} {style} - {mood} Instrumental Mix",
         ],
-        'study': [
+        "study": [
             "{style} Study Beats - {mood} Focus Music",
             "Study With Me | {style} {mood} Beats",
             "Focus Music - {style} for {activity} [{mood}]",
             "{mood} Study Session | {style} Concentration",
             "Productive {style} Beats to {activity} [{mood}]",
         ],
-        'sleep': [
+        "sleep": [
             "{style} for Sleep | {mood} Night Sounds",
             "Sleep Music - {mood} {style} Ambience",
             "{mood} {style} for Deep Sleep and Relaxation",
             "Peaceful {style} | {mood} Sleeping Sounds",
             "Night {style} - {mood} Dream Music",
         ],
-        'relax': [
+        "relax": [
             "Relaxing {style} Music | {mood} Chill Beats",
             "{mood} {style} for Relaxation and Peace",
             "Chill {style} Mix - {mood} Relaxing Vibes",
             "Peaceful {style} | {mood} Stress Relief",
             "{mood} Relaxation Music | {style} Ambience",
         ],
-        'work': [
+        "work": [
             "{style} for Working | {mood} Productivity Beats",
             "Work Music - {mood} {style} for Focus",
             "Productive {style} | {mood} Background Music",
@@ -83,66 +84,101 @@ class MetadataGenerator:
 
     # Activity keywords
     ACTIVITIES = [
-        'Study', 'Work', 'Read', 'Focus', 'Relax', 'Sleep', 'Chill',
-        'Code', 'Write', 'Draw', 'Create', 'Think', 'Meditate'
+        "Study",
+        "Work",
+        "Read",
+        "Focus",
+        "Relax",
+        "Sleep",
+        "Chill",
+        "Code",
+        "Write",
+        "Draw",
+        "Create",
+        "Think",
+        "Meditate",
     ]
 
     # Time of day
     TIME_OF_DAY = [
-        'Morning', 'Afternoon', 'Evening', 'Night', 'Late Night',
-        'Midnight', 'Dawn', 'Sunset', 'Sunrise'
+        "Morning",
+        "Afternoon",
+        "Evening",
+        "Night",
+        "Late Night",
+        "Midnight",
+        "Dawn",
+        "Sunset",
+        "Sunrise",
     ]
 
     # Mood descriptors
     MOODS = {
-        'peaceful': ['Peaceful', 'Serene', 'Calm', 'Tranquil', 'Quiet'],
-        'melancholic': ['Melancholic', 'Nostalgic', 'Reflective', 'Wistful', 'Pensive'],
-        'uplifting': ['Uplifting', 'Inspiring', 'Hopeful', 'Bright', 'Positive'],
-        'dreamy': ['Dreamy', 'Ethereal', 'Ambient', 'Floating', 'Hazy'],
-        'cozy': ['Cozy', 'Warm', 'Comfortable', 'Intimate', 'Soft'],
-        'energetic': ['Energetic', 'Upbeat', 'Lively', 'Dynamic', 'Vibrant'],
+        "peaceful": ["Peaceful", "Serene", "Calm", "Tranquil", "Quiet"],
+        "melancholic": ["Melancholic", "Nostalgic", "Reflective", "Wistful", "Pensive"],
+        "uplifting": ["Uplifting", "Inspiring", "Hopeful", "Bright", "Positive"],
+        "dreamy": ["Dreamy", "Ethereal", "Ambient", "Floating", "Hazy"],
+        "cozy": ["Cozy", "Warm", "Comfortable", "Intimate", "Soft"],
+        "energetic": ["Energetic", "Upbeat", "Lively", "Dynamic", "Vibrant"],
     }
 
     # Style descriptors
     STYLES = {
-        'lofi': ['Lo-Fi Hip Hop', 'Chill Hop', 'Jazz Hop', 'Lo-Fi Beats', 'Chillhop'],
-        'jazz': ['Jazz', 'Jazzy', 'Jazz-influenced', 'Smooth Jazz', 'Neo-Jazz'],
-        'ambient': ['Ambient', 'Atmospheric', 'Soundscape', 'Drone', 'Minimalist'],
-        'electronic': ['Electronic', 'Downtempo', 'Chillwave', 'Synth', 'Future Beats'],
-        'classical': ['Classical', 'Neoclassical', 'Piano', 'Orchestral', 'Chamber'],
+        "lofi": ["Lo-Fi Hip Hop", "Chill Hop", "Jazz Hop", "Lo-Fi Beats", "Chillhop"],
+        "jazz": ["Jazz", "Jazzy", "Jazz-influenced", "Smooth Jazz", "Neo-Jazz"],
+        "ambient": ["Ambient", "Atmospheric", "Soundscape", "Drone", "Minimalist"],
+        "electronic": ["Electronic", "Downtempo", "Chillwave", "Synth", "Future Beats"],
+        "classical": ["Classical", "Neoclassical", "Piano", "Orchestral", "Chamber"],
     }
 
     # SEO tags for LoFi
     BASE_TAGS = [
-        'lofi', 'lofi hip hop', 'chill beats', 'study music', 'focus music',
-        'relaxing music', 'chill music', 'background music', 'instrumental',
-        'beats to study to', 'beats to relax to', 'calm music', 'peaceful music'
+        "lofi",
+        "lofi hip hop",
+        "chill beats",
+        "study music",
+        "focus music",
+        "relaxing music",
+        "chill music",
+        "background music",
+        "instrumental",
+        "beats to study to",
+        "beats to relax to",
+        "calm music",
+        "peaceful music",
     ]
 
     # Trending tags (updated periodically)
     TRENDING_TAGS = [
-        'study with me', 'work from home', 'productivity music', 'deep focus',
-        'concentration music', 'reading music', 'coding music', 'writing music',
-        'stress relief', 'anxiety relief', 'sleep music', 'meditation music'
+        "study with me",
+        "work from home",
+        "productivity music",
+        "deep focus",
+        "concentration music",
+        "reading music",
+        "coding music",
+        "writing music",
+        "stress relief",
+        "anxiety relief",
+        "sleep music",
+        "meditation music",
     ]
 
     # Seasonal tags
     SEASONAL_TAGS = {
-        'winter': ['winter vibes', 'cozy winter', 'winter study', 'snow ambience'],
-        'spring': ['spring vibes', 'spring awakening', 'fresh sounds', 'renewal'],
-        'summer': ['summer vibes', 'sunny study', 'summer chill', 'beach sounds'],
-        'fall': ['autumn vibes', 'fall aesthetic', 'cozy autumn', 'rainy days'],
+        "winter": ["winter vibes", "cozy winter", "winter study", "snow ambience"],
+        "spring": ["spring vibes", "spring awakening", "fresh sounds", "renewal"],
+        "summer": ["summer vibes", "sunny study", "summer chill", "beach sounds"],
+        "fall": ["autumn vibes", "fall aesthetic", "cozy autumn", "rainy days"],
     }
 
     def __init__(self):
         """Initialize metadata generator."""
         self.generated_titles = set()  # Track to avoid duplicates
 
-    def generate_title(self,
-                      mood: str = 'chill',
-                      style: str = 'lofi',
-                      use_case: str = 'study',
-                      variation: int = 0) -> str:
+    def generate_title(
+        self, mood: str = "chill", style: str = "lofi", use_case: str = "study", variation: int = 0
+    ) -> str:
         """
         Generate SEO-optimized title.
 
@@ -156,7 +192,7 @@ class MetadataGenerator:
             Generated title
         """
         # Get template
-        templates = self.TITLE_TEMPLATES.get(use_case, self.TITLE_TEMPLATES['chill'])
+        templates = self.TITLE_TEMPLATES.get(use_case, self.TITLE_TEMPLATES["chill"])
         template = templates[variation % len(templates)]
 
         # Select descriptors
@@ -167,10 +203,7 @@ class MetadataGenerator:
 
         # Format title
         title = template.format(
-            mood=mood_word,
-            style=style_word,
-            activity=activity,
-            time_of_day=time
+            mood=mood_word, style=style_word, activity=activity, time_of_day=time
         )
 
         # Ensure uniqueness
@@ -181,15 +214,17 @@ class MetadataGenerator:
         self.generated_titles.add(title)
         return title
 
-    def generate_description(self,
-                            title: str,
-                            duration: int,
-                            mood: str,
-                            style: str,
-                            bpm: int,
-                            key: str,
-                            include_timestamps: bool = True,
-                            include_cta: bool = True) -> str:
+    def generate_description(
+        self,
+        title: str,
+        duration: int,
+        mood: str,
+        style: str,
+        bpm: int,
+        key: str,
+        include_timestamps: bool = True,
+        include_cta: bool = True,
+    ) -> str:
         """
         Generate SEO-optimized description.
 
@@ -269,7 +304,7 @@ class MetadataGenerator:
 
         # Tags
         description_parts.append("🏷️ TAGS:")
-        tags = self.generate_tags(mood, style, use_case='study')
+        tags = self.generate_tags(mood, style, use_case="study")
         description_parts.append(", ".join(tags[:10]))
         description_parts.append("")
 
@@ -283,18 +318,29 @@ class MetadataGenerator:
     def _generate_segment_title(self, mood: str, style: str, index: int) -> str:
         """Generate title for timestamp segment."""
         segment_themes = [
-            "Opening Vibes", "Flow State", "Deep Focus", "Gentle Groove",
-            "Peaceful Moment", "Contemplation", "Smooth Transition", "Energy Shift",
-            "Reflection", "Building Momentum", "Calm Waters", "Final Thoughts"
+            "Opening Vibes",
+            "Flow State",
+            "Deep Focus",
+            "Gentle Groove",
+            "Peaceful Moment",
+            "Contemplation",
+            "Smooth Transition",
+            "Energy Shift",
+            "Reflection",
+            "Building Momentum",
+            "Calm Waters",
+            "Final Thoughts",
         ]
         return segment_themes[index % len(segment_themes)]
 
-    def generate_tags(self,
-                     mood: str,
-                     style: str,
-                     use_case: str = 'study',
-                     seasonal: Optional[str] = None,
-                     max_tags: int = 30) -> List[str]:
+    def generate_tags(
+        self,
+        mood: str,
+        style: str,
+        use_case: str = "study",
+        seasonal: Optional[str] = None,
+        max_tags: int = 30,
+    ) -> List[str]:
         """
         Generate SEO-optimized tags.
 
@@ -323,10 +369,10 @@ class MetadataGenerator:
 
         # Use case tags
         use_case_tags = {
-            'study': ['study music', 'focus music', 'concentration', 'homework music'],
-            'sleep': ['sleep music', 'sleeping', 'bedtime music', 'night sounds'],
-            'work': ['work music', 'productivity', 'office music', 'background work'],
-            'relax': ['relaxation', 'chill out', 'stress relief', 'calm down'],
+            "study": ["study music", "focus music", "concentration", "homework music"],
+            "sleep": ["sleep music", "sleeping", "bedtime music", "night sounds"],
+            "work": ["work music", "productivity", "office music", "background work"],
+            "relax": ["relaxation", "chill out", "stress relief", "calm down"],
         }
         tags.extend(use_case_tags.get(use_case, []))
 
@@ -348,14 +394,16 @@ class MetadataGenerator:
 
         return unique_tags[:max_tags]
 
-    def generate_complete_metadata(self,
-                                   mood: str = 'chill',
-                                   style: str = 'lofi',
-                                   use_case: str = 'study',
-                                   bpm: int = 75,
-                                   key: str = 'Am',
-                                   duration: int = 3600,
-                                   seasonal: Optional[str] = None) -> TrackMetadata:
+    def generate_complete_metadata(
+        self,
+        mood: str = "chill",
+        style: str = "lofi",
+        use_case: str = "study",
+        bpm: int = 75,
+        key: str = "Am",
+        duration: int = 3600,
+        seasonal: Optional[str] = None,
+    ) -> TrackMetadata:
         """
         Generate complete metadata for a track.
 
@@ -379,19 +427,17 @@ class MetadataGenerator:
             title=title,
             description=description,
             tags=tags,
-            category='Music',
+            category="Music",
             mood=mood,
             style=style,
             bpm=bpm,
             key=key,
-            duration_seconds=duration
+            duration_seconds=duration,
         )
 
-    def generate_ab_test_variations(self,
-                                    mood: str,
-                                    style: str,
-                                    use_case: str,
-                                    num_variations: int = 3) -> List[Tuple[str, str]]:
+    def generate_ab_test_variations(
+        self, mood: str, style: str, use_case: str, num_variations: int = 3
+    ) -> List[Tuple[str, str]]:
         """
         Generate multiple title/thumbnail variations for A/B testing.
 
@@ -410,7 +456,7 @@ class MetadataGenerator:
             title = self.generate_title(mood, style, use_case, variation=i)
 
             # Different description styles
-            desc_styles = ['detailed', 'minimal', 'emoji-heavy']
+            desc_styles = ["detailed", "minimal", "emoji-heavy"]
             desc_style = desc_styles[i % len(desc_styles)]
 
             variations.append((title, desc_style))
@@ -428,11 +474,11 @@ class PlaylistOrganizer:
     def create_playlist(self, name: str, description: str, tracks: List[str]) -> Dict:
         """Create a playlist."""
         playlist = {
-            'name': name,
-            'description': description,
-            'tracks': tracks,
-            'created_at': datetime.now().isoformat(),
-            'track_count': len(tracks)
+            "name": name,
+            "description": description,
+            "tracks": tracks,
+            "created_at": datetime.now().isoformat(),
+            "track_count": len(tracks),
         }
         self.playlists[name] = playlist
         return playlist
@@ -454,19 +500,20 @@ class PlaylistOrganizer:
         # Determine season based on current date or metadata
         current_month = datetime.now().month
         if current_month in [12, 1, 2]:
-            season = 'winter'
+            season = "winter"
         elif current_month in [3, 4, 5]:
-            season = 'spring'
+            season = "spring"
         elif current_month in [6, 7, 8]:
-            season = 'summer'
+            season = "summer"
         else:
-            season = 'fall'
+            season = "fall"
 
         seasonal_tracks = [m.title for m in tracks_metadata]
         return {season: seasonal_tracks}
 
-    def create_series_playlists(self, base_name: str, tracks_per_playlist: int,
-                               all_tracks: List[str]) -> List[Dict]:
+    def create_series_playlists(
+        self, base_name: str, tracks_per_playlist: int, all_tracks: List[str]
+    ) -> List[Dict]:
         """Create series of playlists (e.g., "30 Days of Study Beats")."""
         series = []
         num_playlists = (len(all_tracks) + tracks_per_playlist - 1) // tracks_per_playlist
@@ -480,7 +527,7 @@ class PlaylistOrganizer:
             playlist = self.create_playlist(
                 name=playlist_name,
                 description=f"Part {i+1} of {num_playlists} in the {base_name} series",
-                tracks=tracks
+                tracks=tracks,
             )
             series.append(playlist)
 
@@ -488,7 +535,7 @@ class PlaylistOrganizer:
 
 
 # Example usage
-if __name__ == '__main__':
+if __name__ == "__main__":
     print("=== Metadata Generator ===\n")
 
     generator = MetadataGenerator()
@@ -496,12 +543,7 @@ if __name__ == '__main__':
     # Generate metadata for different use cases
     print("1. Study Track:")
     study_metadata = generator.generate_complete_metadata(
-        mood='peaceful',
-        style='lofi',
-        use_case='study',
-        bpm=75,
-        key='Am',
-        duration=3600
+        mood="peaceful", style="lofi", use_case="study", bpm=75, key="Am", duration=3600
     )
     print(f"Title: {study_metadata.title}")
     print(f"Tags (first 5): {study_metadata.tags[:5]}")
@@ -510,20 +552,20 @@ if __name__ == '__main__':
 
     print("2. Sleep Track:")
     sleep_metadata = generator.generate_complete_metadata(
-        mood='dreamy',
-        style='ambient',
-        use_case='sleep',
+        mood="dreamy",
+        style="ambient",
+        use_case="sleep",
         bpm=60,
-        key='C',
+        key="C",
         duration=7200,
-        seasonal='winter'
+        seasonal="winter",
     )
     print(f"Title: {sleep_metadata.title}")
     print(f"Tags (first 5): {sleep_metadata.tags[:5]}")
     print()
 
     print("3. A/B Test Variations:")
-    variations = generator.generate_ab_test_variations('chill', 'lofi', 'study', num_variations=3)
+    variations = generator.generate_ab_test_variations("chill", "lofi", "study", num_variations=3)
     for i, (title, style) in enumerate(variations, 1):
         print(f"  Variation {i}: {title} (Style: {style})")
     print()
@@ -533,12 +575,10 @@ if __name__ == '__main__':
 
     # Create sample tracks
     sample_tracks = []
-    for mood in ['peaceful', 'melancholic', 'uplifting']:
+    for mood in ["peaceful", "melancholic", "uplifting"]:
         for i in range(3):
             metadata = generator.generate_complete_metadata(
-                mood=mood,
-                style='lofi',
-                use_case='study'
+                mood=mood, style="lofi", use_case="study"
             )
             sample_tracks.append(metadata)
 

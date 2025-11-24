@@ -16,27 +16,29 @@ Author: Claude
 License: MIT
 """
 
-import numpy as np
-from typing import List, Dict, Optional, Tuple, Set
-from dataclasses import dataclass
-from enum import Enum
 import hashlib
 import json
+from dataclasses import dataclass
+from enum import Enum
 from pathlib import Path
-from datetime import datetime
+from typing import Dict, List, Optional, Tuple
+
+import numpy as np
 
 
 class SimilarityLevel(Enum):
     """Similarity risk levels."""
-    SAFE = "safe"                    # < 30% similar
-    LOW_RISK = "low_risk"           # 30-50% similar
+
+    SAFE = "safe"  # < 30% similar
+    LOW_RISK = "low_risk"  # 30-50% similar
     MODERATE_RISK = "moderate_risk"  # 50-70% similar
-    HIGH_RISK = "high_risk"         # 70-85% similar
-    INFRINGEMENT = "infringement"    # > 85% similar
+    HIGH_RISK = "high_risk"  # 70-85% similar
+    INFRINGEMENT = "infringement"  # > 85% similar
 
 
 class LicenseType(Enum):
     """License types for database."""
+
     COPYRIGHTED = "copyrighted"
     PUBLIC_DOMAIN = "public_domain"
     CREATIVE_COMMONS = "creative_commons"
@@ -46,9 +48,10 @@ class LicenseType(Enum):
 @dataclass
 class MelodyFingerprint:
     """Melody fingerprint for comparison."""
-    intervals: List[int]      # Sequence of intervals (semitones)
-    contour: List[int]        # Melodic contour (-1, 0, 1)
-    rhythm_hash: str          # Hash of rhythm pattern
+
+    intervals: List[int]  # Sequence of intervals (semitones)
+    contour: List[int]  # Melodic contour (-1, 0, 1)
+    rhythm_hash: str  # Hash of rhythm pattern
     note_histogram: np.ndarray  # Distribution of notes (0-11)
     interval_histogram: np.ndarray  # Distribution of intervals
 
@@ -56,7 +59,8 @@ class MelodyFingerprint:
 @dataclass
 class ChordFingerprint:
     """Chord progression fingerprint."""
-    progression: List[str]    # Chord sequence (e.g., ["C", "Am", "F", "G"])
+
+    progression: List[str]  # Chord sequence (e.g., ["C", "Am", "F", "G"])
     roman_numerals: List[str]  # Roman numeral analysis (e.g., ["I", "vi", "IV", "V"])
     transition_matrix: np.ndarray  # Chord transition probabilities
 
@@ -64,14 +68,16 @@ class ChordFingerprint:
 @dataclass
 class RhythmFingerprint:
     """Rhythm pattern fingerprint."""
-    pattern: List[float]      # Note onset times (normalized)
+
+    pattern: List[float]  # Note onset times (normalized)
     duration_pattern: List[float]  # Note durations (normalized)
-    groove_hash: str          # Hash of quantized groove
+    groove_hash: str  # Hash of quantized groove
 
 
 @dataclass
 class CopyrightedWork:
     """Entry in copyright database."""
+
     work_id: str
     title: str
     artist: str
@@ -86,6 +92,7 @@ class CopyrightedWork:
 @dataclass
 class SimilarityReport:
     """Similarity analysis report."""
+
     query_id: str
     matches: List[Tuple[str, float, str]]  # (work_id, similarity, component)
     max_similarity: float
@@ -113,7 +120,7 @@ class MelodyAnalyzer:
 
         intervals = []
         for i in range(1, len(notes)):
-            interval = notes[i] - notes[i-1]
+            interval = notes[i] - notes[i - 1]
             intervals.append(interval)
 
         return intervals
@@ -134,7 +141,7 @@ class MelodyAnalyzer:
 
         contour = []
         for i in range(1, len(notes)):
-            diff = notes[i] - notes[i-1]
+            diff = notes[i] - notes[i - 1]
             if diff > 0:
                 contour.append(1)
             elif diff < 0:
@@ -223,7 +230,7 @@ class MelodyAnalyzer:
             contour=contour,
             rhythm_hash=rhythm_hash,
             note_histogram=note_histogram,
-            interval_histogram=interval_histogram
+            interval_histogram=interval_histogram,
         )
 
 
@@ -231,13 +238,27 @@ class ChordAnalyzer:
     """Analyze and fingerprint chord progressions."""
 
     # Chord to Roman numeral mapping (in C major)
-    CHORD_TO_ROMAN = {
-        'C': 'I', 'Dm': 'ii', 'Em': 'iii', 'F': 'IV',
-        'G': 'V', 'Am': 'vi', 'Bdim': 'vii°',
-        # Minor key (A minor)
-        'Am': 'i', 'Bdim': 'ii°', 'C': 'III', 'Dm': 'iv',
-        'Em': 'v', 'F': 'VI', 'G': 'VII',
+    CHORD_TO_ROMAN_MAJOR = {
+        "C": "I",
+        "Dm": "ii",
+        "Em": "iii",
+        "F": "IV",
+        "G": "V",
+        "Am": "vi",
+        "Bdim": "vii°",
     }
+    # Chord to Roman numeral mapping (in A minor)
+    CHORD_TO_ROMAN_MINOR = {
+        "Am": "i",
+        "Bdim": "ii°",
+        "C": "III",
+        "Dm": "iv",
+        "Em": "v",
+        "F": "VI",
+        "G": "VII",
+    }
+    # Default mapping (major key)
+    CHORD_TO_ROMAN = CHORD_TO_ROMAN_MAJOR
 
     @staticmethod
     def normalize_progression(chords: List[str], key: str = "C") -> List[str]:
@@ -254,7 +275,7 @@ class ChordAnalyzer:
         # Simplified: assume C major/A minor
         roman = []
         for chord in chords:
-            roman.append(ChordAnalyzer.CHORD_TO_ROMAN.get(chord, 'I'))
+            roman.append(ChordAnalyzer.CHORD_TO_ROMAN.get(chord, "I"))
 
         return roman
 
@@ -270,7 +291,7 @@ class ChordAnalyzer:
             Transition matrix
         """
         # Simplified: use 7 Roman numerals
-        chord_indices = {'I': 0, 'ii': 1, 'iii': 2, 'IV': 3, 'V': 4, 'vi': 5, 'vii°': 6}
+        chord_indices = {"I": 0, "ii": 1, "iii": 2, "IV": 3, "V": 4, "vi": 5, "vii°": 6}
 
         matrix = np.zeros((7, 7))
 
@@ -306,9 +327,7 @@ class ChordAnalyzer:
         transition_matrix = cls.compute_transition_matrix(roman_numerals)
 
         return ChordFingerprint(
-            progression=chords,
-            roman_numerals=roman_numerals,
-            transition_matrix=transition_matrix
+            progression=chords, roman_numerals=roman_numerals, transition_matrix=transition_matrix
         )
 
 
@@ -354,8 +373,9 @@ class RhythmAnalyzer:
         return quantized
 
     @classmethod
-    def create_fingerprint(cls, timestamps: List[float],
-                          durations: List[float]) -> RhythmFingerprint:
+    def create_fingerprint(
+        cls, timestamps: List[float], durations: List[float]
+    ) -> RhythmFingerprint:
         """
         Create rhythm fingerprint.
 
@@ -374,9 +394,7 @@ class RhythmAnalyzer:
         groove_hash = hashlib.md5(str(quantized).encode()).hexdigest()
 
         return RhythmFingerprint(
-            pattern=normalized_times,
-            duration_pattern=normalized_durations,
-            groove_hash=groove_hash
+            pattern=normalized_times, duration_pattern=normalized_durations, groove_hash=groove_hash
         )
 
 
@@ -412,7 +430,9 @@ class SimilarityCalculator:
         scores.append(note_sim * 0.3)
 
         # Interval histogram similarity
-        interval_sim = SimilarityCalculator._cosine_similarity(fp1.interval_histogram, fp2.interval_histogram)
+        interval_sim = SimilarityCalculator._cosine_similarity(
+            fp1.interval_histogram, fp2.interval_histogram
+        )
         scores.append(interval_sim * 0.2)
 
         return sum(scores) if scores else 0.0
@@ -433,7 +453,7 @@ class SimilarityCalculator:
         seq_sim = SimilarityCalculator._lcs_similarity(fp1.roman_numerals, fp2.roman_numerals)
 
         # Transition matrix similarity (Frobenius norm)
-        matrix_diff = np.linalg.norm(fp1.transition_matrix - fp2.transition_matrix, 'fro')
+        matrix_diff = np.linalg.norm(fp1.transition_matrix - fp2.transition_matrix, "fro")
         matrix_sim = 1.0 / (1.0 + matrix_diff)
 
         # Weighted average
@@ -500,10 +520,10 @@ class SimilarityCalculator:
 
         for i in range(1, m + 1):
             for j in range(1, n + 1):
-                if seq1[i-1] == seq2[j-1]:
-                    dp[i][j] = dp[i-1][j-1] + 1
+                if seq1[i - 1] == seq2[j - 1]:
+                    dp[i][j] = dp[i - 1][j - 1] + 1
                 else:
-                    dp[i][j] = max(dp[i-1][j], dp[i][j-1])
+                    dp[i][j] = max(dp[i - 1][j], dp[i][j - 1])
 
         lcs_length = dp[m][n]
         max_len = max(m, n)
@@ -549,7 +569,7 @@ class CopyrightDatabase:
     def _load_database(self):
         """Load database from file."""
         if Path(self.db_path).exists():
-            with open(self.db_path, 'r') as f:
+            with open(self.db_path, "r") as f:
                 data = json.load(f)
 
             # Reconstruct works (simplified - in production use proper serialization)
@@ -564,8 +584,9 @@ class CopyrightDatabase:
         """
         self.works[work.work_id] = work
 
-    def search_melody(self, fingerprint: MelodyFingerprint,
-                     threshold: float = 0.7) -> List[Tuple[str, float]]:
+    def search_melody(
+        self, fingerprint: MelodyFingerprint, threshold: float = 0.7
+    ) -> List[Tuple[str, float]]:
         """
         Search for similar melodies.
 
@@ -592,8 +613,9 @@ class CopyrightDatabase:
         matches.sort(key=lambda x: x[1], reverse=True)
         return matches
 
-    def search_chords(self, fingerprint: ChordFingerprint,
-                     threshold: float = 0.7) -> List[Tuple[str, float]]:
+    def search_chords(
+        self, fingerprint: ChordFingerprint, threshold: float = 0.7
+    ) -> List[Tuple[str, float]]:
         """Search for similar chord progressions."""
         matches = []
 
@@ -601,9 +623,7 @@ class CopyrightDatabase:
             if work.chord_fingerprint is None:
                 continue
 
-            similarity = SimilarityCalculator.chord_similarity(
-                fingerprint, work.chord_fingerprint
-            )
+            similarity = SimilarityCalculator.chord_similarity(fingerprint, work.chord_fingerprint)
 
             if similarity >= threshold:
                 matches.append((work_id, similarity))
@@ -611,8 +631,9 @@ class CopyrightDatabase:
         matches.sort(key=lambda x: x[1], reverse=True)
         return matches
 
-    def search_rhythm(self, fingerprint: RhythmFingerprint,
-                     threshold: float = 0.7) -> List[Tuple[str, float]]:
+    def search_rhythm(
+        self, fingerprint: RhythmFingerprint, threshold: float = 0.7
+    ) -> List[Tuple[str, float]]:
         """Search for similar rhythms."""
         matches = []
 
@@ -652,10 +673,13 @@ class CopyrightProtector:
         """
         self.database = database
 
-    def check_composition(self, melody_notes: List[int],
-                         melody_times: List[float],
-                         chords: List[str],
-                         chord_key: str = "C") -> SimilarityReport:
+    def check_composition(
+        self,
+        melody_notes: List[int],
+        melody_times: List[float],
+        chords: List[str],
+        chord_key: str = "C",
+    ) -> SimilarityReport:
         """
         Check composition for copyright issues.
 
@@ -680,10 +704,10 @@ class CopyrightProtector:
         all_matches = []
 
         for work_id, similarity in melody_matches:
-            all_matches.append((work_id, similarity, 'melody'))
+            all_matches.append((work_id, similarity, "melody"))
 
         for work_id, similarity in chord_matches:
-            all_matches.append((work_id, similarity, 'chords'))
+            all_matches.append((work_id, similarity, "chords"))
 
         # Find maximum similarity
         max_similarity = max([m[1] for m in all_matches]) if all_matches else 0.0
@@ -703,7 +727,7 @@ class CopyrightProtector:
             max_similarity=max_similarity,
             risk_level=risk_level,
             is_safe=is_safe,
-            recommendations=recommendations
+            recommendations=recommendations,
         )
 
         return report
@@ -729,9 +753,9 @@ class CopyrightProtector:
         else:
             return SimilarityLevel.INFRINGEMENT
 
-    def _generate_recommendations(self, similarity: float,
-                                 risk_level: SimilarityLevel,
-                                 matches: List[Tuple]) -> List[str]:
+    def _generate_recommendations(
+        self, similarity: float, risk_level: SimilarityLevel, matches: List[Tuple]
+    ) -> List[str]:
         """
         Generate recommendations based on similarity.
 
@@ -776,7 +800,9 @@ class CopyrightProtector:
             work_id = top_match[0]
             if work_id in self.database.works:
                 work = self.database.works[work_id]
-                recommendations.append(f"Most similar to: '{work.title}' by {work.artist} ({work.year})")
+                recommendations.append(
+                    f"Most similar to: '{work.title}' by {work.artist} ({work.year})"
+                )
 
         return recommendations
 
@@ -794,7 +820,7 @@ class CopyrightProtector:
 
 
 # Example usage
-if __name__ == '__main__':
+if __name__ == "__main__":
     print("=== Copyright Protection System ===\n")
 
     # Initialize database
@@ -820,7 +846,7 @@ if __name__ == '__main__':
         melody_fingerprint=melody_fp,
         chord_fingerprint=chord_fp,
         rhythm_fingerprint=None,
-        source="Manual Entry"
+        source="Manual Entry",
     )
 
     database.add_work(work1)
@@ -836,9 +862,7 @@ if __name__ == '__main__':
     similar_times = [0.0, 0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5]
     similar_chords = ["C", "G", "Am", "F"]
 
-    report1 = protector.check_composition(
-        similar_melody, similar_times, similar_chords, "C"
-    )
+    report1 = protector.check_composition(similar_melody, similar_times, similar_chords, "C")
 
     print(f"Risk Level: {report1.risk_level.value}")
     print(f"Max Similarity: {report1.max_similarity:.2%}")
@@ -854,9 +878,7 @@ if __name__ == '__main__':
     original_times = [0.0, 0.4, 0.8, 1.2, 1.6, 2.0, 2.4, 2.8]
     original_chords = ["Dm", "Am", "Bdim", "F"]
 
-    report2 = protector.check_composition(
-        original_melody, original_times, original_chords, "C"
-    )
+    report2 = protector.check_composition(original_melody, original_times, original_chords, "C")
 
     print(f"Risk Level: {report2.risk_level.value}")
     print(f"Max Similarity: {report2.max_similarity:.2%}")

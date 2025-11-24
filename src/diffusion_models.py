@@ -15,18 +15,20 @@ Author: Claude
 License: MIT
 """
 
+import math
+from dataclasses import dataclass
+from enum import Enum
+from typing import Callable, Dict, Optional, Tuple
+
+import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import numpy as np
-from typing import Optional, Tuple, Dict, Callable
-from dataclasses import dataclass
-from enum import Enum
-import math
 
 
 class NoiseSchedule(Enum):
     """Noise schedule types."""
+
     LINEAR = "linear"
     COSINE = "cosine"
     SIGMOID = "sigmoid"
@@ -35,6 +37,7 @@ class NoiseSchedule(Enum):
 @dataclass
 class DiffusionConfig:
     """Configuration for diffusion model."""
+
     num_timesteps: int = 1000
     noise_schedule: NoiseSchedule = NoiseSchedule.COSINE
     beta_start: float = 0.0001
@@ -80,10 +83,7 @@ class NoiseScheduler:
         if self.config.noise_schedule == NoiseSchedule.LINEAR:
             # Linear schedule
             betas = torch.linspace(
-                self.config.beta_start,
-                self.config.beta_end,
-                T,
-                dtype=torch.float32
+                self.config.beta_start, self.config.beta_end, T, dtype=torch.float32
             )
 
         elif self.config.noise_schedule == NoiseSchedule.COSINE:
@@ -101,14 +101,18 @@ class NoiseScheduler:
             # Sigmoid schedule
             t = torch.linspace(0, 1, T, dtype=torch.float32)
             sigmoid = torch.sigmoid(10 * (t - 0.5))
-            betas = self.config.beta_start + (self.config.beta_end - self.config.beta_start) * sigmoid
+            betas = (
+                self.config.beta_start + (self.config.beta_end - self.config.beta_start) * sigmoid
+            )
 
         else:
             raise ValueError(f"Unknown noise schedule: {self.config.noise_schedule}")
 
         return betas
 
-    def q_sample(self, x_0: torch.Tensor, t: torch.Tensor, noise: Optional[torch.Tensor] = None) -> torch.Tensor:
+    def q_sample(
+        self, x_0: torch.Tensor, t: torch.Tensor, noise: Optional[torch.Tensor] = None
+    ) -> torch.Tensor:
         """
         Forward diffusion: q(x_t | x_0).
 
@@ -124,14 +128,20 @@ class NoiseScheduler:
             noise = torch.randn_like(x_0)
 
         sqrt_alpha_t = self.sqrt_alphas_cumprod[t].view(-1, *([1] * (x_0.ndim - 1)))
-        sqrt_one_minus_alpha_t = self.sqrt_one_minus_alphas_cumprod[t].view(-1, *([1] * (x_0.ndim - 1)))
+        sqrt_one_minus_alpha_t = self.sqrt_one_minus_alphas_cumprod[t].view(
+            -1, *([1] * (x_0.ndim - 1))
+        )
 
         return sqrt_alpha_t * x_0 + sqrt_one_minus_alpha_t * noise
 
-    def predict_x0_from_epsilon(self, x_t: torch.Tensor, t: torch.Tensor, epsilon: torch.Tensor) -> torch.Tensor:
+    def predict_x0_from_epsilon(
+        self, x_t: torch.Tensor, t: torch.Tensor, epsilon: torch.Tensor
+    ) -> torch.Tensor:
         """Predict x_0 from epsilon prediction."""
         sqrt_alpha_t = self.sqrt_alphas_cumprod[t].view(-1, *([1] * (x_t.ndim - 1)))
-        sqrt_one_minus_alpha_t = self.sqrt_one_minus_alphas_cumprod[t].view(-1, *([1] * (x_t.ndim - 1)))
+        sqrt_one_minus_alpha_t = self.sqrt_one_minus_alphas_cumprod[t].view(
+            -1, *([1] * (x_t.ndim - 1))
+        )
 
         return (x_t - sqrt_one_minus_alpha_t * epsilon) / sqrt_alpha_t
 
@@ -143,12 +153,14 @@ class UNet1D(nn.Module):
     Used as denoising network for diffusion models.
     """
 
-    def __init__(self,
-                 in_channels: int = 128,
-                 model_channels: int = 256,
-                 num_res_blocks: int = 2,
-                 channel_mult: Tuple[int, ...] = (1, 2, 4),
-                 num_timesteps: int = 1000):
+    def __init__(
+        self,
+        in_channels: int = 128,
+        model_channels: int = 256,
+        num_res_blocks: int = 2,
+        channel_mult: Tuple[int, ...] = (1, 2, 4),
+        num_timesteps: int = 1000,
+    ):
         """
         Initialize 1D U-Net.
 
@@ -182,28 +194,26 @@ class UNet1D(nn.Module):
         for i, mult in enumerate(channel_mult):
             out_ch = model_channels * mult
             for _ in range(num_res_blocks):
-                self.down_blocks.append(
-                    ResBlock1D(ch, out_ch, time_embed_dim)
-                )
+                self.down_blocks.append(ResBlock1D(ch, out_ch, time_embed_dim))
                 ch = out_ch
             if i < len(channel_mult) - 1:
                 self.down_blocks.append(Downsample1D(ch))
 
         # Middle blocks
-        self.middle_blocks = nn.ModuleList([
-            ResBlock1D(ch, ch, time_embed_dim),
-            AttentionBlock1D(ch),
-            ResBlock1D(ch, ch, time_embed_dim),
-        ])
+        self.middle_blocks = nn.ModuleList(
+            [
+                ResBlock1D(ch, ch, time_embed_dim),
+                AttentionBlock1D(ch),
+                ResBlock1D(ch, ch, time_embed_dim),
+            ]
+        )
 
         # Upsampling blocks
         self.up_blocks = nn.ModuleList()
         for i, mult in reversed(list(enumerate(channel_mult))):
             out_ch = model_channels * mult
             for _ in range(num_res_blocks + 1):
-                self.up_blocks.append(
-                    ResBlock1D(ch + out_ch, out_ch, time_embed_dim)
-                )
+                self.up_blocks.append(ResBlock1D(ch + out_ch, out_ch, time_embed_dim))
                 ch = out_ch
             if i > 0:
                 self.up_blocks.append(Upsample1D(ch))
@@ -333,7 +343,7 @@ class AttentionBlock1D(nn.Module):
         v = v.view(B, self.num_heads, head_dim, L).transpose(2, 3)
 
         # Attention
-        scale = head_dim ** -0.5
+        scale = head_dim**-0.5
         attn = (q @ k.transpose(-2, -1)) * scale
         attn = F.softmax(attn, dim=-1)
 
@@ -366,16 +376,14 @@ class Upsample1D(nn.Module):
         self.conv = nn.Conv1d(channels, channels, kernel_size=3, padding=1)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        x = F.interpolate(x, scale_factor=2, mode='nearest')
+        x = F.interpolate(x, scale_factor=2, mode="nearest")
         return self.conv(x)
 
 
 class DiffusionModel(nn.Module):
     """Main diffusion model for music generation."""
 
-    def __init__(self,
-                 denoising_network: nn.Module,
-                 config: DiffusionConfig):
+    def __init__(self, denoising_network: nn.Module, config: DiffusionConfig):
         """
         Initialize diffusion model.
 
@@ -423,11 +431,13 @@ class DiffusionModel(nn.Module):
         return loss
 
     @torch.no_grad()
-    def sample(self,
-               shape: Tuple[int, ...],
-               conditioning: Optional[torch.Tensor] = None,
-               num_steps: Optional[int] = None,
-               eta: float = 0.0) -> torch.Tensor:
+    def sample(
+        self,
+        shape: Tuple[int, ...],
+        conditioning: Optional[torch.Tensor] = None,
+        num_steps: Optional[int] = None,
+        eta: float = 0.0,
+    ) -> torch.Tensor:
         """
         Sample from diffusion model (DDIM sampling).
 
@@ -448,11 +458,7 @@ class DiffusionModel(nn.Module):
 
         # Create sampling schedule
         timesteps = torch.linspace(
-            self.config.num_timesteps - 1,
-            0,
-            num_steps,
-            dtype=torch.long,
-            device=device
+            self.config.num_timesteps - 1, 0, num_steps, dtype=torch.long, device=device
         )
 
         # Start from pure noise
@@ -474,9 +480,16 @@ class DiffusionModel(nn.Module):
                 alpha_t = self.scheduler.alphas_cumprod[t]
                 alpha_t_next = self.scheduler.alphas_cumprod[t_next]
 
-                sigma = eta * torch.sqrt((1 - alpha_t_next) / (1 - alpha_t)) * torch.sqrt(1 - alpha_t / alpha_t_next)
+                sigma = (
+                    eta
+                    * torch.sqrt((1 - alpha_t_next) / (1 - alpha_t))
+                    * torch.sqrt(1 - alpha_t / alpha_t_next)
+                )
 
-                mean = torch.sqrt(alpha_t_next) * x_0_pred + torch.sqrt(1 - alpha_t_next - sigma ** 2) * predicted_noise
+                mean = (
+                    torch.sqrt(alpha_t_next) * x_0_pred
+                    + torch.sqrt(1 - alpha_t_next - sigma**2) * predicted_noise
+                )
 
                 if eta > 0:
                     noise = torch.randn_like(x_t)
@@ -496,10 +509,7 @@ class DiscreteDiffusion(nn.Module):
     Based on "Structured Denoising Diffusion Models in Discrete State-Spaces".
     """
 
-    def __init__(self,
-                 denoising_network: nn.Module,
-                 num_classes: int,
-                 num_timesteps: int = 1000):
+    def __init__(self, denoising_network: nn.Module, num_classes: int, num_timesteps: int = 1000):
         """
         Initialize discrete diffusion.
 
@@ -538,8 +548,8 @@ class DiscreteDiffusion(nn.Module):
             Q_bar = Q_bar @ Q_t
             Qt_bar.append(Q_bar)
 
-        self.register_buffer('Qt', torch.stack(Qt))
-        self.register_buffer('Qt_bar', torch.stack(Qt_bar))
+        self.register_buffer("Qt", torch.stack(Qt))
+        self.register_buffer("Qt_bar", torch.stack(Qt_bar))
 
     def q_sample(self, x_0: torch.Tensor, t: torch.Tensor) -> torch.Tensor:
         """
@@ -561,7 +571,7 @@ class DiscreteDiffusion(nn.Module):
         x_0_onehot = F.one_hot(x_0, self.num_classes).float()  # [batch, length, num_classes]
 
         # Apply transition
-        x_t_probs = torch.einsum('bln,bnm->blm', x_0_onehot, Q_t_bar)
+        x_t_probs = torch.einsum("bln,bnm->blm", x_0_onehot, Q_t_bar)
 
         # Sample from categorical
         x_t = torch.multinomial(x_t_probs.view(-1, self.num_classes), 1).view(batch_size, length)
@@ -600,7 +610,7 @@ class DiscreteDiffusion(nn.Module):
 
 
 # Example usage
-if __name__ == '__main__':
+if __name__ == "__main__":
     print("=== Continuous Diffusion (for audio) ===")
     config = DiffusionConfig(num_timesteps=1000, noise_schedule=NoiseSchedule.COSINE)
 

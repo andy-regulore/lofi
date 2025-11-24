@@ -7,17 +7,15 @@ Handles:
 """
 
 import logging
+import subprocess
 from pathlib import Path
 from typing import Dict, Optional
-import subprocess
-import os
 
-import numpy as np
-import soundfile as sf
 import librosa
-from scipy import signal
-from pedalboard import Pedalboard, Compressor, LowpassFilter, HighpassFilter, Bitcrush
+import numpy as np
 import pyloudnorm as pyln
+import soundfile as sf
+from pedalboard import Bitcrush, Compressor, HighpassFilter, LowpassFilter, Pedalboard
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -33,15 +31,12 @@ class LoFiAudioProcessor:
             config: Configuration dictionary
         """
         self.config = config
-        self.audio_config = config['audio']
-        self.lofi_config = self.audio_config['lofi_effects']
-        self.sample_rate = self.audio_config['sample_rate']
+        self.audio_config = config["audio"]
+        self.lofi_config = self.audio_config["lofi_effects"]
+        self.sample_rate = self.audio_config["sample_rate"]
 
     def midi_to_wav(
-        self,
-        midi_path: str,
-        output_path: str,
-        soundfont_path: Optional[str] = None
+        self, midi_path: str, output_path: str, soundfont_path: Optional[str] = None
     ) -> bool:
         """Convert MIDI to WAV using FluidSynth.
 
@@ -53,7 +48,7 @@ class LoFiAudioProcessor:
         Returns:
             True if successful, False otherwise
         """
-        soundfont = soundfont_path or self.audio_config.get('soundfont_path')
+        soundfont = soundfont_path or self.audio_config.get("soundfont_path")
 
         if not soundfont or not Path(soundfont).exists():
             logger.warning(f"Soundfont not found at {soundfont}, using synthesized audio")
@@ -62,20 +57,17 @@ class LoFiAudioProcessor:
         try:
             # Use FluidSynth to render MIDI
             cmd = [
-                'fluidsynth',
-                '-ni',  # Non-interactive
+                "fluidsynth",
+                "-ni",  # Non-interactive
                 soundfont,
                 midi_path,
-                '-F', output_path,
-                '-r', str(self.sample_rate),
+                "-F",
+                output_path,
+                "-r",
+                str(self.sample_rate),
             ]
 
-            result = subprocess.run(
-                cmd,
-                capture_output=True,
-                text=True,
-                timeout=60
-            )
+            result = subprocess.run(cmd, capture_output=True, text=True, timeout=60)
 
             if result.returncode == 0:
                 logger.info(f"Converted MIDI to WAV: {output_path}")
@@ -118,11 +110,7 @@ class LoFiAudioProcessor:
             logger.error(f"Error synthesizing MIDI: {e}")
             return False
 
-    def apply_lofi_effects(
-        self,
-        input_path: str,
-        output_path: str
-    ) -> bool:
+    def apply_lofi_effects(self, input_path: str, output_path: str) -> bool:
         """Apply lo-fi effects to audio file.
 
         Effects applied:
@@ -151,44 +139,36 @@ class LoFiAudioProcessor:
             logger.info("Applying lo-fi effects...")
 
             # 1. Downsample for vintage sound
-            downsample_rate = self.lofi_config['downsample_rate']
+            downsample_rate = self.lofi_config["downsample_rate"]
             if downsample_rate < self.sample_rate:
-                audio = librosa.resample(
-                    audio,
-                    orig_sr=self.sample_rate,
-                    target_sr=downsample_rate
-                )
-                audio = librosa.resample(
-                    audio,
-                    orig_sr=downsample_rate,
-                    target_sr=self.sample_rate
-                )
+                audio = librosa.resample(audio, orig_sr=self.sample_rate, target_sr=downsample_rate)
+                audio = librosa.resample(audio, orig_sr=downsample_rate, target_sr=self.sample_rate)
 
             # 2. Apply filters using pedalboard
-            board = Pedalboard([
-                HighpassFilter(cutoff_frequency_hz=self.lofi_config['highpass_cutoff']),
-                LowpassFilter(cutoff_frequency_hz=self.lofi_config['lowpass_cutoff']),
-                Bitcrush(bit_depth=self.lofi_config['bit_depth']),
-                Compressor(
-                    threshold_db=self.lofi_config['compression']['threshold_db'],
-                    ratio=self.lofi_config['compression']['ratio'],
-                ),
-            ])
+            board = Pedalboard(
+                [
+                    HighpassFilter(cutoff_frequency_hz=self.lofi_config["highpass_cutoff"]),
+                    LowpassFilter(cutoff_frequency_hz=self.lofi_config["lowpass_cutoff"]),
+                    Bitcrush(bit_depth=self.lofi_config["bit_depth"]),
+                    Compressor(
+                        threshold_db=self.lofi_config["compression"]["threshold_db"],
+                        ratio=self.lofi_config["compression"]["ratio"],
+                    ),
+                ]
+            )
 
             audio = board(audio, self.sample_rate)
 
             # 3. Add vinyl crackle
-            if self.lofi_config['vinyl_crackle']['enabled']:
+            if self.lofi_config["vinyl_crackle"]["enabled"]:
                 audio = self._add_vinyl_crackle(
-                    audio,
-                    intensity=self.lofi_config['vinyl_crackle']['intensity']
+                    audio, intensity=self.lofi_config["vinyl_crackle"]["intensity"]
                 )
 
             # 4. Add tape wow/flutter
-            if self.lofi_config['tape_wow_flutter']['enabled']:
+            if self.lofi_config["tape_wow_flutter"]["enabled"]:
                 audio = self._add_tape_effects(
-                    audio,
-                    depth=self.lofi_config['tape_wow_flutter']['depth']
+                    audio, depth=self.lofi_config["tape_wow_flutter"]["depth"]
                 )
 
             # 5. Final normalization
@@ -271,7 +251,7 @@ class LoFiAudioProcessor:
                 loudness = meter.integrated_loudness(audio.T)
 
             # Normalize
-            target_lufs = self.audio_config['target_lufs']
+            target_lufs = self.audio_config["target_lufs"]
             if audio.ndim == 1:
                 audio_normalized = pyln.normalize.loudness(audio, loudness, target_lufs)
             else:
@@ -279,7 +259,7 @@ class LoFiAudioProcessor:
 
             # Peak limiting
             peak = np.max(np.abs(audio_normalized))
-            target_peak = 10 ** (self.audio_config['true_peak_max'] / 20)
+            target_peak = 10 ** (self.audio_config["true_peak_max"] / 20)
 
             if peak > target_peak:
                 audio_normalized = audio_normalized * (target_peak / peak)
@@ -323,8 +303,8 @@ class LoFiAudioProcessor:
             name = Path(midi_path).stem
 
         results = {
-            'midi_path': str(midi_path),
-            'name': name,
+            "midi_path": str(midi_path),
+            "name": name,
         }
 
         # Convert MIDI to WAV
@@ -332,11 +312,11 @@ class LoFiAudioProcessor:
         success = self.midi_to_wav(str(midi_path), str(clean_wav_path))
 
         if not success:
-            results['error'] = 'Failed to convert MIDI to WAV'
+            results["error"] = "Failed to convert MIDI to WAV"
             return results
 
         if save_clean:
-            results['clean_wav_path'] = str(clean_wav_path)
+            results["clean_wav_path"] = str(clean_wav_path)
 
         # Apply lo-fi effects
         if save_lofi:
@@ -344,9 +324,9 @@ class LoFiAudioProcessor:
             success = self.apply_lofi_effects(str(clean_wav_path), str(lofi_wav_path))
 
             if success:
-                results['lofi_wav_path'] = str(lofi_wav_path)
+                results["lofi_wav_path"] = str(lofi_wav_path)
             else:
-                results['lofi_error'] = 'Failed to apply lo-fi effects'
+                results["lofi_error"] = "Failed to apply lo-fi effects"
 
         # Remove clean WAV if not requested
         if not save_clean and clean_wav_path.exists():

@@ -15,17 +15,19 @@ Author: Claude
 License: MIT
 """
 
-import numpy as np
-from typing import List, Dict, Optional, Tuple, Set
-from dataclasses import dataclass
-from enum import Enum
-from datetime import datetime, time
 import json
+from dataclasses import dataclass
+from datetime import datetime, time
+from enum import Enum
 from pathlib import Path
+from typing import Dict, List, Optional, Set, Tuple
+
+import numpy as np
 
 
 class Mood(Enum):
     """Mood categories."""
+
     CHILL = "chill"
     FOCUS = "focus"
     HAPPY = "happy"
@@ -38,6 +40,7 @@ class Mood(Enum):
 
 class Activity(Enum):
     """Activity contexts."""
+
     STUDYING = "studying"
     WORKING = "working"
     SLEEPING = "sleeping"
@@ -51,6 +54,7 @@ class Activity(Enum):
 @dataclass
 class Track:
     """Track metadata."""
+
     track_id: str
     title: str
     artist: str
@@ -69,6 +73,7 @@ class Track:
 @dataclass
 class UserInteraction:
     """User interaction with track."""
+
     user_id: str
     track_id: str
     interaction_type: str  # play, like, skip, playlist_add
@@ -80,6 +85,7 @@ class UserInteraction:
 @dataclass
 class Playlist:
     """Playlist."""
+
     playlist_id: str
     name: str
     description: str
@@ -103,13 +109,15 @@ class AudioFeatureExtractor:
         Returns:
             Feature vector
         """
-        features = np.array([
-            track.bpm / 200.0,  # Normalize BPM
-            track.energy,
-            track.valence,
-            track.acousticness,
-            track.instrumentalness,
-        ])
+        features = np.array(
+            [
+                track.bpm / 200.0,  # Normalize BPM
+                track.energy,
+                track.valence,
+                track.acousticness,
+                track.instrumentalness,
+            ]
+        )
 
         return features
 
@@ -178,18 +186,18 @@ class CollaborativeFilter:
         Returns:
             Rating score
         """
-        if interaction.interaction_type == 'like':
+        if interaction.interaction_type == "like":
             return 1.0
-        elif interaction.interaction_type == 'playlist_add':
+        elif interaction.interaction_type == "playlist_add":
             return 0.9
-        elif interaction.interaction_type == 'play':
+        elif interaction.interaction_type == "play":
             # Base on play duration
             if interaction.play_duration_seconds:
                 # Assume full duration is 180 seconds
                 ratio = min(interaction.play_duration_seconds / 180, 1.0)
                 return 0.5 + 0.4 * ratio  # 0.5 to 0.9
             return 0.5
-        elif interaction.interaction_type == 'skip':
+        elif interaction.interaction_type == "skip":
             return 0.1
         else:
             return 0.5
@@ -250,7 +258,7 @@ class CollaborativeFilter:
             return []
 
         # Find similar items
-        similar_items = self._find_similar_items(track_id, k=n+1)
+        similar_items = self._find_similar_items(track_id, k=n + 1)
 
         # Remove the track itself
         similar_items = [(tid, score) for tid, score in similar_items if tid != track_id]
@@ -366,8 +374,9 @@ class ContentBasedFilter:
         """
         self.tracks[track.track_id] = track
 
-    def find_similar_tracks(self, track_id: str, n: int = 10,
-                           mood_filter: Optional[Mood] = None) -> List[Tuple[str, float]]:
+    def find_similar_tracks(
+        self, track_id: str, n: int = 10, mood_filter: Optional[Mood] = None
+    ) -> List[Tuple[str, float]]:
         """
         Find similar tracks based on audio features.
 
@@ -401,8 +410,9 @@ class ContentBasedFilter:
         similarities.sort(key=lambda x: x[1], reverse=True)
         return similarities[:n]
 
-    def recommend_by_mood(self, mood: Mood, n: int = 10,
-                         preferences: Optional[Dict] = None) -> List[str]:
+    def recommend_by_mood(
+        self, mood: Mood, n: int = 10, preferences: Optional[Dict] = None
+    ) -> List[str]:
         """
         Recommend tracks by mood.
 
@@ -419,16 +429,17 @@ class ContentBasedFilter:
 
         # Apply preferences
         if preferences:
-            if 'min_bpm' in preferences:
-                mood_tracks = [t for t in mood_tracks if t.bpm >= preferences['min_bpm']]
-            if 'max_bpm' in preferences:
-                mood_tracks = [t for t in mood_tracks if t.bpm <= preferences['max_bpm']]
-            if 'min_energy' in preferences:
-                mood_tracks = [t for t in mood_tracks if t.energy >= preferences['min_energy']]
+            if "min_bpm" in preferences:
+                mood_tracks = [t for t in mood_tracks if t.bpm >= preferences["min_bpm"]]
+            if "max_bpm" in preferences:
+                mood_tracks = [t for t in mood_tracks if t.bpm <= preferences["max_bpm"]]
+            if "min_energy" in preferences:
+                mood_tracks = [t for t in mood_tracks if t.energy >= preferences["min_energy"]]
 
         # Sort by some criteria (e.g., popularity, recency)
         # For now, just shuffle and return
         import random
+
         random.shuffle(mood_tracks)
 
         return [t.track_id for t in mood_tracks[:n]]
@@ -467,15 +478,20 @@ class ContextAwareRecommender:
             filtered = [t for t in tracks if t.mood in [Mood.FOCUS, Mood.CHILL]]
         elif 18 <= hour < 22:
             # Evening: relaxing, chill
-            filtered = [t for t in tracks if t.energy < 0.6 and t.mood in [Mood.CHILL, Mood.PEACEFUL]]
+            filtered = [
+                t for t in tracks if t.energy < 0.6 and t.mood in [Mood.CHILL, Mood.PEACEFUL]
+            ]
         else:
             # Night: very chill, peaceful
-            filtered = [t for t in tracks if t.energy < 0.4 and t.mood in [Mood.PEACEFUL, Mood.MELANCHOLIC]]
+            filtered = [
+                t for t in tracks if t.energy < 0.4 and t.mood in [Mood.PEACEFUL, Mood.MELANCHOLIC]
+            ]
 
         if not filtered:
             filtered = tracks
 
         import random
+
         random.shuffle(filtered)
         return [t.track_id for t in filtered[:n]]
 
@@ -494,36 +510,38 @@ class ContextAwareRecommender:
         """
         # Activity-based preferences
         preferences = {
-            Activity.STUDYING: {'moods': [Mood.FOCUS, Mood.CHILL], 'max_energy': 0.6},
-            Activity.WORKING: {'moods': [Mood.FOCUS, Mood.ENERGETIC], 'max_energy': 0.7},
-            Activity.SLEEPING: {'moods': [Mood.PEACEFUL, Mood.MELANCHOLIC], 'max_energy': 0.3},
-            Activity.RELAXING: {'moods': [Mood.CHILL, Mood.PEACEFUL], 'max_energy': 0.5},
-            Activity.READING: {'moods': [Mood.PEACEFUL, Mood.FOCUS], 'max_energy': 0.4},
-            Activity.CODING: {'moods': [Mood.FOCUS, Mood.CHILL], 'max_energy': 0.6},
-            Activity.COMMUTING: {'moods': [Mood.CHILL, Mood.HAPPY], 'max_energy': 0.7},
-            Activity.EXERCISING: {'moods': [Mood.ENERGETIC, Mood.HAPPY], 'min_energy': 0.6},
+            Activity.STUDYING: {"moods": [Mood.FOCUS, Mood.CHILL], "max_energy": 0.6},
+            Activity.WORKING: {"moods": [Mood.FOCUS, Mood.ENERGETIC], "max_energy": 0.7},
+            Activity.SLEEPING: {"moods": [Mood.PEACEFUL, Mood.MELANCHOLIC], "max_energy": 0.3},
+            Activity.RELAXING: {"moods": [Mood.CHILL, Mood.PEACEFUL], "max_energy": 0.5},
+            Activity.READING: {"moods": [Mood.PEACEFUL, Mood.FOCUS], "max_energy": 0.4},
+            Activity.CODING: {"moods": [Mood.FOCUS, Mood.CHILL], "max_energy": 0.6},
+            Activity.COMMUTING: {"moods": [Mood.CHILL, Mood.HAPPY], "max_energy": 0.7},
+            Activity.EXERCISING: {"moods": [Mood.ENERGETIC, Mood.HAPPY], "min_energy": 0.6},
         }
 
         if activity not in preferences:
             import random
+
             random.shuffle(tracks)
             return [t.track_id for t in tracks[:n]]
 
         pref = preferences[activity]
 
         # Filter by mood
-        filtered = [t for t in tracks if t.mood in pref['moods']]
+        filtered = [t for t in tracks if t.mood in pref["moods"]]
 
         # Filter by energy
-        if 'max_energy' in pref:
-            filtered = [t for t in filtered if t.energy <= pref['max_energy']]
-        if 'min_energy' in pref:
-            filtered = [t for t in filtered if t.energy >= pref['min_energy']]
+        if "max_energy" in pref:
+            filtered = [t for t in filtered if t.energy <= pref["max_energy"]]
+        if "min_energy" in pref:
+            filtered = [t for t in filtered if t.energy >= pref["min_energy"]]
 
         if not filtered:
             filtered = tracks
 
         import random
+
         random.shuffle(filtered)
         return [t.track_id for t in filtered[:n]]
 
@@ -578,12 +596,14 @@ class PlaylistGenerator:
             description=f"Perfect {mood.value} playlist for any time",
             tracks=selected_tracks,
             mood=mood,
-            created_at=datetime.now()
+            created_at=datetime.now(),
         )
 
         return playlist
 
-    def generate_flow_playlist(self, track_ids: List[str], smooth_transitions: bool = True) -> Playlist:
+    def generate_flow_playlist(
+        self, track_ids: List[str], smooth_transitions: bool = True
+    ) -> Playlist:
         """
         Generate playlist with smooth flow.
 
@@ -603,7 +623,7 @@ class PlaylistGenerator:
                 name="Custom Playlist",
                 description="Custom track selection",
                 tracks=track_ids,
-                created_at=datetime.now()
+                created_at=datetime.now(),
             )
 
         # Optimize order for smooth transitions
@@ -637,7 +657,7 @@ class PlaylistGenerator:
             name="Flow Playlist",
             description="Optimized for smooth transitions",
             tracks=ordered_tracks,
-            created_at=datetime.now()
+            created_at=datetime.now(),
         )
 
         return playlist
@@ -675,8 +695,9 @@ class PlaylistRecommender:
         """Initialize playlist generator with current tracks."""
         self.playlist_generator = PlaylistGenerator(self.content_filter.tracks)
 
-    def recommend_for_user(self, user_id: str, n: int = 10,
-                          context: Optional[Dict] = None) -> List[Tuple[str, float]]:
+    def recommend_for_user(
+        self, user_id: str, n: int = 10, context: Optional[Dict] = None
+    ) -> List[Tuple[str, float]]:
         """
         Hybrid recommendation for user.
 
@@ -691,7 +712,7 @@ class PlaylistRecommender:
         recommendations = {}
 
         # Collaborative filtering
-        collab_recs = self.collaborative_filter.user_based_recommendations(user_id, n=n*2)
+        collab_recs = self.collaborative_filter.user_based_recommendations(user_id, n=n * 2)
         for track_id, score in collab_recs:
             recommendations[track_id] = score * 0.6  # Weight 60%
 
@@ -699,8 +720,8 @@ class PlaylistRecommender:
         if context:
             context_tracks = []
 
-            if 'activity' in context:
-                activity = context['activity']
+            if "activity" in context:
+                activity = context["activity"]
                 tracks = list(self.content_filter.tracks.values())
                 context_track_ids = self.context_recommender.recommend_by_activity(
                     activity, tracks, n=n
@@ -726,12 +747,12 @@ class PlaylistRecommender:
         recommendations = {}
 
         # Content-based similarity
-        content_sims = self.content_filter.find_similar_tracks(track_id, n=n*2)
+        content_sims = self.content_filter.find_similar_tracks(track_id, n=n * 2)
         for tid, score in content_sims:
             recommendations[tid] = score * 0.5
 
         # Collaborative similarity
-        collab_sims = self.collaborative_filter.item_based_recommendations(track_id, n=n*2)
+        collab_sims = self.collaborative_filter.item_based_recommendations(track_id, n=n * 2)
         for tid, score in collab_sims:
             recommendations[tid] = recommendations.get(tid, 0) + score * 0.5
 
@@ -739,9 +760,12 @@ class PlaylistRecommender:
         final = sorted(recommendations.items(), key=lambda x: x[1], reverse=True)
         return final[:n]
 
-    def create_playlist(self, mood: Optional[Mood] = None,
-                       activity: Optional[Activity] = None,
-                       duration_minutes: int = 60) -> Playlist:
+    def create_playlist(
+        self,
+        mood: Optional[Mood] = None,
+        activity: Optional[Activity] = None,
+        duration_minutes: int = 60,
+    ) -> Playlist:
         """
         Create optimized playlist.
 
@@ -762,19 +786,16 @@ class PlaylistRecommender:
         # Activity-based
         if activity:
             tracks = list(self.content_filter.tracks.values())
-            track_ids = self.context_recommender.recommend_by_activity(
-                activity, tracks, n=100
-            )
+            track_ids = self.context_recommender.recommend_by_activity(activity, tracks, n=100)
             return self.playlist_generator.generate_flow_playlist(
-                track_ids[:int(duration_minutes / 3)],
-                smooth_transitions=True
+                track_ids[: int(duration_minutes / 3)], smooth_transitions=True
             )
 
         return None
 
 
 # Example usage
-if __name__ == '__main__':
+if __name__ == "__main__":
     print("=== Playlist Recommendation Engine ===\n")
 
     # Initialize recommender
@@ -783,11 +804,81 @@ if __name__ == '__main__':
     # Add sample tracks
     print("1. Adding Sample Tracks:")
     sample_tracks = [
-        Track("t1", "Chill Beats 1", "LoFi AI", 180, 85, "C", 0.4, 0.6, 0.8, 0.9, Mood.CHILL, ["lofi", "chill"], datetime.now()),
-        Track("t2", "Focus Flow", "LoFi AI", 200, 90, "Am", 0.5, 0.5, 0.7, 0.95, Mood.FOCUS, ["lofi", "study"], datetime.now()),
-        Track("t3", "Peaceful Mind", "LoFi AI", 220, 70, "G", 0.3, 0.7, 0.9, 1.0, Mood.PEACEFUL, ["ambient", "calm"], datetime.now()),
-        Track("t4", "Happy Days", "LoFi AI", 190, 110, "D", 0.7, 0.8, 0.6, 0.8, Mood.HAPPY, ["upbeat", "positive"], datetime.now()),
-        Track("t5", "Night Thoughts", "LoFi AI", 210, 75, "Em", 0.35, 0.4, 0.85, 0.95, Mood.MELANCHOLIC, ["night", "introspective"], datetime.now()),
+        Track(
+            "t1",
+            "Chill Beats 1",
+            "LoFi AI",
+            180,
+            85,
+            "C",
+            0.4,
+            0.6,
+            0.8,
+            0.9,
+            Mood.CHILL,
+            ["lofi", "chill"],
+            datetime.now(),
+        ),
+        Track(
+            "t2",
+            "Focus Flow",
+            "LoFi AI",
+            200,
+            90,
+            "Am",
+            0.5,
+            0.5,
+            0.7,
+            0.95,
+            Mood.FOCUS,
+            ["lofi", "study"],
+            datetime.now(),
+        ),
+        Track(
+            "t3",
+            "Peaceful Mind",
+            "LoFi AI",
+            220,
+            70,
+            "G",
+            0.3,
+            0.7,
+            0.9,
+            1.0,
+            Mood.PEACEFUL,
+            ["ambient", "calm"],
+            datetime.now(),
+        ),
+        Track(
+            "t4",
+            "Happy Days",
+            "LoFi AI",
+            190,
+            110,
+            "D",
+            0.7,
+            0.8,
+            0.6,
+            0.8,
+            Mood.HAPPY,
+            ["upbeat", "positive"],
+            datetime.now(),
+        ),
+        Track(
+            "t5",
+            "Night Thoughts",
+            "LoFi AI",
+            210,
+            75,
+            "Em",
+            0.35,
+            0.4,
+            0.85,
+            0.95,
+            Mood.MELANCHOLIC,
+            ["night", "introspective"],
+            datetime.now(),
+        ),
     ]
 
     for track in sample_tracks:

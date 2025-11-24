@@ -9,25 +9,22 @@ Features:
 """
 
 import logging
-import sys
 from pathlib import Path
 from typing import Optional
 
 import typer
 import yaml
 from rich.console import Console
-from rich.progress import Progress, SpinnerColumn, TextColumn, BarColumn, TimeRemainingColumn
-from rich.table import Table
-from rich.panel import Panel
 from rich.logging import RichHandler
-from rich.prompt import Prompt, Confirm
-from rich import print as rprint
+from rich.progress import BarColumn, Progress, SpinnerColumn, TextColumn, TimeRemainingColumn
+from rich.prompt import Confirm, Prompt
+from rich.table import Table
 
+from src.audio_processor import LoFiAudioProcessor
 from src.generator import LoFiGenerator
 from src.model import ConditionedLoFiModel
-from src.tokenizer import LoFiTokenizer
-from src.audio_processor import LoFiAudioProcessor
 from src.quality_scorer import MusicQualityScorer
+from src.tokenizer import LoFiTokenizer
 from src.utils.resource_manager import ResourceManager
 
 # Initialize Typer app and Rich console
@@ -42,7 +39,7 @@ console = Console()
 logging.basicConfig(
     level=logging.INFO,
     format="%(message)s",
-    handlers=[RichHandler(rich_tracebacks=True, console=console)]
+    handlers=[RichHandler(rich_tracebacks=True, console=console)],
 )
 logger = logging.getLogger(__name__)
 
@@ -66,15 +63,27 @@ def display_banner():
 
 @app.command()
 def generate(
-    tempo: Optional[float] = typer.Option(None, "--tempo", "-t", help="Tempo in BPM (50-200)", min=50, max=200),
+    tempo: Optional[float] = typer.Option(
+        None, "--tempo", "-t", help="Tempo in BPM (50-200)", min=50, max=200
+    ),
     key: Optional[str] = typer.Option(None, "--key", "-k", help="Musical key (e.g., C, Am, F#)"),
-    mood: Optional[str] = typer.Option(None, "--mood", "-m", help="Mood (chill, melancholic, upbeat, etc.)"),
-    output: Optional[str] = typer.Option("output/generated.mid", "--output", "-o", help="Output MIDI file path"),
-    temperature: float = typer.Option(0.9, "--temperature", help="Sampling temperature (0.1-2.0)", min=0.1, max=2.0),
-    max_length: int = typer.Option(1024, "--max-length", help="Maximum token length", min=256, max=4096),
+    mood: Optional[str] = typer.Option(
+        None, "--mood", "-m", help="Mood (chill, melancholic, upbeat, etc.)"
+    ),
+    output: Optional[str] = typer.Option(
+        "output/generated.mid", "--output", "-o", help="Output MIDI file path"
+    ),
+    temperature: float = typer.Option(
+        0.9, "--temperature", help="Sampling temperature (0.1-2.0)", min=0.1, max=2.0
+    ),
+    max_length: int = typer.Option(
+        1024, "--max-length", help="Maximum token length", min=256, max=4096
+    ),
     seed: Optional[int] = typer.Option(None, "--seed", help="Random seed for reproducibility"),
     audio: bool = typer.Option(False, "--audio", "-a", help="Generate audio (WAV) file"),
-    lofi_effects: bool = typer.Option(True, "--lofi-effects/--no-lofi-effects", help="Apply lo-fi effects to audio"),
+    lofi_effects: bool = typer.Option(
+        True, "--lofi-effects/--no-lofi-effects", help="Apply lo-fi effects to audio"
+    ),
     config: str = typer.Option("config.yaml", "--config", "-c", help="Configuration file path"),
     model_path: Optional[str] = typer.Option(None, "--model", help="Path to trained model"),
 ):
@@ -90,7 +99,7 @@ def generate(
             rm = ResourceManager()
             resources = rm.check_all_resources()
 
-            if not resources['all_ok']:
+            if not resources["all_ok"]:
                 console.print("[yellow]⚠️  Warning: Low system resources detected[/yellow]")
 
             device = rm.get_optimal_device()
@@ -151,14 +160,16 @@ def generate(
         # Display results
         console.print(f"\n[green]✅ Generation complete![/green]")
 
-        table = Table(title="Generated Track Information", show_header=True, header_style="bold magenta")
+        table = Table(
+            title="Generated Track Information", show_header=True, header_style="bold magenta"
+        )
         table.add_column("Property", style="cyan")
         table.add_column("Value", style="yellow")
 
         table.add_row("Tempo", f"{metadata['tempo']:.1f} BPM")
-        table.add_row("Key", metadata['key'])
-        table.add_row("Mood", metadata['mood'])
-        table.add_row("Tokens", str(metadata['num_tokens']))
+        table.add_row("Key", metadata["key"])
+        table.add_row("Mood", metadata["mood"])
+        table.add_row("Tokens", str(metadata["num_tokens"]))
         table.add_row("Quality Score", f"{quality_score:.2f}/10")
         table.add_row("MIDI File", str(output_path))
 
@@ -177,7 +188,7 @@ def generate(
                 task = progress.add_task("Converting to audio...", total=100)
 
                 processor = LoFiAudioProcessor(cfg)
-                audio_output = output_path.with_suffix('.wav')
+                audio_output = output_path.with_suffix(".wav")
 
                 if lofi_effects:
                     progress.update(task, description="Applying lo-fi effects...")
@@ -188,7 +199,7 @@ def generate(
                         save_lofi=True,
                         save_clean=False,
                     )
-                    audio_path = result.get('lofi_wav_path')
+                    audio_path = result.get("lofi_wav_path")
                 else:
                     progress.update(task, description="Rendering clean audio...")
                     processor.midi_to_wav(str(output_path), str(audio_output))
@@ -208,8 +219,12 @@ def batch(
     num_tracks: int = typer.Argument(..., help="Number of tracks to generate"),
     output_dir: str = typer.Option("output/batch", "--output-dir", "-o", help="Output directory"),
     prefix: str = typer.Option("lofi_track", "--prefix", "-p", help="Filename prefix"),
-    variety: bool = typer.Option(True, "--variety/--no-variety", help="Ensure variety in tempo/key/mood"),
-    min_quality: Optional[float] = typer.Option(None, "--min-quality", help="Minimum quality score (0-10)"),
+    variety: bool = typer.Option(
+        True, "--variety/--no-variety", help="Ensure variety in tempo/key/mood"
+    ),
+    min_quality: Optional[float] = typer.Option(
+        None, "--min-quality", help="Minimum quality score (0-10)"
+    ),
     audio: bool = typer.Option(False, "--audio", "-a", help="Generate audio files"),
     config: str = typer.Option("config.yaml", "--config", "-c", help="Configuration file path"),
     model_path: Optional[str] = typer.Option(None, "--model", help="Path to trained model"),
@@ -260,23 +275,28 @@ def batch(
             )
 
             for i, meta in enumerate(metadata_list):
-                progress.update(batch_task, description=f"Track {i+1}/{num_tracks} - Scoring quality...")
+                progress.update(
+                    batch_task, description=f"Track {i+1}/{num_tracks} - Scoring quality..."
+                )
 
                 # Load and score
-                if 'output_path' in meta:
-                    tokens_data = tokenizer.tokenize_midi(meta['output_path'], check_quality=False)
+                if "output_path" in meta:
+                    tokens_data = tokenizer.tokenize_midi(meta["output_path"], check_quality=False)
                     if tokens_data:
-                        quality_score = scorer.score_midi_tokens(tokens_data['tokens'], meta)
-                        meta['quality_score'] = quality_score
+                        quality_score = scorer.score_midi_tokens(tokens_data["tokens"], meta)
+                        meta["quality_score"] = quality_score
 
                         if min_quality is None or quality_score >= min_quality:
                             high_quality_count += 1
 
                             # Process audio if requested
                             if audio:
-                                progress.update(batch_task, description=f"Track {i+1}/{num_tracks} - Processing audio...")
+                                progress.update(
+                                    batch_task,
+                                    description=f"Track {i+1}/{num_tracks} - Processing audio...",
+                                )
                                 processor.process_midi_to_lofi(
-                                    meta['output_path'],
+                                    meta["output_path"],
                                     str(output_path),
                                     name=f"{prefix}_{i+1:03d}",
                                     save_lofi=True,
@@ -334,7 +354,11 @@ def interactive():
             # Get parameters
             tempo = Prompt.ask("Tempo (BPM)", default="75")
             key = Prompt.ask("Key", default="Am")
-            mood = Prompt.ask("Mood", default="chill", choices=["chill", "melancholic", "upbeat", "relaxed", "dreamy"])
+            mood = Prompt.ask(
+                "Mood",
+                default="chill",
+                choices=["chill", "melancholic", "upbeat", "relaxed", "dreamy"],
+            )
             output = Prompt.ask("Output file", default="output/interactive.mid")
 
             # Generate
@@ -353,7 +377,9 @@ def interactive():
             output_path.parent.mkdir(parents=True, exist_ok=True)
             generator.tokens_to_midi(tokens, str(output_path))
 
-            console.print(f"\n[green]✅ Generated![/green] Quality: [yellow]{quality_score:.2f}/10[/yellow]")
+            console.print(
+                f"\n[green]✅ Generated![/green] Quality: [yellow]{quality_score:.2f}/10[/yellow]"
+            )
             console.print(f"Saved to: {output_path}\n")
 
             # Continue?
@@ -394,37 +420,39 @@ def info(
         device = rm.get_optimal_device()
         sys_table.add_row(
             "Device",
-            "[green]✓[/green]" if resources['all_ok'] else "[yellow]⚠[/yellow]",
-            device.upper()
+            "[green]✓[/green]" if resources["all_ok"] else "[yellow]⚠[/yellow]",
+            device.upper(),
         )
 
         # GPU
-        if resources['gpu']['available']:
-            gpu_info = resources['gpu']['info']
-            gpu_status = f"{len(gpu_info['devices'])} GPU(s) - {gpu_info['free_memory_gb']:.1f}GB free"
+        if resources["gpu"]["available"]:
+            gpu_info = resources["gpu"]["info"]
+            gpu_status = (
+                f"{len(gpu_info['devices'])} GPU(s) - {gpu_info['free_memory_gb']:.1f}GB free"
+            )
         else:
             gpu_status = "Not available"
 
         sys_table.add_row(
             "GPU",
-            "[green]✓[/green]" if resources['gpu']['available'] else "[red]✗[/red]",
-            gpu_status
+            "[green]✓[/green]" if resources["gpu"]["available"] else "[red]✗[/red]",
+            gpu_status,
         )
 
         # Memory
-        mem_info = resources['memory']['info']
+        mem_info = resources["memory"]["info"]
         sys_table.add_row(
             "Memory",
-            "[green]✓[/green]" if resources['memory']['ok'] else "[yellow]⚠[/yellow]",
-            f"{mem_info['available_gb']:.1f}GB / {mem_info['total_gb']:.1f}GB"
+            "[green]✓[/green]" if resources["memory"]["ok"] else "[yellow]⚠[/yellow]",
+            f"{mem_info['available_gb']:.1f}GB / {mem_info['total_gb']:.1f}GB",
         )
 
         # Disk
-        disk_info = resources['disk']['info']
+        disk_info = resources["disk"]["info"]
         sys_table.add_row(
             "Disk Space",
-            "[green]✓[/green]" if resources['disk']['ok'] else "[yellow]⚠[/yellow]",
-            f"{disk_info['free_gb']:.1f}GB / {disk_info['total_gb']:.1f}GB"
+            "[green]✓[/green]" if resources["disk"]["ok"] else "[yellow]⚠[/yellow]",
+            f"{disk_info['free_gb']:.1f}GB / {disk_info['total_gb']:.1f}GB",
         )
 
         console.print(sys_table)
@@ -436,11 +464,11 @@ def info(
         model_table.add_column("Parameter", style="cyan")
         model_table.add_column("Value", style="yellow")
 
-        model_cfg = cfg['model']
-        model_table.add_row("Embedding Dimension", str(model_cfg['embedding_dim']))
-        model_table.add_row("Layers", str(model_cfg['num_layers']))
-        model_table.add_row("Attention Heads", str(model_cfg['num_heads']))
-        model_table.add_row("Context Length", str(model_cfg['context_length']))
+        model_cfg = cfg["model"]
+        model_table.add_row("Embedding Dimension", str(model_cfg["embedding_dim"]))
+        model_table.add_row("Layers", str(model_cfg["num_layers"]))
+        model_table.add_row("Attention Heads", str(model_cfg["num_heads"]))
+        model_table.add_row("Context Length", str(model_cfg["context_length"]))
         model_table.add_row("Total Parameters", "~117M")
 
         console.print(model_table)

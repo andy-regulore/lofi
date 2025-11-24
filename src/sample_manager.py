@@ -13,17 +13,18 @@ Author: Claude
 License: MIT
 """
 
-import os
 import hashlib
-from typing import List, Dict, Optional, Tuple
+import json
+import os
 from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
-import json
+from typing import Dict, List, Optional, Tuple
 
 
 class SampleType(Enum):
     """Sample categorization."""
+
     DRUM = "drum"
     BASS = "bass"
     MELODY = "melody"
@@ -38,6 +39,7 @@ class SampleType(Enum):
 
 class LicenseType(Enum):
     """License types."""
+
     ROYALTY_FREE = "royalty_free"
     CREATIVE_COMMONS = "creative_commons"
     PUBLIC_DOMAIN = "public_domain"
@@ -48,6 +50,7 @@ class LicenseType(Enum):
 @dataclass
 class SampleMetadata:
     """Metadata for audio sample."""
+
     file_path: str
     sample_type: SampleType
     license_type: LicenseType
@@ -81,13 +84,13 @@ class QualityAnalyzer:
         # In production, use librosa or essentia
 
         quality = {
-            'bitrate': 320,  # kbps
-            'sample_rate': 44100,
-            'has_clipping': False,
-            'silence_ratio': 0.0,
-            'noise_floor_db': -60,
-            'dynamic_range_db': 40,
-            'quality_score': 0.85
+            "bitrate": 320,  # kbps
+            "sample_rate": 44100,
+            "has_clipping": False,
+            "silence_ratio": 0.0,
+            "noise_floor_db": -60,
+            "dynamic_range_db": 40,
+            "quality_score": 0.85,
         }
 
         return quality
@@ -163,7 +166,7 @@ class SampleOrganizer:
         Returns:
             List of audio file paths
         """
-        audio_extensions = ['.wav', '.mp3', '.aiff', '.flac', '.ogg']
+        audio_extensions = [".wav", ".mp3", ".aiff", ".flac", ".ogg"]
         audio_files = []
 
         for root, dirs, files in os.walk(directory):
@@ -186,21 +189,21 @@ class SampleOrganizer:
         filename = os.path.basename(file_path).lower()
 
         # Check filename for keywords
-        if any(kw in filename for kw in ['kick', 'snare', 'hat', 'drum', 'perc']):
+        if any(kw in filename for kw in ["kick", "snare", "hat", "drum", "perc"]):
             return SampleType.DRUM
-        elif any(kw in filename for kw in ['bass', 'sub', '808']):
+        elif any(kw in filename for kw in ["bass", "sub", "808"]):
             return SampleType.BASS
-        elif any(kw in filename for kw in ['melody', 'lead', 'solo']):
+        elif any(kw in filename for kw in ["melody", "lead", "solo"]):
             return SampleType.MELODY
-        elif any(kw in filename for kw in ['chord', 'progression']):
+        elif any(kw in filename for kw in ["chord", "progression"]):
             return SampleType.CHORD
-        elif any(kw in filename for kw in ['pad', 'atmosphere', 'ambient']):
+        elif any(kw in filename for kw in ["pad", "atmosphere", "ambient"]):
             return SampleType.PAD
-        elif any(kw in filename for kw in ['fx', 'effect', 'riser', 'drop']):
+        elif any(kw in filename for kw in ["fx", "effect", "riser", "drop"]):
             return SampleType.FX
-        elif any(kw in filename for kw in ['vocal', 'voice', 'chant']):
+        elif any(kw in filename for kw in ["vocal", "voice", "chant"]):
             return SampleType.VOCAL
-        elif any(kw in filename for kw in ['loop']):
+        elif any(kw in filename for kw in ["loop"]):
             return SampleType.LOOP
         else:
             return SampleType.ONE_SHOT
@@ -254,7 +257,7 @@ class SimilarityDetector:
         """
         # Simplified: use file hash
         # In production: use chromaprint or similar
-        with open(file_path, 'rb') as f:
+        with open(file_path, "rb") as f:
             file_hash = hashlib.md5(f.read()).hexdigest()
         return file_hash
 
@@ -296,23 +299,22 @@ class LicenseTracker:
     def _load_licenses(self) -> Dict:
         """Load license database."""
         if os.path.exists(self.license_db_path):
-            with open(self.license_db_path, 'r') as f:
+            with open(self.license_db_path, "r") as f:
                 return json.load(f)
         return {}
 
     def _save_licenses(self):
         """Save license database."""
-        with open(self.license_db_path, 'w') as f:
+        with open(self.license_db_path, "w") as f:
             json.dump(self.licenses, f, indent=2)
 
-    def add_license(self, file_path: str, license_type: LicenseType,
-                   source: str, notes: str = ""):
+    def add_license(self, file_path: str, license_type: LicenseType, source: str, notes: str = ""):
         """Add license information for sample."""
         self.licenses[file_path] = {
-            'license_type': license_type.value,
-            'source': source,
-            'notes': notes,
-            'added_at': str(datetime.now())
+            "license_type": license_type.value,
+            "source": source,
+            "notes": notes,
+            "added_at": str(datetime.now()),
         }
         self._save_licenses()
 
@@ -329,10 +331,10 @@ class LicenseTracker:
         commercial_licenses = [
             LicenseType.ROYALTY_FREE.value,
             LicenseType.PUBLIC_DOMAIN.value,
-            LicenseType.COMMERCIAL.value
+            LicenseType.COMMERCIAL.value,
         ]
 
-        return license_info['license_type'] in commercial_licenses
+        return license_info["license_type"] in commercial_licenses
 
 
 class SampleManager:
@@ -367,7 +369,7 @@ class SampleManager:
             # Check quality
             quality = self.quality_analyzer.analyze_audio_quality(file_path)
 
-            if quality['quality_score'] < 0.5:
+            if quality["quality_score"] < 0.5:
                 print(f"Skipping low-quality sample: {os.path.basename(file_path)}")
                 skipped += 1
                 continue
@@ -402,7 +404,9 @@ class SampleManager:
         results = []
 
         # Search through organized categories
-        categories_to_search = [sample_type.value] if sample_type else self.organizer.categories.keys()
+        categories_to_search = (
+            [sample_type.value] if sample_type else self.organizer.categories.keys()
+        )
 
         for category in categories_to_search:
             for file_path in self.organizer.categories[category]:
@@ -417,17 +421,19 @@ class SampleManager:
         total_samples = sum(len(files) for files in self.organizer.categories.values())
 
         stats = {
-            'total_samples': total_samples,
-            'by_category': {cat: len(files) for cat, files in self.organizer.categories.items() if files},
-            'licensed_samples': len(self.license_tracker.licenses),
-            'unique_fingerprints': len(self.similarity_detector.fingerprints)
+            "total_samples": total_samples,
+            "by_category": {
+                cat: len(files) for cat, files in self.organizer.categories.items() if files
+            },
+            "licensed_samples": len(self.license_tracker.licenses),
+            "unique_fingerprints": len(self.similarity_detector.fingerprints),
         }
 
         return stats
 
 
 # Example usage
-if __name__ == '__main__':
+if __name__ == "__main__":
     from datetime import datetime
 
     print("=== Sample Library Manager ===\n")
@@ -457,7 +463,7 @@ if __name__ == '__main__':
         "/path/to/sample.wav",
         LicenseType.ROYALTY_FREE,
         source="Splice",
-        notes="Unlimited commercial use"
+        notes="Unlimited commercial use",
     )
     can_use = manager.license_tracker.check_commercial_use("/path/to/sample.wav")
     print(f"Commercial use allowed: {can_use}")

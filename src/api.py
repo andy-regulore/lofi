@@ -8,38 +8,37 @@ Features:
 - Rate limiting
 """
 
-import asyncio
 import logging
 import time
 import uuid
 from collections import deque
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Dict, Optional
 
 import torch
 import uvicorn
-from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect, BackgroundTasks, Request
+from fastapi import BackgroundTasks, FastAPI, HTTPException, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import FileResponse
+from prometheus_client import CONTENT_TYPE_LATEST, Counter, Gauge, Histogram, generate_latest
 from pydantic import BaseModel, Field, validator
-from prometheus_client import Counter, Histogram, Gauge, generate_latest, CONTENT_TYPE_LATEST
 from starlette.responses import Response
 
+from src.audio_processor import LoFiAudioProcessor
 from src.generator import LoFiGenerator
 from src.model import ConditionedLoFiModel
-from src.tokenizer import LoFiTokenizer
-from src.audio_processor import LoFiAudioProcessor
 from src.quality_scorer import MusicQualityScorer
+from src.tokenizer import LoFiTokenizer
 from src.utils.resource_manager import ResourceManager
 
 logger = logging.getLogger(__name__)
 
 # Prometheus metrics
-GENERATION_REQUESTS = Counter('lofi_generation_requests_total', 'Total generation requests')
-GENERATION_DURATION = Histogram('lofi_generation_duration_seconds', 'Generation duration')
-ACTIVE_GENERATIONS = Gauge('lofi_active_generations', 'Number of active generations')
-QUEUE_SIZE = Gauge('lofi_queue_size', 'Number of items in generation queue')
-QUALITY_SCORES = Histogram('lofi_quality_scores', 'Quality scores distribution')
+GENERATION_REQUESTS = Counter("lofi_generation_requests_total", "Total generation requests")
+GENERATION_DURATION = Histogram("lofi_generation_duration_seconds", "Generation duration")
+ACTIVE_GENERATIONS = Gauge("lofi_active_generations", "Number of active generations")
+QUEUE_SIZE = Gauge("lofi_queue_size", "Number of items in generation queue")
+QUALITY_SCORES = Histogram("lofi_quality_scores", "Quality scores distribution")
 
 
 class GenerationRequest(BaseModel):
@@ -56,21 +55,56 @@ class GenerationRequest(BaseModel):
     apply_lofi_effects: bool = Field(True, description="Apply lo-fi audio effects")
     return_midi: bool = Field(True, description="Return MIDI file")
     return_audio: bool = Field(True, description="Return audio file")
-    min_quality_score: Optional[float] = Field(None, ge=0, le=10, description="Minimum quality score")
+    min_quality_score: Optional[float] = Field(
+        None, ge=0, le=10, description="Minimum quality score"
+    )
 
-    @validator('key')
+    @validator("key")
     def validate_key(cls, v):
         if v is not None:
-            valid_keys = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B',
-                         'Cm', 'C#m', 'Dm', 'D#m', 'Em', 'Fm', 'F#m', 'Gm', 'G#m', 'Am', 'A#m', 'Bm']
+            valid_keys = [
+                "C",
+                "C#",
+                "D",
+                "D#",
+                "E",
+                "F",
+                "F#",
+                "G",
+                "G#",
+                "A",
+                "A#",
+                "B",
+                "Cm",
+                "C#m",
+                "Dm",
+                "D#m",
+                "Em",
+                "Fm",
+                "F#m",
+                "Gm",
+                "G#m",
+                "Am",
+                "A#m",
+                "Bm",
+            ]
             if v not in valid_keys:
                 raise ValueError(f"Invalid key. Must be one of {valid_keys}")
         return v
 
-    @validator('mood')
+    @validator("mood")
     def validate_mood(cls, v):
         if v is not None:
-            valid_moods = ['chill', 'melancholic', 'upbeat', 'relaxed', 'dreamy', 'focus', 'sleep', 'study']
+            valid_moods = [
+                "chill",
+                "melancholic",
+                "upbeat",
+                "relaxed",
+                "dreamy",
+                "focus",
+                "sleep",
+                "study",
+            ]
             if v not in valid_moods:
                 raise ValueError(f"Invalid mood. Must be one of {valid_moods}")
         return v
@@ -140,7 +174,7 @@ class LoFiAPI:
         self.total_generations = 0
 
         # Output directory
-        self.output_dir = Path(config.get('api', {}).get('output_dir', 'api_output'))
+        self.output_dir = Path(config.get("api", {}).get("output_dir", "api_output"))
         self.output_dir.mkdir(parents=True, exist_ok=True)
 
         # Register routes
@@ -192,7 +226,7 @@ class LoFiAPI:
                     "status": "/api/v1/status/{id}",
                     "health": "/api/v1/health",
                     "metrics": "/metrics",
-                }
+                },
             }
 
         @self.app.post("/api/v1/generate", response_model=GenerationResponse)
@@ -205,7 +239,7 @@ class LoFiAPI:
 
             # Check resources
             resources = self.resource_manager.check_all_resources()
-            if not resources['all_ok']:
+            if not resources["all_ok"]:
                 raise HTTPException(status_code=503, detail="Insufficient resources available")
 
             try:
@@ -260,7 +294,7 @@ class LoFiAPI:
                             save_clean=False,
                             save_lofi=True,
                         )
-                        audio_path = result.get('lofi_wav_path')
+                        audio_path = result.get("lofi_wav_path")
                     else:
                         audio_path = self.output_dir / f"{gen_id}_clean.wav"
                         self.audio_processor.midi_to_wav(str(midi_path), str(audio_path))
@@ -274,10 +308,10 @@ class LoFiAPI:
                 response = GenerationResponse(
                     id=gen_id,
                     status="completed",
-                    tempo=metadata['tempo'],
-                    key=metadata['key'],
-                    mood=metadata['mood'],
-                    num_tokens=metadata['num_tokens'],
+                    tempo=metadata["tempo"],
+                    key=metadata["key"],
+                    mood=metadata["mood"],
+                    num_tokens=metadata["num_tokens"],
                     quality_score=quality_score,
                     midi_url=f"/api/v1/download/{gen_id}.mid" if midi_path else None,
                     audio_url=f"/api/v1/download/{gen_id}_lofi.wav" if audio_path else None,
@@ -307,7 +341,7 @@ class LoFiAPI:
             resources = self.resource_manager.check_all_resources()
 
             return HealthResponse(
-                status="healthy" if resources['all_ok'] else "degraded",
+                status="healthy" if resources["all_ok"] else "degraded",
                 version="2.0.0",
                 device=self.resource_manager.get_optimal_device(),
                 gpu_available=torch.cuda.is_available(),
@@ -334,17 +368,21 @@ class LoFiAPI:
                 gen_id = str(uuid.uuid4())
 
                 # Send initial status
-                await websocket.send_json({
-                    "id": gen_id,
-                    "status": "started",
-                    "progress": 0.0,
-                })
+                await websocket.send_json(
+                    {
+                        "id": gen_id,
+                        "status": "started",
+                        "progress": 0.0,
+                    }
+                )
 
                 # Generate with progress updates
-                await websocket.send_json({
-                    "status": "generating_tokens",
-                    "progress": 0.25,
-                })
+                await websocket.send_json(
+                    {
+                        "status": "generating_tokens",
+                        "progress": 0.25,
+                    }
+                )
 
                 tokens, metadata = self.generator.generate_track(
                     tempo=request.tempo,
@@ -357,26 +395,32 @@ class LoFiAPI:
                     seed=request.seed,
                 )
 
-                await websocket.send_json({
-                    "status": "scoring_quality",
-                    "progress": 0.5,
-                })
+                await websocket.send_json(
+                    {
+                        "status": "scoring_quality",
+                        "progress": 0.5,
+                    }
+                )
 
                 quality_score = self.quality_scorer.score_midi_tokens(tokens, metadata)
 
-                await websocket.send_json({
-                    "status": "creating_midi",
-                    "progress": 0.75,
-                })
+                await websocket.send_json(
+                    {
+                        "status": "creating_midi",
+                        "progress": 0.75,
+                    }
+                )
 
                 midi_path = self.output_dir / f"{gen_id}.mid"
                 self.generator.tokens_to_midi(tokens, str(midi_path))
 
                 if request.return_audio:
-                    await websocket.send_json({
-                        "status": "processing_audio",
-                        "progress": 0.9,
-                    })
+                    await websocket.send_json(
+                        {
+                            "status": "processing_audio",
+                            "progress": 0.9,
+                        }
+                    )
 
                     result = self.audio_processor.process_midi_to_lofi(
                         str(midi_path),
@@ -386,24 +430,30 @@ class LoFiAPI:
                     )
 
                 # Send completion
-                await websocket.send_json({
-                    "id": gen_id,
-                    "status": "completed",
-                    "progress": 1.0,
-                    "quality_score": quality_score,
-                    "metadata": metadata,
-                    "midi_url": f"/api/v1/download/{gen_id}.mid",
-                    "audio_url": f"/api/v1/download/{gen_id}_lofi.wav" if request.return_audio else None,
-                })
+                await websocket.send_json(
+                    {
+                        "id": gen_id,
+                        "status": "completed",
+                        "progress": 1.0,
+                        "quality_score": quality_score,
+                        "metadata": metadata,
+                        "midi_url": f"/api/v1/download/{gen_id}.mid",
+                        "audio_url": (
+                            f"/api/v1/download/{gen_id}_lofi.wav" if request.return_audio else None
+                        ),
+                    }
+                )
 
             except WebSocketDisconnect:
                 logger.info("WebSocket disconnected")
             except Exception as e:
                 logger.error(f"WebSocket error: {e}")
-                await websocket.send_json({
-                    "status": "error",
-                    "error": str(e),
-                })
+                await websocket.send_json(
+                    {
+                        "status": "error",
+                        "error": str(e),
+                    }
+                )
 
     def run(self, host: str = "0.0.0.0", port: int = 8000, **kwargs):
         """Run the API server.
@@ -428,6 +478,7 @@ def create_app(config_path: str = "config.yaml", model_path: Optional[str] = Non
         FastAPI app instance
     """
     import yaml
+
     with open(config_path) as f:
         config = yaml.safe_load(f)
 
@@ -437,6 +488,7 @@ def create_app(config_path: str = "config.yaml", model_path: Optional[str] = Non
 
 if __name__ == "__main__":
     import sys
+
     import yaml
 
     config_path = sys.argv[1] if len(sys.argv) > 1 else "config.yaml"

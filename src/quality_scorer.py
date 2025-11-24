@@ -35,24 +35,24 @@ class MusicQualityScorer:
 
         # 1. Length score (prefer 1000-2000 tokens for ~2-3 min tracks)
         length_score = self._score_length(len(tokens), target=1500, tolerance=500)
-        scores.append(('length', length_score, 1.5))
+        scores.append(("length", length_score, 1.5))
 
         # 2. Diversity score (unique token ratio)
         diversity_score = self._score_diversity(tokens)
-        scores.append(('diversity', diversity_score, 2.0))
+        scores.append(("diversity", diversity_score, 2.0))
 
         # 3. Repetition score (check for good repetition patterns)
         repetition_score = self._score_repetition(tokens)
-        scores.append(('repetition', repetition_score, 1.5))
+        scores.append(("repetition", repetition_score, 1.5))
 
         # 4. Tempo appropriateness for lo-fi (65-85 BPM is ideal)
-        tempo = metadata.get('tempo', 75)
+        tempo = metadata.get("tempo", 75)
         tempo_score = self._score_tempo(tempo, ideal_min=65, ideal_max=85)
-        scores.append(('tempo', tempo_score, 1.0))
+        scores.append(("tempo", tempo_score, 1.0))
 
         # 5. Token distribution (should be relatively uniform, not skewed)
         distribution_score = self._score_token_distribution(tokens)
-        scores.append(('distribution', distribution_score, 1.0))
+        scores.append(("distribution", distribution_score, 1.0))
 
         # Calculate weighted average
         total_score = sum(score * weight for _, score, weight in scores)
@@ -84,23 +84,23 @@ class MusicQualityScorer:
 
             # 1. Dynamic range score
             dynamic_range = self._score_dynamic_range(y)
-            scores.append(('dynamic_range', dynamic_range, 1.5))
+            scores.append(("dynamic_range", dynamic_range, 1.5))
 
             # 2. Spectral centroid variance (timbral variety)
             spectral_score = self._score_spectral_features(y, sr)
-            scores.append(('spectral', spectral_score, 2.0))
+            scores.append(("spectral", spectral_score, 2.0))
 
             # 3. Zero-crossing rate (rhythmic complexity)
             zcr_score = self._score_zero_crossings(y)
-            scores.append(('zero_crossings', zcr_score, 1.0))
+            scores.append(("zero_crossings", zcr_score, 1.0))
 
             # 4. Loudness consistency
             loudness_score = self._score_loudness(y)
-            scores.append(('loudness', loudness_score, 1.5))
+            scores.append(("loudness", loudness_score, 1.5))
 
             # 5. Frequency balance (low-fi should have balanced spectrum)
             balance_score = self._score_frequency_balance(y, sr)
-            scores.append(('frequency_balance', balance_score, 1.5))
+            scores.append(("frequency_balance", balance_score, 1.5))
 
             # Calculate weighted average
             total_score = sum(score * weight for _, score, weight in scores)
@@ -332,8 +332,6 @@ class MusicQualityScorer:
 
         # Good balance for lo-fi: more low and mid, less high
         # Ideal: low ~0.4, mid ~0.45, high ~0.15
-        score = 1.0 - (
-            abs(low_ratio - 0.40) + abs(mid_ratio - 0.45) + abs(high_ratio - 0.15)
-        ) / 2.0
+        score = 1.0 - (abs(low_ratio - 0.40) + abs(mid_ratio - 0.45) + abs(high_ratio - 0.15)) / 2.0
 
         return max(0.0, min(1.0, score))

@@ -9,15 +9,15 @@ Features:
 - Data versioning support
 """
 
+import hashlib
+import json
 import logging
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
-import json
-import hashlib
 
 import numpy as np
-from miditoolkit import MidiFile
 import pretty_midi
+from miditoolkit import MidiFile
 
 logger = logging.getLogger(__name__)
 
@@ -56,9 +56,7 @@ class MIDIAugmentor:
         # Transpose instruments
         for inst in midi.instruments:
             new_inst = pretty_midi.Instrument(
-                program=inst.program,
-                is_drum=inst.is_drum,
-                name=inst.name
+                program=inst.program, is_drum=inst.is_drum, name=inst.name
             )
 
             for note in inst.notes:
@@ -109,9 +107,7 @@ class MIDIAugmentor:
         # Adjust note timings
         for inst in midi.instruments:
             new_inst = pretty_midi.Instrument(
-                program=inst.program,
-                is_drum=inst.is_drum,
-                name=inst.name
+                program=inst.program, is_drum=inst.is_drum, name=inst.name
             )
 
             for note in inst.notes:
@@ -149,9 +145,7 @@ class MIDIAugmentor:
         # Stretch note timings
         for inst in midi.instruments:
             new_inst = pretty_midi.Instrument(
-                program=inst.program,
-                is_drum=inst.is_drum,
-                name=inst.name
+                program=inst.program, is_drum=inst.is_drum, name=inst.name
             )
 
             for note in inst.notes:
@@ -188,9 +182,7 @@ class MIDIAugmentor:
 
         for inst in midi.instruments:
             new_inst = pretty_midi.Instrument(
-                program=inst.program,
-                is_drum=inst.is_drum,
-                name=inst.name
+                program=inst.program, is_drum=inst.is_drum, name=inst.name
             )
 
             for note in inst.notes:
@@ -249,7 +241,9 @@ class MIDIAugmentor:
             aug_midi = self.add_velocity_variation(aug_midi, variation=0.1)
 
             # Save
-            output_path = output_dir / f"{base_name}_aug{i}_t{semitones}_tempo{tempo_factor:.2f}.mid"
+            output_path = (
+                output_dir / f"{base_name}_aug{i}_t{semitones}_tempo{tempo_factor:.2f}.mid"
+            )
             aug_midi.dump(str(output_path))
             augmented_paths.append(str(output_path))
 
@@ -381,29 +375,29 @@ class GenreClassifier:
     """Classify MIDI genre based on characteristics."""
 
     GENRE_SIGNATURES = {
-        'lofi': {
-            'tempo_range': (60, 95),
-            'complexity_range': (0.3, 0.7),
-            'has_drums': True,
-            'instruments': [0, 1, 4, 24, 25, 32],  # Piano, keys, guitars, bass
+        "lofi": {
+            "tempo_range": (60, 95),
+            "complexity_range": (0.3, 0.7),
+            "has_drums": True,
+            "instruments": [0, 1, 4, 24, 25, 32],  # Piano, keys, guitars, bass
         },
-        'jazz': {
-            'tempo_range': (100, 200),
-            'complexity_range': (0.5, 0.9),
-            'has_drums': True,
-            'instruments': [0, 11, 64, 65, 66, 67, 68],  # Piano, sax, brass
+        "jazz": {
+            "tempo_range": (100, 200),
+            "complexity_range": (0.5, 0.9),
+            "has_drums": True,
+            "instruments": [0, 11, 64, 65, 66, 67, 68],  # Piano, sax, brass
         },
-        'classical': {
-            'tempo_range': (60, 140),
-            'complexity_range': (0.4, 0.8),
-            'has_drums': False,
-            'instruments': [0, 40, 41, 42, 43, 44, 45],  # Strings, piano
+        "classical": {
+            "tempo_range": (60, 140),
+            "complexity_range": (0.4, 0.8),
+            "has_drums": False,
+            "instruments": [0, 40, 41, 42, 43, 44, 45],  # Strings, piano
         },
-        'electronic': {
-            'tempo_range': (110, 140),
-            'complexity_range': (0.4, 0.8),
-            'has_drums': True,
-            'instruments': [80, 81, 82, 83, 84, 85],  # Synth sounds
+        "electronic": {
+            "tempo_range": (110, 140),
+            "complexity_range": (0.4, 0.8),
+            "has_drums": True,
+            "instruments": [80, 81, 82, 83, 84, 85],  # Synth sounds
         },
     }
 
@@ -423,7 +417,7 @@ class GenreClassifier:
         midi = pretty_midi.PrettyMIDI(str(midi_path))
 
         # Extract features
-        tempo = midi.estimate_tempo() if hasattr(midi, 'estimate_tempo') else 120
+        tempo = midi.estimate_tempo() if hasattr(midi, "estimate_tempo") else 120
         has_drums = any(inst.is_drum for inst in midi.instruments)
         instruments = set(inst.program for inst in midi.instruments if not inst.is_drum)
 
@@ -439,29 +433,29 @@ class GenreClassifier:
             score = 0.0
 
             # Tempo match
-            if signature['tempo_range'][0] <= tempo <= signature['tempo_range'][1]:
+            if signature["tempo_range"][0] <= tempo <= signature["tempo_range"][1]:
                 score += 0.3
             else:
                 # Penalize distance
                 distance = min(
-                    abs(tempo - signature['tempo_range'][0]),
-                    abs(tempo - signature['tempo_range'][1])
+                    abs(tempo - signature["tempo_range"][0]),
+                    abs(tempo - signature["tempo_range"][1]),
                 )
                 score += max(0, 0.3 - distance / 100)
 
             # Complexity match
-            if signature['complexity_range'][0] <= complexity <= signature['complexity_range'][1]:
+            if signature["complexity_range"][0] <= complexity <= signature["complexity_range"][1]:
                 score += 0.2
             else:
-                score += max(0, 0.2 - abs(complexity - np.mean(signature['complexity_range'])))
+                score += max(0, 0.2 - abs(complexity - np.mean(signature["complexity_range"])))
 
             # Drums match
-            if has_drums == signature['has_drums']:
+            if has_drums == signature["has_drums"]:
                 score += 0.2
 
             # Instrument match
-            matching_instruments = len(instruments.intersection(signature['instruments']))
-            score += 0.3 * (matching_instruments / max(len(signature['instruments']), 1))
+            matching_instruments = len(instruments.intersection(signature["instruments"]))
+            score += 0.3 * (matching_instruments / max(len(signature["instruments"]), 1))
 
             scores[genre] = score
 
@@ -533,18 +527,18 @@ class ChordExtractor:
         """
         # Common chord patterns (intervals from root)
         CHORD_TYPES = {
-            frozenset([0, 4, 7]): 'maj',
-            frozenset([0, 3, 7]): 'min',
-            frozenset([0, 3, 6]): 'dim',
-            frozenset([0, 4, 8]): 'aug',
-            frozenset([0, 4, 7, 11]): 'maj7',
-            frozenset([0, 3, 7, 10]): 'min7',
-            frozenset([0, 4, 7, 10]): '7',
-            frozenset([0, 3, 6, 10]): 'm7b5',
-            frozenset([0, 3, 6, 9]): 'dim7',
+            frozenset([0, 4, 7]): "maj",
+            frozenset([0, 3, 7]): "min",
+            frozenset([0, 3, 6]): "dim",
+            frozenset([0, 4, 8]): "aug",
+            frozenset([0, 4, 7, 11]): "maj7",
+            frozenset([0, 3, 7, 10]): "min7",
+            frozenset([0, 4, 7, 10]): "7",
+            frozenset([0, 3, 6, 10]): "m7b5",
+            frozenset([0, 3, 6, 9]): "dim7",
         }
 
-        note_names = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']
+        note_names = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
 
         # Try each possible root
         for root in pitch_classes:
@@ -577,19 +571,19 @@ class DatasetStatistics:
             Statistics dictionary
         """
         midi_dir = Path(midi_directory)
-        midi_files = list(midi_dir.glob('**/*.mid')) + list(midi_dir.glob('**/*.midi'))
+        midi_files = list(midi_dir.glob("**/*.mid")) + list(midi_dir.glob("**/*.midi"))
 
         stats = {
-            'total_files': len(midi_files),
-            'valid_files': 0,
-            'total_duration': 0.0,
-            'total_notes': 0,
-            'tempos': [],
-            'note_densities': [],
-            'durations': [],
-            'instruments': {},
-            'has_drums': 0,
-            'genres': {},
+            "total_files": len(midi_files),
+            "valid_files": 0,
+            "total_duration": 0.0,
+            "total_notes": 0,
+            "tempos": [],
+            "note_densities": [],
+            "durations": [],
+            "instruments": {},
+            "has_drums": 0,
+            "genres": {},
         }
 
         cleaner = DataCleaner()
@@ -601,55 +595,57 @@ class DatasetStatistics:
                 if not is_valid:
                     continue
 
-                stats['valid_files'] += 1
+                stats["valid_files"] += 1
 
                 midi = pretty_midi.PrettyMIDI(str(midi_file))
 
                 # Duration
                 duration = midi.get_end_time()
-                stats['total_duration'] += duration
-                stats['durations'].append(duration)
+                stats["total_duration"] += duration
+                stats["durations"].append(duration)
 
                 # Notes
                 total_notes = sum(len(inst.notes) for inst in midi.instruments)
-                stats['total_notes'] += total_notes
-                stats['note_densities'].append(total_notes / duration if duration > 0 else 0)
+                stats["total_notes"] += total_notes
+                stats["note_densities"].append(total_notes / duration if duration > 0 else 0)
 
                 # Tempo
                 tempo_changes = midi.get_tempo_changes()
                 if len(tempo_changes[1]) > 0:
-                    stats['tempos'].append(float(tempo_changes[1][0]))
+                    stats["tempos"].append(float(tempo_changes[1][0]))
 
                 # Instruments
                 for inst in midi.instruments:
                     if inst.is_drum:
-                        stats['has_drums'] += 1
+                        stats["has_drums"] += 1
                     else:
                         program = inst.program
-                        stats['instruments'][program] = stats['instruments'].get(program, 0) + 1
+                        stats["instruments"][program] = stats["instruments"].get(program, 0) + 1
 
                 # Genre
                 genre_probs = genre_classifier.classify(str(midi_file))
                 top_genre = max(genre_probs.items(), key=lambda x: x[1])[0]
-                stats['genres'][top_genre] = stats['genres'].get(top_genre, 0) + 1
+                stats["genres"][top_genre] = stats["genres"].get(top_genre, 0) + 1
 
             except Exception as e:
                 logger.warning(f"Error processing {midi_file}: {e}")
                 continue
 
         # Calculate averages
-        if stats['valid_files'] > 0:
-            stats['avg_duration'] = stats['total_duration'] / stats['valid_files']
-            stats['avg_notes_per_file'] = stats['total_notes'] / stats['valid_files']
-            stats['avg_tempo'] = np.mean(stats['tempos']) if stats['tempos'] else 0
-            stats['avg_note_density'] = np.mean(stats['note_densities']) if stats['note_densities'] else 0
+        if stats["valid_files"] > 0:
+            stats["avg_duration"] = stats["total_duration"] / stats["valid_files"]
+            stats["avg_notes_per_file"] = stats["total_notes"] / stats["valid_files"]
+            stats["avg_tempo"] = np.mean(stats["tempos"]) if stats["tempos"] else 0
+            stats["avg_note_density"] = (
+                np.mean(stats["note_densities"]) if stats["note_densities"] else 0
+            )
 
             # Percentiles
-            if stats['durations']:
-                stats['duration_percentiles'] = {
-                    '25': float(np.percentile(stats['durations'], 25)),
-                    '50': float(np.percentile(stats['durations'], 50)),
-                    '75': float(np.percentile(stats['durations'], 75)),
+            if stats["durations"]:
+                stats["duration_percentiles"] = {
+                    "25": float(np.percentile(stats["durations"], 25)),
+                    "50": float(np.percentile(stats["durations"], 50)),
+                    "75": float(np.percentile(stats["durations"], 75)),
                 }
 
         return stats
@@ -665,7 +661,7 @@ class DataVersioning:
             dataset_dir: Dataset directory
         """
         self.dataset_dir = Path(dataset_dir)
-        self.version_file = self.dataset_dir / '.dataset_version.json'
+        self.version_file = self.dataset_dir / ".dataset_version.json"
         self.versions = self._load_versions()
 
     def _load_versions(self) -> List[Dict]:
@@ -677,7 +673,7 @@ class DataVersioning:
 
     def _save_versions(self):
         """Save version history."""
-        with open(self.version_file, 'w') as f:
+        with open(self.version_file, "w") as f:
             json.dump(self.versions, f, indent=2)
 
     def compute_hash(self, file_path: str) -> str:
@@ -689,7 +685,7 @@ class DataVersioning:
         Returns:
             MD5 hash
         """
-        with open(file_path, 'rb') as f:
+        with open(file_path, "rb") as f:
             return hashlib.md5(f.read()).hexdigest()
 
     def create_version(
@@ -706,20 +702,22 @@ class DataVersioning:
         Returns:
             Version metadata
         """
-        midi_files = list(self.dataset_dir.glob('**/*.mid')) + list(self.dataset_dir.glob('**/*.midi'))
+        midi_files = list(self.dataset_dir.glob("**/*.mid")) + list(
+            self.dataset_dir.glob("**/*.midi")
+        )
 
         version = {
-            'version': version_name,
-            'description': description,
-            'timestamp': str(np.datetime64('now')),
-            'num_files': len(midi_files),
-            'files': {}
+            "version": version_name,
+            "description": description,
+            "timestamp": str(np.datetime64("now")),
+            "num_files": len(midi_files),
+            "files": {},
         }
 
         # Hash all files
         for midi_file in midi_files:
             rel_path = midi_file.relative_to(self.dataset_dir)
-            version['files'][str(rel_path)] = self.compute_hash(str(midi_file))
+            version["files"][str(rel_path)] = self.compute_hash(str(midi_file))
 
         self.versions.append(version)
         self._save_versions()
@@ -742,26 +740,26 @@ class DataVersioning:
         Returns:
             Comparison results
         """
-        v1 = next((v for v in self.versions if v['version'] == version1), None)
-        v2 = next((v for v in self.versions if v['version'] == version2), None)
+        v1 = next((v for v in self.versions if v["version"] == version1), None)
+        v2 = next((v for v in self.versions if v["version"] == version2), None)
 
         if not v1 or not v2:
-            return {'error': 'Version not found'}
+            return {"error": "Version not found"}
 
-        files1 = set(v1['files'].keys())
-        files2 = set(v2['files'].keys())
+        files1 = set(v1["files"].keys())
+        files2 = set(v2["files"].keys())
 
         added = files2 - files1
         removed = files1 - files2
         modified = set()
 
         for file in files1.intersection(files2):
-            if v1['files'][file] != v2['files'][file]:
+            if v1["files"][file] != v2["files"][file]:
                 modified.add(file)
 
         return {
-            'added': list(added),
-            'removed': list(removed),
-            'modified': list(modified),
-            'unchanged': len(files1.intersection(files2)) - len(modified),
+            "added": list(added),
+            "removed": list(removed),
+            "modified": list(modified),
+            "unchanged": len(files1.intersection(files2)) - len(modified),
         }

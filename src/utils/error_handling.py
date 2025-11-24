@@ -3,7 +3,7 @@
 import functools
 import logging
 import time
-from typing import Any, Callable, Optional, Type, Tuple
+from typing import Any, Callable, Optional, Tuple, Type
 
 logger = logging.getLogger(__name__)
 
@@ -152,7 +152,9 @@ class ErrorHandler:
         return True  # Suppress exception
 
 
-def validate_not_none(value: Any, name: str, error_type: Type[LoFiException] = LoFiException) -> Any:
+def validate_not_none(
+    value: Any, name: str, error_type: Type[LoFiException] = LoFiException
+) -> Any:
     """Validate that a value is not None.
 
     Args:

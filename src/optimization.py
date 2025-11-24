@@ -8,16 +8,16 @@ Features:
 - Batch inference optimization
 """
 
+import hashlib
+import json
 import logging
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
-import hashlib
-import json
 
+import numpy as np
 import torch
 import torch.nn as nn
 from transformers import GPT2LMHeadModel
-import numpy as np
 
 logger = logging.getLogger(__name__)
 
@@ -39,21 +39,23 @@ class ModelQuantizer:
 
         # Dynamic quantization (easiest for transformers)
         quantized_model = torch.quantization.quantize_dynamic(
-            model,
-            {nn.Linear},  # Quantize linear layers
-            dtype=torch.qint8
+            model, {nn.Linear}, dtype=torch.qint8  # Quantize linear layers
         )
 
         # Measure size reduction
         original_size = sum(p.numel() * p.element_size() for p in model.parameters()) / 1024 / 1024
-        quantized_size = sum(p.numel() * p.element_size() for p in quantized_model.parameters()) / 1024 / 1024
+        quantized_size = (
+            sum(p.numel() * p.element_size() for p in quantized_model.parameters()) / 1024 / 1024
+        )
 
-        logger.info(f"Model size: {original_size:.2f}MB → {quantized_size:.2f}MB ({quantized_size/original_size*100:.1f}%)")
+        logger.info(
+            f"Model size: {original_size:.2f}MB → {quantized_size:.2f}MB ({quantized_size/original_size*100:.1f}%)"
+        )
 
         return quantized_model
 
     @staticmethod
-    def convert_to_fp16(model: nn.Module, device: str = 'cuda') -> nn.Module:
+    def convert_to_fp16(model: nn.Module, device: str = "cuda") -> nn.Module:
         """Convert model to FP16 for faster GPU inference.
 
         Args:
@@ -63,7 +65,7 @@ class ModelQuantizer:
         Returns:
             FP16 model
         """
-        if not torch.cuda.is_available() or device == 'cpu':
+        if not torch.cuda.is_available() or device == "cpu":
             logger.warning("FP16 requires CUDA, skipping conversion")
             return model
 
@@ -169,10 +171,10 @@ class GenerationCache:
             Statistics dictionary
         """
         return {
-            'size': len(self.cache),
-            'max_size': self.max_size,
-            'utilization': len(self.cache) / self.max_size * 100,
-            'total_accesses': sum(self.access_count.values()),
+            "size": len(self.cache),
+            "max_size": self.max_size,
+            "utilization": len(self.cache) / self.max_size * 100,
+            "total_accesses": sum(self.access_count.values()),
         }
 
 
@@ -214,12 +216,12 @@ class ONNXExporter:
             export_params=True,
             opset_version=opset_version,
             do_constant_folding=True,
-            input_names=['input_ids'],
-            output_names=['logits'],
+            input_names=["input_ids"],
+            output_names=["logits"],
             dynamic_axes={
-                'input_ids': {0: 'batch_size', 1: 'sequence'},
-                'logits': {0: 'batch_size', 1: 'sequence'},
-            }
+                "input_ids": {0: "batch_size", 1: "sequence"},
+                "logits": {0: "batch_size", 1: "sequence"},
+            },
         )
 
         logger.info(f"Model exported to ONNX: {output_path}")
@@ -227,6 +229,7 @@ class ONNXExporter:
         # Verify export
         try:
             import onnx
+
             onnx_model = onnx.load(str(output_path))
             onnx.checker.check_model(onnx_model)
             logger.info("ONNX model verification passed")
@@ -247,7 +250,7 @@ class BeamSearchGenerator:
         length_penalty: float = 1.0,
         early_stopping: bool = True,
         no_repeat_ngram_size: int = 3,
-        device: str = 'cuda',
+        device: str = "cuda",
     ) -> Tuple[torch.Tensor, float]:
         """Generate with beam search.
 
@@ -285,7 +288,7 @@ class BeamSearchGenerator:
         generated_ids = outputs.sequences[0]
 
         # Calculate score
-        if hasattr(outputs, 'sequences_scores'):
+        if hasattr(outputs, "sequences_scores"):
             score = outputs.sequences_scores[0].item()
         else:
             score = 0.0
@@ -307,7 +310,7 @@ class ConstrainedDecoder:
         self.tokenizer = tokenizer
         self.allowed_tokens = None
 
-    def set_constraints(self, key: str = 'C', allow_chromatic: bool = True):
+    def set_constraints(self, key: str = "C", allow_chromatic: bool = True):
         """Set music theory constraints.
 
         Args:
@@ -316,7 +319,7 @@ class ConstrainedDecoder:
         """
         # Get allowed pitch classes from key
         if key in self.theory.key_signatures:
-            scale_notes = set(self.theory.key_signatures[key]['scale'])
+            scale_notes = set(self.theory.key_signatures[key]["scale"])
             self.allowed_tokens = scale_notes
         else:
             self.allowed_tokens = None
@@ -341,7 +344,7 @@ class ConstrainedDecoder:
             return logits
 
         # Create mask for allowed tokens
-        mask = torch.ones_like(logits) * float('-inf')
+        mask = torch.ones_like(logits) * float("-inf")
 
         # Allow tokens that match constraints
         for token_id in self.allowed_tokens:
@@ -356,9 +359,9 @@ class ConstrainedDecoder:
         self,
         model: GPT2LMHeadModel,
         input_ids: torch.Tensor,
-        key: str = 'C',
+        key: str = "C",
         max_length: int = 1024,
-        **kwargs
+        **kwargs,
     ) -> torch.Tensor:
         """Generate with music theory constraints.
 
@@ -377,15 +380,12 @@ class ConstrainedDecoder:
         # Use logits processor
         from transformers import LogitsProcessorList
 
-        logits_processor = LogitsProcessorList([
-            lambda input_ids, logits: self.constrained_logits_processor(input_ids, logits)
-        ])
+        logits_processor = LogitsProcessorList(
+            [lambda input_ids, logits: self.constrained_logits_processor(input_ids, logits)]
+        )
 
         outputs = model.generate(
-            input_ids,
-            max_length=max_length,
-            logits_processor=logits_processor,
-            **kwargs
+            input_ids, max_length=max_length, logits_processor=logits_processor, **kwargs
         )
 
         return outputs
@@ -430,9 +430,7 @@ class BatchInferenceOptimizer:
 
     @staticmethod
     def batch_generate(
-        model: GPT2LMHeadModel,
-        input_ids_batch: List[torch.Tensor],
-        **kwargs
+        model: GPT2LMHeadModel, input_ids_batch: List[torch.Tensor], **kwargs
     ) -> List[torch.Tensor]:
         """Generate for batch of inputs.
 
@@ -453,7 +451,9 @@ class BatchInferenceOptimizer:
         for ids in input_ids_batch:
             pad_len = max_len - ids.shape[1]
             if pad_len > 0:
-                padded = torch.cat([ids, torch.zeros(ids.shape[0], pad_len, dtype=torch.long)], dim=1)
+                padded = torch.cat(
+                    [ids, torch.zeros(ids.shape[0], pad_len, dtype=torch.long)], dim=1
+                )
                 mask = torch.cat([torch.ones(ids.shape[1]), torch.zeros(pad_len)])
             else:
                 padded = ids
@@ -468,14 +468,10 @@ class BatchInferenceOptimizer:
 
         # Generate
         with torch.no_grad():
-            outputs = model.generate(
-                batch_input_ids,
-                attention_mask=batch_attention_mask,
-                **kwargs
-            )
+            outputs = model.generate(batch_input_ids, attention_mask=batch_attention_mask, **kwargs)
 
         # Split back into individual sequences
-        results = [outputs[i:i+1] for i in range(outputs.shape[0])]
+        results = [outputs[i : i + 1] for i in range(outputs.shape[0])]
 
         return results
 
@@ -505,7 +501,7 @@ class ModelPruner:
         parameters_to_prune = []
         for name, module in model.named_modules():
             if isinstance(module, nn.Linear):
-                parameters_to_prune.append((module, 'weight'))
+                parameters_to_prune.append((module, "weight"))
 
         # Apply global unstructured pruning
         prune.global_unstructured(
@@ -543,7 +539,7 @@ class KVCacheOptimizer:
         Args:
             model: GPT-2 model
         """
-        if hasattr(model, '_past_key_values'):
+        if hasattr(model, "_past_key_values"):
             model._past_key_values = None
         logger.debug("KV-cache cleared")
 
@@ -551,9 +547,9 @@ class KVCacheOptimizer:
 # Convenience function for applying all optimizations
 def optimize_model_for_production(
     model: GPT2LMHeadModel,
-    quantization: str = 'fp16',  # 'none', 'fp16', 'int8'
+    quantization: str = "fp16",  # 'none', 'fp16', 'int8'
     pruning_amount: float = 0.0,
-    device: str = 'cuda',
+    device: str = "cuda",
 ) -> GPT2LMHeadModel:
     """Apply all production optimizations to model.
 
@@ -573,9 +569,9 @@ def optimize_model_for_production(
         model = ModelPruner.magnitude_pruning(model, amount=pruning_amount)
 
     # Quantization
-    if quantization == 'fp16':
+    if quantization == "fp16":
         model = ModelQuantizer.convert_to_fp16(model, device=device)
-    elif quantization == 'int8':
+    elif quantization == "int8":
         model = ModelQuantizer.quantize_int8(model)
 
     # Enable KV-cache

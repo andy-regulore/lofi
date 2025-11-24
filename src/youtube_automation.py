@@ -18,16 +18,17 @@ Author: Claude
 License: MIT
 """
 
-from typing import List, Dict, Optional, Tuple
+import json
+import time
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from enum import Enum
-import json
-import time
+from typing import Dict, List, Optional, Tuple
 
 
 class UploadStatus(Enum):
     """Upload status."""
+
     PENDING = "pending"
     UPLOADING = "uploading"
     PROCESSING = "processing"
@@ -38,6 +39,7 @@ class UploadStatus(Enum):
 @dataclass
 class VideoMetadata:
     """Metadata for YouTube video."""
+
     title: str
     description: str
     tags: List[str]
@@ -50,6 +52,7 @@ class VideoMetadata:
 @dataclass
 class UploadSchedule:
     """Upload scheduling configuration."""
+
     video_path: str
     metadata: VideoMetadata
     scheduled_time: datetime
@@ -99,11 +102,11 @@ class YouTubeUploader:
 
         # Simulate upload
         result = {
-            'video_id': f"vid_{int(time.time())}",
-            'status': UploadStatus.COMPLETED.value,
-            'title': metadata.title,
-            'uploaded_at': datetime.now().isoformat(),
-            'url': f"https://youtube.com/watch?v=vid_{int(time.time())}"
+            "video_id": f"vid_{int(time.time())}",
+            "status": UploadStatus.COMPLETED.value,
+            "title": metadata.title,
+            "uploaded_at": datetime.now().isoformat(),
+            "url": f"https://youtube.com/watch?v=vid_{int(time.time())}",
         }
 
         self.upload_history.append(result)
@@ -150,12 +153,12 @@ class YouTubeUploader:
 
             # Set thumbnail if provided
             if schedule.metadata.thumbnail_path:
-                self.set_thumbnail(result['video_id'], schedule.metadata.thumbnail_path)
+                self.set_thumbnail(result["video_id"], schedule.metadata.thumbnail_path)
 
             # Add to playlists
             if schedule.metadata.playlist_ids:
                 for playlist_id in schedule.metadata.playlist_ids:
-                    self.add_video_to_playlist(result['video_id'], playlist_id)
+                    self.add_video_to_playlist(result["video_id"], playlist_id)
 
             results.append(result)
 
@@ -167,7 +170,7 @@ class YouTubeUploader:
         # Placeholder for YouTube API call
         return True
 
-    def get_optimal_upload_times(self, timezone: str = 'UTC') -> List[Tuple[int, int]]:
+    def get_optimal_upload_times(self, timezone: str = "UTC") -> List[Tuple[int, int]]:
         """
         Get optimal upload times based on audience analytics.
 
@@ -198,8 +201,7 @@ class PlaylistManager:
         self.api_key = api_key
         self.playlists = {}
 
-    def create_playlist(self, title: str, description: str,
-                       privacy: str = "public") -> Dict:
+    def create_playlist(self, title: str, description: str, privacy: str = "public") -> Dict:
         """
         Create new playlist.
 
@@ -212,16 +214,16 @@ class PlaylistManager:
             Playlist information
         """
         playlist = {
-            'id': f"pl_{int(time.time())}",
-            'title': title,
-            'description': description,
-            'privacy': privacy,
-            'created_at': datetime.now().isoformat(),
-            'video_count': 0,
-            'videos': []
+            "id": f"pl_{int(time.time())}",
+            "title": title,
+            "description": description,
+            "privacy": privacy,
+            "created_at": datetime.now().isoformat(),
+            "video_count": 0,
+            "videos": [],
         }
 
-        self.playlists[playlist['id']] = playlist
+        self.playlists[playlist["id"]] = playlist
         print(f"Created playlist: {title} (ID: {playlist['id']})")
 
         return playlist
@@ -241,36 +243,36 @@ class PlaylistManager:
 
         # Collect all moods
         for video in videos_metadata:
-            if 'mood' in video:
-                moods.add(video['mood'])
+            if "mood" in video:
+                moods.add(video["mood"])
 
         # Create playlist for each mood
         for mood in moods:
             playlist = self.create_playlist(
                 title=f"Lofi Beats - {mood.title()} Vibes",
                 description=f"A curated collection of {mood} lofi hip hop beats for study, work, and relaxation.",
-                privacy="public"
+                privacy="public",
             )
-            mood_playlists[mood] = playlist['id']
+            mood_playlists[mood] = playlist["id"]
 
         return mood_playlists
 
     def organize_by_season(self) -> Dict[str, str]:
         """Create seasonal playlists."""
         seasons = {
-            'winter': "Cozy Winter Lofi - Snow Day Study Beats",
-            'spring': "Spring Awakening Lofi - Fresh Study Vibes",
-            'summer': "Summer Chill Lofi - Sunny Day Beats",
-            'fall': "Autumn Lofi - Rainy Day Study Music"
+            "winter": "Cozy Winter Lofi - Snow Day Study Beats",
+            "spring": "Spring Awakening Lofi - Fresh Study Vibes",
+            "summer": "Summer Chill Lofi - Sunny Day Beats",
+            "fall": "Autumn Lofi - Rainy Day Study Music",
         }
 
         seasonal_playlists = {}
         for season, title in seasons.items():
             playlist = self.create_playlist(
                 title=title,
-                description=f"Perfect {season} lofi beats for studying, working, and relaxing."
+                description=f"Perfect {season} lofi beats for studying, working, and relaxing.",
             )
-            seasonal_playlists[season] = playlist['id']
+            seasonal_playlists[season] = playlist["id"]
 
         return seasonal_playlists
 
@@ -290,7 +292,7 @@ class PlaylistManager:
         for i in range(1, num_episodes + 1):
             playlist = self.create_playlist(
                 title=f"{base_title} - Day {i}",
-                description=f"Day {i} of {num_episodes} in the {base_title} series."
+                description=f"Day {i} of {num_episodes} in the {base_title} series.",
             )
             series.append(playlist)
 
@@ -299,8 +301,8 @@ class PlaylistManager:
     def update_playlist(self, playlist_id: str, video_ids: List[str]):
         """Update playlist with videos."""
         if playlist_id in self.playlists:
-            self.playlists[playlist_id]['videos'].extend(video_ids)
-            self.playlists[playlist_id]['video_count'] = len(self.playlists[playlist_id]['videos'])
+            self.playlists[playlist_id]["videos"].extend(video_ids)
+            self.playlists[playlist_id]["video_count"] = len(self.playlists[playlist_id]["videos"])
             print(f"Updated playlist {playlist_id} with {len(video_ids)} videos")
 
 
@@ -315,17 +317,17 @@ class ContentStrategy:
     def _create_seasonal_calendar(self) -> Dict[int, str]:
         """Create seasonal content calendar."""
         return {
-            1: "winter",   # January
-            2: "winter",   # February
-            3: "spring",   # March
-            4: "spring",   # April
-            5: "spring",   # May
-            6: "summer",   # June
-            7: "summer",   # July
-            8: "summer",   # August
-            9: "fall",     # September
-            10: "fall",    # October
-            11: "fall",    # November
+            1: "winter",  # January
+            2: "winter",  # February
+            3: "spring",  # March
+            4: "spring",  # April
+            5: "spring",  # May
+            6: "summer",  # June
+            7: "summer",  # July
+            8: "summer",  # August
+            9: "fall",  # September
+            10: "fall",  # October
+            11: "fall",  # November
             12: "winter",  # December
         }
 
@@ -348,29 +350,77 @@ class ContentStrategy:
             List of content ideas
         """
         seasonal_themes = {
-            'winter': [
-                {'title': 'Cozy Fireplace Lofi', 'mood': 'warm', 'tags': ['winter', 'cozy', 'fireplace']},
-                {'title': 'Snow Day Study Session', 'mood': 'peaceful', 'tags': ['winter', 'snow', 'study']},
-                {'title': 'Winter Night Coffee Shop', 'mood': 'calm', 'tags': ['winter', 'night', 'coffee']},
+            "winter": [
+                {
+                    "title": "Cozy Fireplace Lofi",
+                    "mood": "warm",
+                    "tags": ["winter", "cozy", "fireplace"],
+                },
+                {
+                    "title": "Snow Day Study Session",
+                    "mood": "peaceful",
+                    "tags": ["winter", "snow", "study"],
+                },
+                {
+                    "title": "Winter Night Coffee Shop",
+                    "mood": "calm",
+                    "tags": ["winter", "night", "coffee"],
+                },
             ],
-            'spring': [
-                {'title': 'Spring Awakening Beats', 'mood': 'uplifting', 'tags': ['spring', 'fresh', 'renewal']},
-                {'title': 'Rainy Spring Morning', 'mood': 'peaceful', 'tags': ['spring', 'rain', 'morning']},
-                {'title': 'Cherry Blossom Chill', 'mood': 'dreamy', 'tags': ['spring', 'cherry blossom', 'japan']},
+            "spring": [
+                {
+                    "title": "Spring Awakening Beats",
+                    "mood": "uplifting",
+                    "tags": ["spring", "fresh", "renewal"],
+                },
+                {
+                    "title": "Rainy Spring Morning",
+                    "mood": "peaceful",
+                    "tags": ["spring", "rain", "morning"],
+                },
+                {
+                    "title": "Cherry Blossom Chill",
+                    "mood": "dreamy",
+                    "tags": ["spring", "cherry blossom", "japan"],
+                },
             ],
-            'summer': [
-                {'title': 'Sunny Day Study Vibes', 'mood': 'bright', 'tags': ['summer', 'sunny', 'beach']},
-                {'title': 'Tropical Lofi Mix', 'mood': 'relaxed', 'tags': ['summer', 'tropical', 'vacation']},
-                {'title': 'Late Summer Evening', 'mood': 'nostalgic', 'tags': ['summer', 'evening', 'sunset']},
+            "summer": [
+                {
+                    "title": "Sunny Day Study Vibes",
+                    "mood": "bright",
+                    "tags": ["summer", "sunny", "beach"],
+                },
+                {
+                    "title": "Tropical Lofi Mix",
+                    "mood": "relaxed",
+                    "tags": ["summer", "tropical", "vacation"],
+                },
+                {
+                    "title": "Late Summer Evening",
+                    "mood": "nostalgic",
+                    "tags": ["summer", "evening", "sunset"],
+                },
             ],
-            'fall': [
-                {'title': 'Autumn Leaves Ambience', 'mood': 'cozy', 'tags': ['fall', 'autumn', 'leaves']},
-                {'title': 'Rainy Day Study Beats', 'mood': 'focused', 'tags': ['fall', 'rain', 'study']},
-                {'title': 'Halloween Lofi Special', 'mood': 'spooky-chill', 'tags': ['fall', 'halloween', 'october']},
-            ]
+            "fall": [
+                {
+                    "title": "Autumn Leaves Ambience",
+                    "mood": "cozy",
+                    "tags": ["fall", "autumn", "leaves"],
+                },
+                {
+                    "title": "Rainy Day Study Beats",
+                    "mood": "focused",
+                    "tags": ["fall", "rain", "study"],
+                },
+                {
+                    "title": "Halloween Lofi Special",
+                    "mood": "spooky-chill",
+                    "tags": ["fall", "halloween", "october"],
+                },
+            ],
         }
 
-        ideas = seasonal_themes.get(season, seasonal_themes['winter'])
+        ideas = seasonal_themes.get(season, seasonal_themes["winter"])
         return ideas[:count]
 
     def analyze_trending_topics(self, keywords: List[str]) -> Dict:
@@ -387,11 +437,11 @@ class ContentStrategy:
         # In production, use YouTube Analytics API or third-party tools
 
         trending = {
-            'hot_keywords': ['study music', 'focus beats', 'work from home', 'productivity'],
-            'rising_styles': ['anime lofi', 'city pop', 'synthwave lofi'],
-            'optimal_duration': '1-2 hours',
-            'best_upload_day': 'Friday',
-            'suggested_collaborations': ['other lofi channels', 'study channels', 'anime channels']
+            "hot_keywords": ["study music", "focus beats", "work from home", "productivity"],
+            "rising_styles": ["anime lofi", "city pop", "synthwave lofi"],
+            "optimal_duration": "1-2 hours",
+            "best_upload_day": "Friday",
+            "suggested_collaborations": ["other lofi channels", "study channels", "anime channels"],
         }
 
         return trending
@@ -423,13 +473,15 @@ class ContentStrategy:
                 ideas = self.generate_content_ideas(season, count=1)
                 if ideas:
                     idea = ideas[0]
-                    calendar.append({
-                        'date': upload_date.strftime('%Y-%m-%d'),
-                        'title': idea['title'],
-                        'mood': idea['mood'],
-                        'tags': idea['tags'],
-                        'season': season
-                    })
+                    calendar.append(
+                        {
+                            "date": upload_date.strftime("%Y-%m-%d"),
+                            "title": idea["title"],
+                            "mood": idea["mood"],
+                            "tags": idea["tags"],
+                            "season": season,
+                        }
+                    )
 
         return calendar
 
@@ -441,8 +493,7 @@ class CollaborationFinder:
         """Initialize collaboration finder."""
         self.potential_partners = []
 
-    def find_similar_channels(self, subscriber_count: int,
-                             niche: str = 'lofi') -> List[Dict]:
+    def find_similar_channels(self, subscriber_count: int, niche: str = "lofi") -> List[Dict]:
         """
         Find similar-sized channels for collaboration.
 
@@ -458,19 +509,19 @@ class CollaborationFinder:
 
         similar_channels = [
             {
-                'name': 'Chill Beats Channel',
-                'subscribers': subscriber_count * 0.8,
-                'niche': 'lofi',
-                'engagement_rate': 0.05,
-                'collaboration_type': 'playlist swap'
+                "name": "Chill Beats Channel",
+                "subscribers": subscriber_count * 0.8,
+                "niche": "lofi",
+                "engagement_rate": 0.05,
+                "collaboration_type": "playlist swap",
             },
             {
-                'name': 'Study Music Hub',
-                'subscribers': subscriber_count * 1.2,
-                'niche': 'study music',
-                'engagement_rate': 0.06,
-                'collaboration_type': 'featured track'
-            }
+                "name": "Study Music Hub",
+                "subscribers": subscriber_count * 1.2,
+                "niche": "study music",
+                "engagement_rate": 0.06,
+                "collaboration_type": "featured track",
+            },
         ]
 
         return similar_channels
@@ -480,15 +531,16 @@ class CollaborationFinder:
         templates = [
             f"Hey! I love your {channel['niche']} content. Would you be interested in a playlist swap?",
             f"Your channel has great {channel['niche']} vibes! Let's collaborate on a joint release.",
-            f"I think our audiences would love a crossover. Want to feature each other's tracks?"
+            f"I think our audiences would love a crossover. Want to feature each other's tracks?",
         ]
 
         import random
+
         return random.choice(templates)
 
 
 # Example usage
-if __name__ == '__main__':
+if __name__ == "__main__":
     print("=== YouTube Automation System ===\n")
 
     # Upload automation
@@ -498,15 +550,15 @@ if __name__ == '__main__':
     metadata = VideoMetadata(
         title="Chill Lofi Beats to Study/Relax To [Peaceful Vibes]",
         description="Perfect study music for focus and productivity...",
-        tags=['lofi', 'study music', 'chill beats', 'focus music'],
-        privacy_status="public"
+        tags=["lofi", "study music", "chill beats", "focus music"],
+        privacy_status="public",
     )
 
     schedule = UploadSchedule(
         video_path="/path/to/video.mp4",
         metadata=metadata,
         scheduled_time=datetime.now() + timedelta(hours=2),
-        priority=5
+        priority=5,
     )
 
     uploader.add_to_queue(schedule)

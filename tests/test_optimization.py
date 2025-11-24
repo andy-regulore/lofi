@@ -12,7 +12,7 @@ def test_generation_cache():
     cache = GenerationCache(max_cache_size=10)
 
     # Test put and get
-    params = {'tempo': 75, 'key': 'Am', 'seed': 42}
+    params = {"tempo": 75, "key": "Am", "seed": 42}
     tokens = [1, 2, 3, 4, 5]
 
     cache.put(params, tokens)
@@ -21,16 +21,16 @@ def test_generation_cache():
     assert cached == tokens
 
     # Test cache miss
-    different_params = {'tempo': 80, 'key': 'C', 'seed': 42}
+    different_params = {"tempo": 80, "key": "C", "seed": 42}
     assert cache.get(different_params) is None
 
     # Test cache eviction
     for i in range(15):
-        cache.put({'seed': i}, [i])
+        cache.put({"seed": i}, [i])
 
     stats = cache.get_stats()
-    assert stats['size'] == 10  # Max size
-    assert stats['utilization'] == 100.0
+    assert stats["size"] == 10  # Max size
+    assert stats["utilization"] == 100.0
 
 
 def test_model_quantization():
@@ -62,7 +62,7 @@ def test_fp16_conversion():
     model = nn.Linear(100, 50)
 
     # Convert to FP16
-    fp16_model = ModelQuantizer.convert_to_fp16(model, device='cuda')
+    fp16_model = ModelQuantizer.convert_to_fp16(model, device="cuda")
 
     # Check dtype
     for param in fp16_model.parameters():
@@ -75,14 +75,15 @@ def test_beam_search_generator():
 
     # Note: This test would require a full model
     # Just test that the class exists and has the method
-    assert hasattr(BeamSearchGenerator, 'beam_search')
+    assert hasattr(BeamSearchGenerator, "beam_search")
 
 
 def test_constrained_decoder():
     """Test constrained decoding."""
-    from src.optimization import ConstrainedDecoder
-    from src.music_theory import MusicTheoryEngine
     from unittest.mock import Mock
+
+    from src.music_theory import MusicTheoryEngine
+    from src.optimization import ConstrainedDecoder
 
     theory = MusicTheoryEngine()
     tokenizer = Mock()
@@ -90,7 +91,7 @@ def test_constrained_decoder():
     decoder = ConstrainedDecoder(theory, tokenizer)
 
     # Test setting constraints
-    decoder.set_constraints(key='C', allow_chromatic=True)
+    decoder.set_constraints(key="C", allow_chromatic=True)
     assert decoder.allowed_tokens is not None
 
 
@@ -98,7 +99,7 @@ def test_batch_inference_optimizer():
     """Test batch inference optimization."""
     from src.optimization import BatchInferenceOptimizer
 
-    requests = [{'id': i} for i in range(100)]
+    requests = [{"id": i} for i in range(100)]
 
     batches = BatchInferenceOptimizer.dynamic_batching(
         requests,
@@ -112,8 +113,9 @@ def test_batch_inference_optimizer():
 
 def test_kv_cache_optimizer():
     """Test KV-cache optimization."""
-    from src.optimization import KVCacheOptimizer
     from transformers import GPT2Config, GPT2LMHeadModel
+
+    from src.optimization import KVCacheOptimizer
 
     config = GPT2Config(
         vocab_size=100,

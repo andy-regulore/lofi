@@ -8,10 +8,10 @@ Features:
 """
 
 import logging
-from typing import Dict, List, Optional, Callable
-import time
-import threading
 import queue
+import threading
+import time
+from typing import Callable, Dict, List, Optional
 
 import numpy as np
 
@@ -66,12 +66,12 @@ class RealtimeMIDIGenerator:
 
         # Initialize context
         if initial_tokens:
-            self.context_tokens = initial_tokens[-self.buffer_size:]
-        elif conditioning and hasattr(self.model, 'create_conditioning_prefix'):
+            self.context_tokens = initial_tokens[-self.buffer_size :]
+        elif conditioning and hasattr(self.model, "create_conditioning_prefix"):
             self.context_tokens = self.model.create_conditioning_prefix(
-                tempo=conditioning.get('tempo', 75),
-                key=conditioning.get('key', 'C'),
-                mood=conditioning.get('mood', 'chill'),
+                tempo=conditioning.get("tempo", 75),
+                key=conditioning.get("key", "C"),
+                mood=conditioning.get("mood", "chill"),
             )
         else:
             # Random start
@@ -120,7 +120,7 @@ class RealtimeMIDIGenerator:
 
             # Maintain buffer size
             if len(self.context_tokens) > self.buffer_size:
-                self.context_tokens = self.context_tokens[-self.buffer_size:]
+                self.context_tokens = self.context_tokens[-self.buffer_size :]
 
             # Output token
             self.output_queue.put(next_token)
@@ -160,7 +160,7 @@ class RealtimeMIDIGenerator:
 
         # Maintain buffer size
         if len(self.context_tokens) > self.buffer_size:
-            self.context_tokens = self.context_tokens[-self.buffer_size:]
+            self.context_tokens = self.context_tokens[-self.buffer_size :]
 
 
 class InteractiveJammer:
@@ -281,11 +281,7 @@ class LoopGenerator:
         self.tokenizer = tokenizer
 
     def generate_loop(
-        self,
-        num_measures: int = 4,
-        tempo: int = 75,
-        ensure_loopable: bool = True,
-        **kwargs
+        self, num_measures: int = 4, tempo: int = 75, ensure_loopable: bool = True, **kwargs
     ) -> List[int]:
         """Generate a loopable sequence.
 
@@ -306,11 +302,11 @@ class LoopGenerator:
         # Generate
         import torch
 
-        if hasattr(self.model, 'create_conditioning_prefix'):
+        if hasattr(self.model, "create_conditioning_prefix"):
             initial = self.model.create_conditioning_prefix(
                 tempo=tempo,
-                key=kwargs.get('key', 'C'),
-                mood=kwargs.get('mood', 'chill'),
+                key=kwargs.get("key", "C"),
+                mood=kwargs.get("mood", "chill"),
             )
         else:
             initial = [0]
@@ -321,15 +317,15 @@ class LoopGenerator:
             outputs = self.model.generate(
                 initial_tensor,
                 max_length=len(initial) + target_length,
-                temperature=kwargs.get('temperature', 0.9),
-                top_k=kwargs.get('top_k', 50),
-                top_p=kwargs.get('top_p', 0.95),
+                temperature=kwargs.get("temperature", 0.9),
+                top_k=kwargs.get("top_k", 50),
+                top_p=kwargs.get("top_p", 0.95),
             )
 
         tokens = outputs[0].cpu().tolist()
 
         # Remove conditioning prefix
-        if hasattr(self.model, 'base_vocab_size'):
+        if hasattr(self.model, "base_vocab_size"):
             tokens = [t for t in tokens if t < self.model.base_vocab_size]
 
         if ensure_loopable:

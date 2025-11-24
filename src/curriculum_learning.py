@@ -11,9 +11,10 @@ Also includes multi-task learning and meta-learning approaches.
 
 import logging
 from typing import Dict, List, Optional, Tuple
+
 import numpy as np
 import torch
-from torch.utils.data import Dataset, DataLoader, Sampler
+from torch.utils.data import DataLoader, Dataset, Sampler
 
 logger = logging.getLogger(__name__)
 
@@ -51,7 +52,7 @@ class MusicComplexityScorer:
         scores.append(range_score)
 
         # Interval complexity
-        intervals = [abs(notes[i+1] - notes[i]) for i in range(len(notes)-1)]
+        intervals = [abs(notes[i + 1] - notes[i]) for i in range(len(notes) - 1)]
         avg_interval = np.mean(intervals)
         interval_score = min(avg_interval / 7, 1.0)  # Normalize to perfect fifth
         scores.append(interval_score)
@@ -66,10 +67,7 @@ class MusicComplexityScorer:
 
         return np.mean(scores)
 
-    def score_harmonic_complexity(
-        self,
-        chords: List[List[int]]
-    ) -> float:
+    def score_harmonic_complexity(self, chords: List[List[int]]) -> float:
         """Score harmonic complexity.
 
         Args:
@@ -98,7 +96,7 @@ class MusicComplexityScorer:
             for i in range(len(chords) - 1):
                 # Calculate minimum voice motion
                 for note1 in chords[i]:
-                    min_dist = min(abs(note1 - note2) for note2 in chords[i+1])
+                    min_dist = min(abs(note1 - note2) for note2 in chords[i + 1])
                     total_motion += min_dist
 
             avg_motion = total_motion / (len(chords) - 1)
@@ -218,9 +216,8 @@ class CurriculumSampler(Sampler):
         """Iterate through samples."""
         # Calculate current percentile
         progress = min(self.current_epoch / self.num_epochs, 1.0)
-        current_percentile = (
-            self.initial_percentile +
-            progress * (self.final_percentile - self.initial_percentile)
+        current_percentile = self.initial_percentile + progress * (
+            self.final_percentile - self.initial_percentile
         )
 
         # Select samples up to current percentile
@@ -235,9 +232,8 @@ class CurriculumSampler(Sampler):
     def __len__(self):
         """Get number of samples."""
         progress = min(self.current_epoch / self.num_epochs, 1.0)
-        current_percentile = (
-            self.initial_percentile +
-            progress * (self.final_percentile - self.initial_percentile)
+        current_percentile = self.initial_percentile + progress * (
+            self.final_percentile - self.initial_percentile
         )
         return int(len(self.dataset) * current_percentile)
 
@@ -298,13 +294,13 @@ class MultiTaskLearner:
         pooled = hidden_states.mean(dim=1)
 
         results = {
-            'logits': outputs.logits,  # Main task
+            "logits": outputs.logits,  # Main task
         }
 
         if return_all_tasks:
-            results['chord_logits'] = self.chord_head(pooled)
-            results['genre_logits'] = self.genre_head(pooled)
-            results['mood_logits'] = self.mood_head(pooled)
+            results["chord_logits"] = self.chord_head(pooled)
+            results["genre_logits"] = self.genre_head(pooled)
+            results["mood_logits"] = self.mood_head(pooled)
 
         return results
 
@@ -332,10 +328,10 @@ class MultiTaskLearner:
         """
         if task_weights is None:
             task_weights = {
-                'main': 1.0,
-                'chord': 0.3,
-                'genre': 0.2,
-                'mood': 0.2,
+                "main": 1.0,
+                "chord": 0.3,
+                "genre": 0.2,
+                "mood": 0.2,
             }
 
         losses = {}
@@ -343,38 +339,38 @@ class MultiTaskLearner:
 
         # Main task (next token prediction)
         main_loss = torch.nn.functional.cross_entropy(
-            outputs['logits'].view(-1, outputs['logits'].size(-1)),
+            outputs["logits"].view(-1, outputs["logits"].size(-1)),
             labels.view(-1),
         )
-        losses['main'] = main_loss.item()
-        total_loss += task_weights['main'] * main_loss
+        losses["main"] = main_loss.item()
+        total_loss += task_weights["main"] * main_loss
 
         # Chord prediction
-        if chord_labels is not None and 'chord_logits' in outputs:
+        if chord_labels is not None and "chord_logits" in outputs:
             chord_loss = torch.nn.functional.cross_entropy(
-                outputs['chord_logits'],
+                outputs["chord_logits"],
                 chord_labels,
             )
-            losses['chord'] = chord_loss.item()
-            total_loss += task_weights['chord'] * chord_loss
+            losses["chord"] = chord_loss.item()
+            total_loss += task_weights["chord"] * chord_loss
 
         # Genre classification
-        if genre_labels is not None and 'genre_logits' in outputs:
+        if genre_labels is not None and "genre_logits" in outputs:
             genre_loss = torch.nn.functional.cross_entropy(
-                outputs['genre_logits'],
+                outputs["genre_logits"],
                 genre_labels,
             )
-            losses['genre'] = genre_loss.item()
-            total_loss += task_weights['genre'] * genre_loss
+            losses["genre"] = genre_loss.item()
+            total_loss += task_weights["genre"] * genre_loss
 
         # Mood prediction
-        if mood_labels is not None and 'mood_logits' in outputs:
+        if mood_labels is not None and "mood_logits" in outputs:
             mood_loss = torch.nn.functional.cross_entropy(
-                outputs['mood_logits'],
+                outputs["mood_logits"],
                 mood_labels,
             )
-            losses['mood'] = mood_loss.item()
-            total_loss += task_weights['mood'] * mood_loss
+            losses["mood"] = mood_loss.item()
+            total_loss += task_weights["mood"] * mood_loss
 
         return total_loss, losses
 
@@ -492,6 +488,7 @@ class MetaLearner:
         # This is a simplified version
         # In practice, would use higher-order gradient libraries
         import copy
+
         return copy.deepcopy(model)
 
 
@@ -544,7 +541,9 @@ class ProgressiveGAN:
         """Advance to next growth stage."""
         if self.current_stage < len(self.growth_schedule) - 1:
             self.current_stage += 1
-            logger.info(f"Advanced to stage {self.current_stage}, length: {self.get_current_length()}")
+            logger.info(
+                f"Advanced to stage {self.current_stage}, length: {self.get_current_length()}"
+            )
 
     def should_advance(
         self,
@@ -561,8 +560,8 @@ class ProgressiveGAN:
             True if should advance
         """
         # Advance if loss is below threshold
-        if 'loss' in metrics:
-            return metrics['loss'] < threshold
+        if "loss" in metrics:
+            return metrics["loss"] < threshold
 
         return False
 
@@ -591,13 +590,13 @@ class CurriculumTrainer:
         self.progressive_gan = None
 
         # Setup based on config
-        if config.get('use_multi_task', False):
+        if config.get("use_multi_task", False):
             self.multi_task = MultiTaskLearner(model)
 
-        if config.get('use_meta_learning', False):
+        if config.get("use_meta_learning", False):
             self.meta_learner = MetaLearner(model)
 
-        if config.get('use_progressive', False):
+        if config.get("use_progressive", False):
             self.progressive_gan = ProgressiveGAN(model)
 
     def train_with_curriculum(
@@ -633,8 +632,8 @@ class CurriculumTrainer:
         )
 
         history = {
-            'epoch_losses': [],
-            'complexity_percentiles': [],
+            "epoch_losses": [],
+            "complexity_percentiles": [],
         }
 
         # Training loop
@@ -644,15 +643,15 @@ class CurriculumTrainer:
             # Create dataloader with curriculum sampler
             dataloader = DataLoader(
                 train_dataset,
-                batch_size=self.config['batch_size'],
+                batch_size=self.config["batch_size"],
                 sampler=sampler,
             )
 
             # Train epoch
             epoch_loss = self._train_epoch(dataloader, epoch)
 
-            history['epoch_losses'].append(epoch_loss)
-            history['complexity_percentiles'].append(len(sampler) / len(train_dataset))
+            history["epoch_losses"].append(epoch_loss)
+            history["complexity_percentiles"].append(len(sampler) / len(train_dataset))
 
             logger.info(
                 f"Epoch {epoch + 1}/{num_epochs}: "
@@ -662,7 +661,7 @@ class CurriculumTrainer:
 
             # Check if should advance progressive stage
             if self.progressive_gan:
-                if self.progressive_gan.should_advance({'loss': epoch_loss}):
+                if self.progressive_gan.should_advance({"loss": epoch_loss}):
                     self.progressive_gan.advance_stage()
 
         return history

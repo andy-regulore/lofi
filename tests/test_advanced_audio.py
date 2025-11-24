@@ -1,7 +1,7 @@
 """Tests for advanced audio processing."""
 
-import pytest
 import numpy as np
+import pytest
 
 
 @pytest.fixture
@@ -38,7 +38,7 @@ def test_advanced_lofi_effects(sample_audio):
     assert vinyl.shape == audio.shape
 
     # Test vintage EQ
-    eq_audio = processor.vintage_eq_curve(audio, style='lofi')
+    eq_audio = processor.vintage_eq_curve(audio, style="lofi")
     assert eq_audio.shape == audio.shape
 
 
@@ -49,7 +49,7 @@ def test_lofi_presets(sample_audio):
     audio, sr = sample_audio
     processor = AdvancedLoFiEffects(sample_rate=sr)
 
-    presets = ['classic', 'heavy', 'subtle', 'vintage']
+    presets = ["classic", "heavy", "subtle", "vintage"]
 
     for preset in presets:
         processed = processor.apply_all_lofi_effects(audio, preset=preset)
@@ -82,10 +82,10 @@ def test_stem_separator(sample_audio):
 
     stems = separator.separate(audio, sample_rate=sr)
 
-    assert 'bass' in stems
-    assert 'mids' in stems
-    assert 'highs' in stems
-    assert stems['bass'].shape == audio.shape
+    assert "bass" in stems
+    assert "mids" in stems
+    assert "highs" in stems
+    assert stems["bass"].shape == audio.shape
 
 
 def test_professional_mixer(sample_audio):

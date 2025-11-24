@@ -17,16 +17,17 @@ Author: Claude
 License: MIT
 """
 
-import redis
-import json
-import pickle
 import hashlib
-from typing import Any, Optional, List, Dict, Callable
-from datetime import datetime, timedelta
-from functools import wraps
+import json
 import logging
+import pickle
 import time
+from datetime import datetime, timedelta
 from enum import Enum
+from functools import wraps
+from typing import Any, Callable, Dict, List, Optional
+
+import redis
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -34,6 +35,7 @@ logger = logging.getLogger(__name__)
 
 class Priority(Enum):
     """Job priority levels."""
+
     LOW = 1
     NORMAL = 2
     HIGH = 3
@@ -45,8 +47,9 @@ class RedisQueue:
     Redis-based distributed job queue with priority support.
     """
 
-    def __init__(self, host: str = 'localhost', port: int = 6379,
-                 db: int = 0, password: Optional[str] = None):
+    def __init__(
+        self, host: str = "localhost", port: int = 6379, db: int = 0, password: Optional[str] = None
+    ):
         """
         Initialize Redis queue.
 
@@ -62,7 +65,7 @@ class RedisQueue:
                 port=port,
                 db=db,
                 password=password,
-                decode_responses=False  # We'll handle encoding
+                decode_responses=False,  # We'll handle encoding
             )
             # Test connection
             self.redis_client.ping()
@@ -77,7 +80,7 @@ class RedisQueue:
             Priority.URGENT: "queue:urgent",
             Priority.HIGH: "queue:high",
             Priority.NORMAL: "queue:normal",
-            Priority.LOW: "queue:low"
+            Priority.LOW: "queue:low",
         }
 
         # Processing and completed queues
@@ -85,8 +88,9 @@ class RedisQueue:
         self.completed_key = "queue:completed"
         self.failed_key = "queue:failed"
 
-    def enqueue(self, task_data: Dict, priority: Priority = Priority.NORMAL,
-                task_id: Optional[str] = None) -> str:
+    def enqueue(
+        self, task_data: Dict, priority: Priority = Priority.NORMAL, task_id: Optional[str] = None
+    ) -> str:
         """
         Add a task to the queue.
 
@@ -108,11 +112,11 @@ class RedisQueue:
 
         # Prepare task
         task = {
-            'task_id': task_id,
-            'data': task_data,
-            'priority': priority.value,
-            'enqueued_at': datetime.now().isoformat(),
-            'status': 'queued'
+            "task_id": task_id,
+            "data": task_data,
+            "priority": priority.value,
+            "enqueued_at": datetime.now().isoformat(),
+            "status": "queued",
         }
 
         # Serialize task
@@ -123,11 +127,14 @@ class RedisQueue:
         self.redis_client.rpush(queue_key, serialized_task)
 
         # Store task metadata
-        self.redis_client.hset(f"task:{task_id}", mapping={
-            'status': 'queued',
-            'priority': priority.value,
-            'enqueued_at': task['enqueued_at']
-        })
+        self.redis_client.hset(
+            f"task:{task_id}",
+            mapping={
+                "status": "queued",
+                "priority": priority.value,
+                "enqueued_at": task["enqueued_at"],
+            },
+        )
 
         logger.info(f"Enqueued task {task_id} with priority {priority.name}")
         return task_id
@@ -170,15 +177,14 @@ class RedisQueue:
 
     def _mark_processing(self, task: Dict):
         """Mark task as being processed."""
-        task_id = task['task_id']
-        task['status'] = 'processing'
-        task['started_at'] = datetime.now().isoformat()
+        task_id = task["task_id"]
+        task["status"] = "processing"
+        task["started_at"] = datetime.now().isoformat()
 
         # Update task metadata
-        self.redis_client.hset(f"task:{task_id}", mapping={
-            'status': 'processing',
-            'started_at': task['started_at']
-        })
+        self.redis_client.hset(
+            f"task:{task_id}", mapping={"status": "processing", "started_at": task["started_at"]}
+        )
 
         # Add to processing queue
         self.redis_client.rpush(self.processing_key, pickle.dumps(task))
@@ -199,10 +205,9 @@ class RedisQueue:
         completed_at = datetime.now().isoformat()
 
         # Update task metadata
-        self.redis_client.hset(f"task:{task_id}", mapping={
-            'status': 'completed',
-            'completed_at': completed_at
-        })
+        self.redis_client.hset(
+            f"task:{task_id}", mapping={"status": "completed", "completed_at": completed_at}
+        )
 
         # Store result if provided
         if result is not None:
@@ -227,11 +232,9 @@ class RedisQueue:
         failed_at = datetime.now().isoformat()
 
         # Update task metadata
-        self.redis_client.hset(f"task:{task_id}", mapping={
-            'status': 'failed',
-            'failed_at': failed_at,
-            'error': error
-        })
+        self.redis_client.hset(
+            f"task:{task_id}", mapping={"status": "failed", "failed_at": failed_at, "error": error}
+        )
 
         logger.error(f"Task {task_id} failed: {error}")
 
@@ -265,20 +268,16 @@ class RedisQueue:
         if not self.redis_client:
             return {}
 
-        stats = {
-            'queued': {},
-            'processing': 0,
-            'total_queued': 0
-        }
+        stats = {"queued": {}, "processing": 0, "total_queued": 0}
 
         # Count tasks in each priority queue
         for priority, queue_key in self.queue_keys.items():
             count = self.redis_client.llen(queue_key)
-            stats['queued'][priority.name] = count
-            stats['total_queued'] += count
+            stats["queued"][priority.name] = count
+            stats["total_queued"] += count
 
         # Count processing tasks
-        stats['processing'] = self.redis_client.llen(self.processing_key)
+        stats["processing"] = self.redis_client.llen(self.processing_key)
 
         return stats
 
@@ -307,9 +306,14 @@ class RedisCache:
     Redis-based caching layer with automatic expiration.
     """
 
-    def __init__(self, host: str = 'localhost', port: int = 6379,
-                 db: int = 1, password: Optional[str] = None,
-                 default_ttl: int = 3600):
+    def __init__(
+        self,
+        host: str = "localhost",
+        port: int = 6379,
+        db: int = 1,
+        password: Optional[str] = None,
+        default_ttl: int = 3600,
+    ):
         """
         Initialize Redis cache.
 
@@ -322,11 +326,7 @@ class RedisCache:
         """
         try:
             self.redis_client = redis.Redis(
-                host=host,
-                port=port,
-                db=db,
-                password=password,
-                decode_responses=False
+                host=host, port=port, db=db, password=password, decode_responses=False
             )
             self.redis_client.ping()
             logger.info(f"Connected to Redis cache at {host}:{port}/{db}")
@@ -438,6 +438,7 @@ def cached(ttl: int = 3600, namespace: str = "function", key_prefix: str = ""):
             # Expensive API call
             return stats
     """
+
     def decorator(func: Callable) -> Callable:
         cache = RedisCache(default_ttl=ttl)
 
@@ -496,8 +497,7 @@ class CacheManager:
         """
         self.cache = cache or RedisCache()
 
-    def cache_api_response(self, api_name: str, endpoint: str,
-                          response: Any, ttl: int = 300):
+    def cache_api_response(self, api_name: str, endpoint: str, response: Any, ttl: int = 300):
         """
         Cache API response.
 
@@ -515,8 +515,9 @@ class CacheManager:
         key = f"{api_name}:{endpoint}"
         return self.cache.get(key, namespace="api")
 
-    def cache_generated_content(self, content_type: str, content_id: str,
-                               content: Any, ttl: int = 86400):
+    def cache_generated_content(
+        self, content_type: str, content_id: str, content: Any, ttl: int = 86400
+    ):
         """
         Cache generated content (music, videos, etc.).
 
@@ -559,16 +560,16 @@ class CacheManager:
         info = self.cache.redis_client.info("stats")
 
         return {
-            'hits': info.get('keyspace_hits', 0),
-            'misses': info.get('keyspace_misses', 0),
-            'hit_rate': self._calculate_hit_rate(info),
-            'total_keys': self.cache.redis_client.dbsize()
+            "hits": info.get("keyspace_hits", 0),
+            "misses": info.get("keyspace_misses", 0),
+            "hit_rate": self._calculate_hit_rate(info),
+            "total_keys": self.cache.redis_client.dbsize(),
         }
 
     def _calculate_hit_rate(self, info: Dict) -> float:
         """Calculate cache hit rate."""
-        hits = info.get('keyspace_hits', 0)
-        misses = info.get('keyspace_misses', 0)
+        hits = info.get("keyspace_hits", 0)
+        misses = info.get("keyspace_misses", 0)
         total = hits + misses
 
         if total == 0:
@@ -587,9 +588,9 @@ if __name__ == "__main__":
     if queue.redis_client:
         # Enqueue some tasks
         task_ids = []
-        task_ids.append(queue.enqueue({'type': 'generate_music', 'count': 10}, Priority.HIGH))
-        task_ids.append(queue.enqueue({'type': 'create_video', 'track_id': '123'}, Priority.NORMAL))
-        task_ids.append(queue.enqueue({'type': 'upload_youtube', 'video_id': '456'}, Priority.LOW))
+        task_ids.append(queue.enqueue({"type": "generate_music", "count": 10}, Priority.HIGH))
+        task_ids.append(queue.enqueue({"type": "create_video", "track_id": "123"}, Priority.NORMAL))
+        task_ids.append(queue.enqueue({"type": "upload_youtube", "video_id": "456"}, Priority.LOW))
 
         # Check queue stats
         stats = queue.get_queue_stats()
@@ -601,10 +602,10 @@ if __name__ == "__main__":
             print(f"\nProcessing: {task['data']}")
             # Simulate processing
             time.sleep(0.1)
-            queue.complete_task(task['task_id'], result={'status': 'success'})
+            queue.complete_task(task["task_id"], result={"status": "success"})
 
             # Check status
-            status = queue.get_task_status(task['task_id'])
+            status = queue.get_task_status(task["task_id"])
             print(f"Task Status: {status}")
 
     print("\n=== Redis Cache Example ===")
@@ -614,8 +615,8 @@ if __name__ == "__main__":
 
     if cache.redis_client:
         # Cache some data
-        cache.set("video:123", {'views': 1000, 'likes': 50}, ttl=60)
-        cache.set("channel:abc", {'subscribers': 10000}, ttl=300)
+        cache.set("video:123", {"views": 1000, "likes": 50}, ttl=60)
+        cache.set("channel:abc", {"subscribers": 10000}, ttl=300)
 
         # Retrieve from cache
         video_data = cache.get("video:123")
@@ -648,7 +649,7 @@ if __name__ == "__main__":
 
     if manager.cache.redis_client:
         # Cache API response
-        manager.cache_api_response("youtube", "videos/list?id=123", {'title': 'My Video'})
+        manager.cache_api_response("youtube", "videos/list?id=123", {"title": "My Video"})
 
         # Retrieve API response
         response = manager.get_api_response("youtube", "videos/list?id=123")

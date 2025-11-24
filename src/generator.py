@@ -8,12 +8,12 @@ Handles:
 """
 
 import logging
+import random
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
-import random
 
-import torch
 import numpy as np
+import torch
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 class LoFiGenerator:
     """Generator for lo-fi music tracks."""
 
-    def __init__(self, model, tokenizer, config: Dict, device: str = 'cuda'):
+    def __init__(self, model, tokenizer, config: Dict, device: str = "cuda"):
         """Initialize generator.
 
         Args:
@@ -34,7 +34,7 @@ class LoFiGenerator:
         self.model = model
         self.tokenizer = tokenizer
         self.config = config
-        self.gen_config = config['generation']
+        self.gen_config = config["generation"]
         self.device = device
 
         # Move model to device and set to eval mode
@@ -77,24 +77,24 @@ class LoFiGenerator:
 
         # Use defaults from config if not specified
         if tempo is None:
-            tempo_range = self.gen_config['conditioning']['tempo_range']
+            tempo_range = self.gen_config["conditioning"]["tempo_range"]
             tempo = random.uniform(tempo_range[0], tempo_range[1])
 
         if key is None:
-            key = random.choice(self.gen_config['conditioning']['keys'])
+            key = random.choice(self.gen_config["conditioning"]["keys"])
 
         if mood is None:
-            mood = random.choice(self.gen_config['conditioning']['moods'])
+            mood = random.choice(self.gen_config["conditioning"]["moods"])
 
-        max_length = max_length or self.gen_config['max_length']
-        temperature = temperature or self.gen_config['temperature']
-        top_k = top_k or self.gen_config['top_k']
-        top_p = top_p or self.gen_config['top_p']
+        max_length = max_length or self.gen_config["max_length"]
+        temperature = temperature or self.gen_config["temperature"]
+        top_k = top_k or self.gen_config["top_k"]
+        top_p = top_p or self.gen_config["top_p"]
 
         logger.info(f"Generating track: tempo={tempo:.1f}, key={key}, mood={mood}")
 
         # Create conditioning prefix if model supports it
-        if hasattr(self.model, 'create_conditioning_prefix'):
+        if hasattr(self.model, "create_conditioning_prefix"):
             conditioning_tokens = self.model.create_conditioning_prefix(tempo, key, mood)
             input_ids = torch.tensor([conditioning_tokens], dtype=torch.long).to(self.device)
         else:
@@ -119,14 +119,14 @@ class LoFiGenerator:
 
         # Metadata
         metadata = {
-            'tempo': tempo,
-            'key': key,
-            'mood': mood,
-            'temperature': temperature,
-            'top_k': top_k,
-            'top_p': top_p,
-            'num_tokens': len(generated_tokens),
-            'seed': seed,
+            "tempo": tempo,
+            "key": key,
+            "mood": mood,
+            "temperature": temperature,
+            "top_k": top_k,
+            "top_p": top_p,
+            "num_tokens": len(generated_tokens),
+            "seed": seed,
         }
 
         logger.info(f"Generated {len(generated_tokens)} tokens")
@@ -145,7 +145,7 @@ class LoFiGenerator:
         """
         try:
             # Remove conditioning tokens if present
-            if hasattr(self.model, 'base_vocab_size'):
+            if hasattr(self.model, "base_vocab_size"):
                 # Filter out conditioning tokens
                 base_vocab_size = self.model.base_vocab_size
                 tokens = [t for t in tokens if t < base_vocab_size]
@@ -165,7 +165,7 @@ class LoFiGenerator:
         tempo: Optional[float] = None,
         key: Optional[str] = None,
         mood: Optional[str] = None,
-        **kwargs
+        **kwargs,
     ) -> Dict:
         """Generate track and save as MIDI.
 
@@ -180,12 +180,7 @@ class LoFiGenerator:
             Metadata dictionary
         """
         # Generate tokens
-        tokens, metadata = self.generate_track(
-            tempo=tempo,
-            key=key,
-            mood=mood,
-            **kwargs
-        )
+        tokens, metadata = self.generate_track(tempo=tempo, key=key, mood=mood, **kwargs)
 
         # Save as MIDI
         output_path = Path(output_path)
@@ -194,9 +189,9 @@ class LoFiGenerator:
         success = self.tokens_to_midi(tokens, str(output_path))
 
         if success:
-            metadata['output_path'] = str(output_path)
+            metadata["output_path"] = str(output_path)
         else:
-            metadata['error'] = 'Failed to convert to MIDI'
+            metadata["error"] = "Failed to convert to MIDI"
 
         return metadata
 
@@ -226,12 +221,16 @@ class LoFiGenerator:
         # Prepare variety if requested
         if ensure_variety:
             tempos = np.linspace(
-                self.gen_config['conditioning']['tempo_range'][0],
-                self.gen_config['conditioning']['tempo_range'][1],
-                num_tracks
+                self.gen_config["conditioning"]["tempo_range"][0],
+                self.gen_config["conditioning"]["tempo_range"][1],
+                num_tracks,
             )
-            keys = self.gen_config['conditioning']['keys'] * (num_tracks // len(self.gen_config['conditioning']['keys']) + 1)
-            moods = self.gen_config['conditioning']['moods'] * (num_tracks // len(self.gen_config['conditioning']['moods']) + 1)
+            keys = self.gen_config["conditioning"]["keys"] * (
+                num_tracks // len(self.gen_config["conditioning"]["keys"]) + 1
+            )
+            moods = self.gen_config["conditioning"]["moods"] * (
+                num_tracks // len(self.gen_config["conditioning"]["moods"]) + 1
+            )
 
             random.shuffle(keys)
             random.shuffle(moods)
@@ -252,18 +251,19 @@ class LoFiGenerator:
                 tempo=float(tempos[i]) if tempos[i] is not None else None,
                 key=keys[i],
                 mood=moods[i],
-                seed=self.config['seed'] + i,
+                seed=self.config["seed"] + i,
             )
 
-            metadata['track_number'] = i + 1
+            metadata["track_number"] = i + 1
             metadata_list.append(metadata)
 
         logger.info(f"Generated {num_tracks} tracks in {output_dir}")
 
         # Save metadata
         import json
+
         metadata_file = output_dir / f"{name_prefix}_metadata.json"
-        with open(metadata_file, 'w') as f:
+        with open(metadata_file, "w") as f:
             json.dump(metadata_list, f, indent=2)
 
         return metadata_list
@@ -297,7 +297,7 @@ class LoFiGenerator:
         score += diversity_score
 
         # Bonus for appropriate tempo
-        if 65 <= metadata.get('tempo', 0) <= 85:
+        if 65 <= metadata.get("tempo", 0) <= 85:
             score += 0.5
 
         # Cap at 10

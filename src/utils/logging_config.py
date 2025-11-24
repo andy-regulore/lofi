@@ -51,18 +51,18 @@ class JSONFormatter(json_log_formatter.JSONFormatter):
         Returns:
             Dictionary to be JSON-serialized
         """
-        extra['message'] = message
-        extra['level'] = record.levelname
-        extra['logger'] = record.name
-        extra['timestamp'] = self.formatTime(record)
+        extra["message"] = message
+        extra["level"] = record.levelname
+        extra["logger"] = record.name
+        extra["timestamp"] = self.formatTime(record)
 
         # Add exception info if present
         if record.exc_info:
-            extra['exception'] = self.formatException(record.exc_info)
+            extra["exception"] = self.formatException(record.exc_info)
 
         # Add custom context fields
         for key in dir(record):
-            if key.startswith('_') or key in ['msg', 'args', 'levelname', 'levelno', 'name']:
+            if key.startswith("_") or key in ["msg", "args", "levelname", "levelno", "name"]:
                 continue
             value = getattr(record, key, None)
             if value and not callable(value):
@@ -104,8 +104,8 @@ def setup_logging(
         console_formatter = JSONFormatter()
     else:
         console_formatter = logging.Formatter(
-            '%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-            datefmt='%Y-%m-%d %H:%M:%S',
+            "%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+            datefmt="%Y-%m-%d %H:%M:%S",
         )
 
     console_handler.setFormatter(console_formatter)
@@ -132,8 +132,8 @@ def setup_logging(
             file_formatter = JSONFormatter()
         else:
             file_formatter = logging.Formatter(
-                '%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-                datefmt='%Y-%m-%d %H:%M:%S',
+                "%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+                datefmt="%Y-%m-%d %H:%M:%S",
             )
 
         file_handler.setFormatter(file_formatter)
@@ -144,9 +144,9 @@ def setup_logging(
         root_logger.addHandler(file_handler)
 
     # Set specific logger levels
-    logging.getLogger('transformers').setLevel(logging.WARNING)
-    logging.getLogger('torch').setLevel(logging.WARNING)
-    logging.getLogger('matplotlib').setLevel(logging.WARNING)
+    logging.getLogger("transformers").setLevel(logging.WARNING)
+    logging.getLogger("torch").setLevel(logging.WARNING)
+    logging.getLogger("matplotlib").setLevel(logging.WARNING)
 
 
 def get_logger(name: str, context: Optional[Dict[str, Any]] = None) -> logging.Logger:

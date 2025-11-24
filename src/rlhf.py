@@ -9,16 +9,16 @@ Components:
 - Preference data collection and management
 """
 
+import json
 import logging
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
-import json
 
+import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from torch.utils.data import Dataset, DataLoader
-import numpy as np
+from torch.utils.data import DataLoader, Dataset
 
 logger = logging.getLogger(__name__)
 
@@ -55,11 +55,11 @@ class MusicPreferenceDataset(Dataset):
         pref = self.preferences[idx]
 
         return {
-            'track_a': torch.tensor(pref['track_a'], dtype=torch.long),
-            'track_b': torch.tensor(pref['track_b'], dtype=torch.long),
-            'preferred': 0 if pref['preferred'] == 'a' else 1,
-            'metadata_a': pref['metadata_a'],
-            'metadata_b': pref['metadata_b'],
+            "track_a": torch.tensor(pref["track_a"], dtype=torch.long),
+            "track_b": torch.tensor(pref["track_b"], dtype=torch.long),
+            "preferred": 0 if pref["preferred"] == "a" else 1,
+            "metadata_a": pref["metadata_a"],
+            "metadata_b": pref["metadata_b"],
         }
 
 
@@ -125,7 +125,7 @@ class RewardModelTrainer:
         self,
         reward_model: RewardModel,
         learning_rate: float = 1e-5,
-        device: str = 'cuda',
+        device: str = "cuda",
     ):
         """Initialize reward trainer.
 
@@ -198,9 +198,9 @@ class RewardModelTrainer:
 
         for batch in dataloader:
             loss = self.train_step(
-                batch['track_a'],
-                batch['track_b'],
-                batch['preferred'],
+                batch["track_a"],
+                batch["track_b"],
+                batch["preferred"],
             )
 
             total_loss += loss
@@ -208,15 +208,15 @@ class RewardModelTrainer:
 
             # Calculate accuracy
             with torch.no_grad():
-                reward_a = self.reward_model(batch['track_a'].to(self.device))
-                reward_b = self.reward_model(batch['track_b'].to(self.device))
+                reward_a = self.reward_model(batch["track_a"].to(self.device))
+                reward_b = self.reward_model(batch["track_b"].to(self.device))
                 predicted = (reward_b > reward_a).long()
-                correct += (predicted == batch['preferred'].to(self.device)).sum().item()
+                correct += (predicted == batch["preferred"].to(self.device)).sum().item()
                 total += len(predicted)
 
         return {
-            'loss': total_loss / num_batches,
-            'accuracy': correct / total,
+            "loss": total_loss / num_batches,
+            "accuracy": correct / total,
         }
 
     def save(self, path: str):
@@ -250,7 +250,7 @@ class PPOTrainer:
         clip_epsilon: float = 0.2,
         gamma: float = 0.99,
         lam: float = 0.95,
-        device: str = 'cuda',
+        device: str = "cuda",
     ):
         """Initialize PPO trainer.
 
@@ -400,9 +400,9 @@ class PPOTrainer:
         self.optimizer.step()
 
         return {
-            'policy_loss': policy_loss.item(),
-            'value_loss': value_loss.item(),
-            'total_loss': loss.item(),
+            "policy_loss": policy_loss.item(),
+            "value_loss": value_loss.item(),
+            "total_loss": loss.item(),
         }
 
 
@@ -418,7 +418,7 @@ class DPOTrainer:
         reference_model,
         beta: float = 0.1,
         learning_rate: float = 1e-6,
-        device: str = 'cuda',
+        device: str = "cuda",
     ):
         """Initialize DPO trainer.
 
@@ -495,9 +495,9 @@ class DPOTrainer:
         reward_diff = policy_ratio.mean().item()
 
         return loss, {
-            'loss': loss.item(),
-            'accuracy': accuracy,
-            'reward_diff': reward_diff,
+            "loss": loss.item(),
+            "accuracy": accuracy,
+            "reward_diff": reward_diff,
         }
 
     def train_step(
@@ -553,14 +553,14 @@ class DPOTrainer:
         Returns:
             Training metrics
         """
-        total_metrics = {'loss': 0.0, 'accuracy': 0.0, 'reward_diff': 0.0}
+        total_metrics = {"loss": 0.0, "accuracy": 0.0, "reward_diff": 0.0}
         num_batches = 0
 
         for batch in dataloader:
             metrics = self.train_step(
-                batch['track_a'],
-                batch['track_b'],
-                batch['preferred'],
+                batch["track_a"],
+                batch["track_b"],
+                batch["preferred"],
             )
 
             for key in total_metrics:
@@ -610,21 +610,23 @@ class PreferenceCollector:
             metadata_b: Metadata for track B
             reason: Optional explanation
         """
-        self.preferences.append({
-            'track_a': track_a,
-            'track_b': track_b,
-            'preferred': preferred,
-            'metadata_a': metadata_a,
-            'metadata_b': metadata_b,
-            'reason': reason,
-        })
+        self.preferences.append(
+            {
+                "track_a": track_a,
+                "track_b": track_b,
+                "preferred": preferred,
+                "metadata_a": metadata_a,
+                "metadata_b": metadata_b,
+                "reason": reason,
+            }
+        )
 
         # Save immediately
         self.save()
 
     def save(self):
         """Save preferences to file."""
-        with open(self.output_file, 'w') as f:
+        with open(self.output_file, "w") as f:
             json.dump(self.preferences, f, indent=2)
 
     def get_statistics(self) -> Dict:
@@ -634,14 +636,14 @@ class PreferenceCollector:
             Statistics dictionary
         """
         if not self.preferences:
-            return {'total': 0}
+            return {"total": 0}
 
-        preferred_a = sum(1 for p in self.preferences if p['preferred'] == 'a')
-        preferred_b = sum(1 for p in self.preferences if p['preferred'] == 'b')
+        preferred_a = sum(1 for p in self.preferences if p["preferred"] == "a")
+        preferred_b = sum(1 for p in self.preferences if p["preferred"] == "b")
 
         return {
-            'total': len(self.preferences),
-            'preferred_a': preferred_a,
-            'preferred_b': preferred_b,
-            'balance': abs(preferred_a - preferred_b) / len(self.preferences),
+            "total": len(self.preferences),
+            "preferred_a": preferred_a,
+            "preferred_b": preferred_b,
+            "balance": abs(preferred_a - preferred_b) / len(self.preferences),
         }

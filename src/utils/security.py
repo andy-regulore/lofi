@@ -62,13 +62,13 @@ class SecurePathHandler:
             True if path traversal detected
         """
         dangerous_patterns = [
-            '..',  # Parent directory
-            '~',  # Home directory
-            '\\',  # Windows path separators (on Unix)
+            "..",  # Parent directory
+            "~",  # Home directory
+            "\\",  # Windows path separators (on Unix)
         ]
 
         # Normalize path separators
-        normalized = path_str.replace('\\', '/')
+        normalized = path_str.replace("\\", "/")
 
         # Check for dangerous patterns
         for pattern in dangerous_patterns:
@@ -126,13 +126,13 @@ class SecurePathHandler:
         """
         # Remove or replace dangerous characters
         # Keep only alphanumeric, dash, underscore, dot
-        sanitized = re.sub(r'[^\w\s\-\.]', '_', filename)
+        sanitized = re.sub(r"[^\w\s\-\.]", "_", filename)
 
         # Replace multiple spaces/underscores with single
-        sanitized = re.sub(r'[\s_]+', '_', sanitized)
+        sanitized = re.sub(r"[\s_]+", "_", sanitized)
 
         # Remove leading/trailing dots and spaces
-        sanitized = sanitized.strip('. ')
+        sanitized = sanitized.strip(". ")
 
         # Truncate to max length
         if len(sanitized) > max_length:
@@ -142,7 +142,7 @@ class SecurePathHandler:
 
         # Ensure not empty
         if not sanitized:
-            sanitized = 'unnamed_file'
+            sanitized = "unnamed_file"
 
         return sanitized
 
@@ -201,15 +201,15 @@ def sanitize_shell_command(command: str) -> str:
     """
     # Check for dangerous patterns
     dangerous_patterns = [
-        ';',  # Command separator
-        '|',  # Pipe
-        '&',  # Background/AND
-        '$',  # Variable expansion
-        '`',  # Command substitution
-        '>',  # Redirect
-        '<',  # Redirect
-        '\n',  # Newline
-        '\r',  # Carriage return
+        ";",  # Command separator
+        "|",  # Pipe
+        "&",  # Background/AND
+        "$",  # Variable expansion
+        "`",  # Command substitution
+        ">",  # Redirect
+        "<",  # Redirect
+        "\n",  # Newline
+        "\r",  # Carriage return
     ]
 
     for pattern in dangerous_patterns:
@@ -253,30 +253,30 @@ class InputValidator:
             ValueError: If key is invalid
         """
         valid_keys = [
-            'C',
-            'C#',
-            'D',
-            'D#',
-            'E',
-            'F',
-            'F#',
-            'G',
-            'G#',
-            'A',
-            'A#',
-            'B',
-            'Cm',
-            'C#m',
-            'Dm',
-            'D#m',
-            'Em',
-            'Fm',
-            'F#m',
-            'Gm',
-            'G#m',
-            'Am',
-            'A#m',
-            'Bm',
+            "C",
+            "C#",
+            "D",
+            "D#",
+            "E",
+            "F",
+            "F#",
+            "G",
+            "G#",
+            "A",
+            "A#",
+            "B",
+            "Cm",
+            "C#m",
+            "Dm",
+            "D#m",
+            "Em",
+            "Fm",
+            "F#m",
+            "Gm",
+            "G#m",
+            "Am",
+            "A#m",
+            "Bm",
         ]
 
         if key not in valid_keys:

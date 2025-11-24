@@ -16,14 +16,15 @@ Author: Claude
 License: MIT
 """
 
-import requests
 import json
-from typing import List, Dict, Set, Optional, Tuple
-from datetime import datetime, timedelta
-import time
-import re
-from collections import defaultdict, Counter
 import logging
+import re
+import time
+from collections import Counter, defaultdict
+from datetime import datetime, timedelta
+from typing import Dict, List, Optional, Set, Tuple
+
+import requests
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -38,9 +39,9 @@ class YouTubeKeywordResearcher:
         """Initialize the keyword researcher."""
         self.base_url = "http://suggestqueries.google.com/complete/search"
         self.session = requests.Session()
-        self.session.headers.update({
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-        })
+        self.session.headers.update(
+            {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"}
+        )
 
         # Cache for API results
         self.cache = {}
@@ -66,12 +67,7 @@ class YouTubeKeywordResearcher:
                 return cached_data[:max_results]
 
         try:
-            params = {
-                'client': 'youtube',
-                'ds': 'yt',
-                'q': keyword,
-                'hl': 'en'
-            }
+            params = {"client": "youtube", "ds": "yt", "q": keyword, "hl": "en"}
 
             response = self.session.get(self.base_url, params=params, timeout=10)
             response.raise_for_status()
@@ -81,8 +77,8 @@ class YouTubeKeywordResearcher:
             text = response.text
 
             # Extract JSON array from JSONP
-            start = text.find('[')
-            end = text.rfind(']') + 1
+            start = text.find("[")
+            end = text.rfind("]") + 1
             if start != -1 and end != 0:
                 json_text = text[start:end]
                 data = json.loads(json_text)
@@ -103,7 +99,9 @@ class YouTubeKeywordResearcher:
             logger.error(f"Error getting suggestions for '{keyword}': {e}")
             return []
 
-    def expand_with_modifiers(self, keyword: str, modifiers: Optional[List[str]] = None) -> List[str]:
+    def expand_with_modifiers(
+        self, keyword: str, modifiers: Optional[List[str]] = None
+    ) -> List[str]:
         """
         Expand a keyword with common modifiers.
 
@@ -117,21 +115,50 @@ class YouTubeKeywordResearcher:
         if modifiers is None:
             modifiers = [
                 # Questions
-                "how to", "what is", "why", "when",
+                "how to",
+                "what is",
+                "why",
+                "when",
                 # Time-based
-                "2024", "2025", "new", "latest",
+                "2024",
+                "2025",
+                "new",
+                "latest",
                 # Quality
-                "best", "top", "good",
+                "best",
+                "top",
+                "good",
                 # Duration
-                "1 hour", "2 hours", "24/7", "live",
+                "1 hour",
+                "2 hours",
+                "24/7",
+                "live",
                 # Purpose
-                "for studying", "for work", "for sleep", "for focus",
+                "for studying",
+                "for work",
+                "for sleep",
+                "for focus",
                 # Mood
-                "chill", "relaxing", "calm", "peaceful",
+                "chill",
+                "relaxing",
+                "calm",
+                "peaceful",
                 # Type
-                "mix", "playlist", "compilation", "beats",
+                "mix",
+                "playlist",
+                "compilation",
+                "beats",
                 # Alphabetical expansion
-                "a", "b", "c", "d", "e", "f", "g", "h", "i", "j"
+                "a",
+                "b",
+                "c",
+                "d",
+                "e",
+                "f",
+                "g",
+                "h",
+                "i",
+                "j",
             ]
 
         expanded = set()
@@ -143,7 +170,9 @@ class YouTubeKeywordResearcher:
 
         return list(expanded)
 
-    def discover_long_tail_keywords(self, seed_keyword: str, depth: int = 2, max_per_level: int = 5) -> Dict[str, List[str]]:
+    def discover_long_tail_keywords(
+        self, seed_keyword: str, depth: int = 2, max_per_level: int = 5
+    ) -> Dict[str, List[str]]:
         """
         Discover long-tail keywords by recursively expanding suggestions.
 
@@ -203,7 +232,7 @@ class YouTubeKeywordResearcher:
             f"new {category}",
             f"{category} compilation",
             f"best {category}",
-            f"top {category}"
+            f"top {category}",
         ]
 
         trending = set()
@@ -230,21 +259,25 @@ class YouTubeKeywordResearcher:
 
         # Analyze keyword characteristics
         analysis = {
-            'keyword': keyword,
-            'word_count': len(keyword.split()),
-            'character_count': len(keyword),
-            'related_count': len(suggestions),
-            'is_long_tail': len(keyword.split()) >= 3,
-            'has_numbers': bool(re.search(r'\d', keyword)),
-            'has_year': bool(re.search(r'20\d{2}', keyword)),
-            'competition_estimate': 'low' if len(keyword.split()) >= 3 else 'high',
-            'related_keywords': suggestions[:10],
-            'analyzed_at': datetime.now().isoformat()
+            "keyword": keyword,
+            "word_count": len(keyword.split()),
+            "character_count": len(keyword),
+            "related_count": len(suggestions),
+            "is_long_tail": len(keyword.split()) >= 3,
+            "has_numbers": bool(re.search(r"\d", keyword)),
+            "has_year": bool(re.search(r"20\d{2}", keyword)),
+            "competition_estimate": "low" if len(keyword.split()) >= 3 else "high",
+            "related_keywords": suggestions[:10],
+            "analyzed_at": datetime.now().isoformat(),
         }
 
         # Estimate search intent
-        question_words = ['how', 'what', 'why', 'when', 'where', 'who']
-        analysis['search_intent'] = 'informational' if any(keyword.lower().startswith(q) for q in question_words) else 'navigational'
+        question_words = ["how", "what", "why", "when", "where", "who"]
+        analysis["search_intent"] = (
+            "informational"
+            if any(keyword.lower().startswith(q) for q in question_words)
+            else "navigational"
+        )
 
         return analysis
 
@@ -262,16 +295,16 @@ class YouTubeKeywordResearcher:
 
         # Common themes in lofi music
         themes = {
-            'study': ['study', 'focus', 'concentration', 'work', 'homework'],
-            'sleep': ['sleep', 'night', 'bedtime', 'insomnia', 'rest'],
-            'chill': ['chill', 'relax', 'calm', 'peaceful', 'zen'],
-            'mood': ['sad', 'happy', 'cozy', 'rainy', 'sunny'],
-            'time': ['morning', 'afternoon', 'evening', 'night', 'weekend'],
-            'season': ['winter', 'summer', 'spring', 'fall', 'autumn'],
-            'activity': ['coffee', 'reading', 'gaming', 'driving', 'walking'],
-            'style': ['jazz', 'hip hop', 'anime', 'japanese', 'korean'],
-            'duration': ['1 hour', '2 hours', '3 hours', '24/7', 'live'],
-            'quality': ['best', 'top', 'good', 'ultimate', 'perfect']
+            "study": ["study", "focus", "concentration", "work", "homework"],
+            "sleep": ["sleep", "night", "bedtime", "insomnia", "rest"],
+            "chill": ["chill", "relax", "calm", "peaceful", "zen"],
+            "mood": ["sad", "happy", "cozy", "rainy", "sunny"],
+            "time": ["morning", "afternoon", "evening", "night", "weekend"],
+            "season": ["winter", "summer", "spring", "fall", "autumn"],
+            "activity": ["coffee", "reading", "gaming", "driving", "walking"],
+            "style": ["jazz", "hip hop", "anime", "japanese", "korean"],
+            "duration": ["1 hour", "2 hours", "3 hours", "24/7", "live"],
+            "quality": ["best", "top", "good", "ultimate", "perfect"],
         }
 
         for keyword in keywords:
@@ -285,11 +318,13 @@ class YouTubeKeywordResearcher:
                     break
 
             if not matched:
-                clusters['general'].append(keyword)
+                clusters["general"].append(keyword)
 
         return dict(clusters)
 
-    def generate_keyword_report(self, seed_keywords: List[str], output_file: str = None) -> Dict[str, any]:
+    def generate_keyword_report(
+        self, seed_keywords: List[str], output_file: str = None
+    ) -> Dict[str, any]:
         """
         Generate a comprehensive keyword research report.
 
@@ -303,12 +338,12 @@ class YouTubeKeywordResearcher:
         logger.info(f"Generating keyword report for {len(seed_keywords)} seeds...")
 
         report = {
-            'generated_at': datetime.now().isoformat(),
-            'seed_keywords': seed_keywords,
-            'all_keywords': set(),
-            'keyword_clusters': {},
-            'trending_topics': [],
-            'recommendations': []
+            "generated_at": datetime.now().isoformat(),
+            "seed_keywords": seed_keywords,
+            "all_keywords": set(),
+            "keyword_clusters": {},
+            "trending_topics": [],
+            "recommendations": [],
         }
 
         # Discover keywords for each seed
@@ -317,47 +352,47 @@ class YouTubeKeywordResearcher:
 
             # Get basic suggestions
             suggestions = self.get_auto_suggestions(seed, max_results=15)
-            report['all_keywords'].update(suggestions)
+            report["all_keywords"].update(suggestions)
 
             # Expand with modifiers
             expanded = self.expand_with_modifiers(seed)
             for exp_keyword in expanded[:10]:  # Limit to avoid rate limiting
                 exp_suggestions = self.get_auto_suggestions(exp_keyword, max_results=5)
-                report['all_keywords'].update(exp_suggestions)
+                report["all_keywords"].update(exp_suggestions)
                 time.sleep(0.3)
 
             time.sleep(0.5)  # Rate limiting
 
         # Get trending topics
-        report['trending_topics'] = self.get_trending_topics()
-        report['all_keywords'].update(report['trending_topics'])
+        report["trending_topics"] = self.get_trending_topics()
+        report["all_keywords"].update(report["trending_topics"])
 
         # Convert set to list
-        all_keywords_list = list(report['all_keywords'])
+        all_keywords_list = list(report["all_keywords"])
 
         # Cluster keywords
-        report['keyword_clusters'] = self.cluster_keywords(all_keywords_list)
+        report["keyword_clusters"] = self.cluster_keywords(all_keywords_list)
 
         # Analyze top keywords
-        report['analyzed_keywords'] = []
+        report["analyzed_keywords"] = []
         for keyword in all_keywords_list[:20]:  # Analyze top 20
             analysis = self.analyze_keyword_competition(keyword)
-            report['analyzed_keywords'].append(analysis)
+            report["analyzed_keywords"].append(analysis)
             time.sleep(0.3)
 
         # Generate recommendations
-        report['recommendations'] = self._generate_recommendations(report)
+        report["recommendations"] = self._generate_recommendations(report)
 
         # Save report if requested
         if output_file:
-            with open(output_file, 'w') as f:
+            with open(output_file, "w") as f:
                 # Convert set to list for JSON serialization
                 report_copy = report.copy()
-                report_copy['all_keywords'] = list(report['all_keywords'])
+                report_copy["all_keywords"] = list(report["all_keywords"])
                 json.dump(report_copy, f, indent=2)
             logger.info(f"Report saved to {output_file}")
 
-        report['all_keywords'] = all_keywords_list
+        report["all_keywords"] = all_keywords_list
         return report
 
     def _generate_recommendations(self, report: Dict) -> List[Dict[str, str]]:
@@ -365,33 +400,39 @@ class YouTubeKeywordResearcher:
         recommendations = []
 
         # Recommend long-tail keywords
-        long_tail = [kw for kw in report['all_keywords'] if len(kw.split()) >= 3]
+        long_tail = [kw for kw in report["all_keywords"] if len(kw.split()) >= 3]
         if long_tail:
-            recommendations.append({
-                'type': 'long_tail',
-                'priority': 'high',
-                'description': 'Use long-tail keywords for easier ranking',
-                'examples': long_tail[:5]
-            })
+            recommendations.append(
+                {
+                    "type": "long_tail",
+                    "priority": "high",
+                    "description": "Use long-tail keywords for easier ranking",
+                    "examples": long_tail[:5],
+                }
+            )
 
         # Recommend trending topics
-        if report['trending_topics']:
-            recommendations.append({
-                'type': 'trending',
-                'priority': 'high',
-                'description': 'Capitalize on trending topics',
-                'examples': report['trending_topics'][:5]
-            })
+        if report["trending_topics"]:
+            recommendations.append(
+                {
+                    "type": "trending",
+                    "priority": "high",
+                    "description": "Capitalize on trending topics",
+                    "examples": report["trending_topics"][:5],
+                }
+            )
 
         # Recommend cluster-based content
-        for cluster_name, cluster_keywords in report['keyword_clusters'].items():
+        for cluster_name, cluster_keywords in report["keyword_clusters"].items():
             if len(cluster_keywords) >= 5:
-                recommendations.append({
-                    'type': 'cluster',
-                    'priority': 'medium',
-                    'description': f'Create content around {cluster_name} theme',
-                    'examples': cluster_keywords[:3]
-                })
+                recommendations.append(
+                    {
+                        "type": "cluster",
+                        "priority": "medium",
+                        "description": f"Create content around {cluster_name} theme",
+                        "examples": cluster_keywords[:3],
+                    }
+                )
 
         return recommendations
 
@@ -438,7 +479,9 @@ class KeywordOptimizer:
 
         return variations[:10]  # Return top 10 variations
 
-    def optimize_description(self, base_description: str, keywords: List[str], max_length: int = 5000) -> str:
+    def optimize_description(
+        self, base_description: str, keywords: List[str], max_length: int = 5000
+    ) -> str:
         """
         Optimize video description with keywords.
 
@@ -470,11 +513,13 @@ class KeywordOptimizer:
 
         # Trim if too long
         if len(optimized) > max_length:
-            optimized = optimized[:max_length-3] + "..."
+            optimized = optimized[: max_length - 3] + "..."
 
         return optimized
 
-    def generate_tags(self, title: str, description: str, seed_keywords: List[str], max_tags: int = 30) -> List[str]:
+    def generate_tags(
+        self, title: str, description: str, seed_keywords: List[str], max_tags: int = 30
+    ) -> List[str]:
         """
         Generate optimized tags.
 
@@ -502,7 +547,7 @@ class KeywordOptimizer:
         if len(title_words) >= 2:
             # Add 2-3 word combinations
             for i in range(len(title_words) - 1):
-                phrase = " ".join(title_words[i:i+2])
+                phrase = " ".join(title_words[i : i + 2])
                 if len(phrase) > 3:  # Avoid very short phrases
                     tags.add(phrase)
 
@@ -544,7 +589,7 @@ if __name__ == "__main__":
     print("\n=== Generating Keyword Report ===")
     report = researcher.generate_keyword_report(
         seed_keywords=["lofi hip hop", "study beats", "chill music"],
-        output_file="keyword_report.json"
+        output_file="keyword_report.json",
     )
 
     print(f"\nTotal keywords discovered: {len(report['all_keywords'])}")
@@ -554,9 +599,6 @@ if __name__ == "__main__":
     # Test optimizer
     print("\n=== Title Optimization ===")
     optimizer = KeywordOptimizer(researcher)
-    optimized_titles = optimizer.optimize_title(
-        "Chill Lofi Beats",
-        ["lofi hip hop", "study music"]
-    )
+    optimized_titles = optimizer.optimize_title("Chill Lofi Beats", ["lofi hip hop", "study music"])
     for i, title in enumerate(optimized_titles[:5], 1):
         print(f"{i}. {title}")

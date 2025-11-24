@@ -50,10 +50,10 @@ class ResourceManager:
         percent_used = (disk.used / disk.total) * 100
 
         disk_info = {
-            'total_gb': total_gb,
-            'used_gb': used_gb,
-            'free_gb': free_gb,
-            'percent_used': percent_used,
+            "total_gb": total_gb,
+            "used_gb": used_gb,
+            "free_gb": free_gb,
+            "percent_used": percent_used,
         }
 
         has_enough = free_gb >= self.min_free_disk_gb
@@ -79,10 +79,10 @@ class ResourceManager:
         percent_used = mem.percent
 
         memory_info = {
-            'total_gb': total_gb,
-            'available_gb': available_gb,
-            'used_gb': used_gb,
-            'percent_used': percent_used,
+            "total_gb": total_gb,
+            "available_gb": available_gb,
+            "used_gb": used_gb,
+            "percent_used": percent_used,
         }
 
         has_enough = available_gb >= self.min_free_memory_gb
@@ -108,11 +108,11 @@ class ResourceManager:
         current_device = torch.cuda.current_device()
 
         gpu_info = {
-            'available': True,
-            'count': gpu_count,
-            'current_device': current_device,
-            'device_name': torch.cuda.get_device_name(current_device),
-            'devices': [],
+            "available": True,
+            "count": gpu_count,
+            "current_device": current_device,
+            "device_name": torch.cuda.get_device_name(current_device),
+            "devices": [],
         }
 
         for i in range(gpu_count):
@@ -130,16 +130,16 @@ class ResourceManager:
                 free_gb = total_memory_gb
 
             device_info = {
-                'index': i,
-                'name': device_props.name,
-                'total_memory_gb': total_memory_gb,
-                'allocated_gb': allocated_gb,
-                'reserved_gb': reserved_gb,
-                'free_gb': free_gb,
-                'compute_capability': f"{device_props.major}.{device_props.minor}",
+                "index": i,
+                "name": device_props.name,
+                "total_memory_gb": total_memory_gb,
+                "allocated_gb": allocated_gb,
+                "reserved_gb": reserved_gb,
+                "free_gb": free_gb,
+                "compute_capability": f"{device_props.major}.{device_props.minor}",
             }
 
-            gpu_info['devices'].append(device_info)
+            gpu_info["devices"].append(device_info)
 
         return True, gpu_info
 
@@ -172,11 +172,11 @@ class ResourceManager:
             Device string ('cuda', 'mps', or 'cpu')
         """
         if torch.cuda.is_available():
-            return 'cuda'
-        elif hasattr(torch.backends, 'mps') and torch.backends.mps.is_available():
-            return 'mps'
+            return "cuda"
+        elif hasattr(torch.backends, "mps") and torch.backends.mps.is_available():
+            return "mps"
         else:
-            return 'cpu'
+            return "cpu"
 
     def check_all_resources(self, path: str = ".") -> Dict[str, any]:
         """Check all system resources.
@@ -192,11 +192,11 @@ class ResourceManager:
         gpu_available, gpu_info = self.check_gpu()
 
         resources = {
-            'disk': {'ok': disk_ok, 'info': disk_info},
-            'memory': {'ok': memory_ok, 'info': memory_info},
-            'gpu': {'available': gpu_available, 'info': gpu_info},
-            'optimal_device': self.get_optimal_device(),
-            'all_ok': disk_ok and memory_ok,
+            "disk": {"ok": disk_ok, "info": disk_info},
+            "memory": {"ok": memory_ok, "info": memory_info},
+            "gpu": {"available": gpu_available, "info": gpu_info},
+            "optimal_device": self.get_optimal_device(),
+            "all_ok": disk_ok and memory_ok,
         }
 
         # Log summary
@@ -258,10 +258,10 @@ class ResourceManager:
             Estimated memory in GB
         """
         bytes_per_param = {
-            'float32': 4,
-            'float16': 2,
-            'bfloat16': 2,
-            'int8': 1,
+            "float32": 4,
+            "float16": 2,
+            "bfloat16": 2,
+            "int8": 1,
         }
 
         bytes_needed = num_parameters * bytes_per_param.get(dtype, 4)

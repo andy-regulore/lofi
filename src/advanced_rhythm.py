@@ -14,15 +14,16 @@ License: MIT
 """
 
 from dataclasses import dataclass
-from typing import List, Dict, Tuple, Optional
 from fractions import Fraction
+from typing import Dict, List, Optional, Tuple
+
 import numpy as np
-from collections import defaultdict
 
 
 @dataclass
 class TimeSignature:
     """Represents a time signature."""
+
     numerator: int  # Beats per measure
     denominator: int  # Beat unit (4 = quarter note, 8 = eighth note)
 
@@ -47,6 +48,7 @@ class TimeSignature:
 @dataclass
 class RhythmicEvent:
     """Single rhythmic event."""
+
     onset: float  # Time in beats
     duration: float  # Duration in beats
     velocity: int  # MIDI velocity (0-127)
@@ -77,7 +79,9 @@ class Polyrhythm:
         return onsets_a, onsets_b
 
     @staticmethod
-    def detect_polyrhythm(onsets_a: List[float], onsets_b: List[float]) -> Optional[Tuple[int, int]]:
+    def detect_polyrhythm(
+        onsets_a: List[float], onsets_b: List[float]
+    ) -> Optional[Tuple[int, int]]:
         """
         Detect if two rhythm patterns form a polyrhythm.
 
@@ -114,13 +118,13 @@ class Polyrhythm:
     def get_common_polyrhythms() -> Dict[str, Tuple[int, int]]:
         """Return dictionary of common polyrhythms."""
         return {
-            'hemiola': (3, 2),
-            'triplet_duplet': (3, 2),
-            'four_against_three': (4, 3),
-            'five_against_four': (5, 4),
-            'seven_against_four': (7, 4),
-            'three_against_four': (3, 4),
-            'five_against_three': (5, 3),
+            "hemiola": (3, 2),
+            "triplet_duplet": (3, 2),
+            "four_against_three": (4, 3),
+            "five_against_four": (5, 4),
+            "seven_against_four": (7, 4),
+            "three_against_four": (3, 4),
+            "five_against_three": (5, 3),
         }
 
 
@@ -129,16 +133,18 @@ class OddMeter:
 
     # Common odd meter patterns
     COMMON_ODD_METERS = {
-        '5/4': [(2, 3), (3, 2)],  # Groupings: 2+3 or 3+2
-        '7/8': [(2, 2, 3), (3, 2, 2), (2, 3, 2)],  # 2+2+3, 3+2+2, 2+3+2
-        '7/4': [(3, 4), (4, 3), (2, 2, 3)],
-        '9/8': [(2, 2, 2, 3), (3, 3, 3)],  # 2+2+2+3 or 3+3+3
-        '11/8': [(3, 3, 3, 2), (2, 3, 3, 3)],
-        '13/8': [(3, 3, 3, 4), (4, 3, 3, 3)],
+        "5/4": [(2, 3), (3, 2)],  # Groupings: 2+3 or 3+2
+        "7/8": [(2, 2, 3), (3, 2, 2), (2, 3, 2)],  # 2+2+3, 3+2+2, 2+3+2
+        "7/4": [(3, 4), (4, 3), (2, 2, 3)],
+        "9/8": [(2, 2, 2, 3), (3, 3, 3)],  # 2+2+2+3 or 3+3+3
+        "11/8": [(3, 3, 3, 2), (2, 3, 3, 3)],
+        "13/8": [(3, 3, 3, 4), (4, 3, 3, 3)],
     }
 
     @staticmethod
-    def generate_pattern(time_sig: TimeSignature, grouping: Optional[List[int]] = None) -> List[float]:
+    def generate_pattern(
+        time_sig: TimeSignature, grouping: Optional[List[int]] = None
+    ) -> List[float]:
         """
         Generate onset pattern for odd meter.
 
@@ -201,20 +207,20 @@ class AfricanRhythms:
 
     # Standard clave patterns (in 16th note grid)
     CLAVES = {
-        'son_clave_2_3': [0, 3, 6, 10, 12],  # 2-3 son clave
-        'son_clave_3_2': [0, 2, 6, 8, 11],   # 3-2 son clave
-        'rumba_clave_2_3': [0, 3, 6, 10, 11],
-        'rumba_clave_3_2': [0, 1, 5, 7, 10],
-        'bossa_nova': [0, 3, 6, 10, 13],
-        'afro_cuban_6_8': [0, 3, 6, 9],
+        "son_clave_2_3": [0, 3, 6, 10, 12],  # 2-3 son clave
+        "son_clave_3_2": [0, 2, 6, 8, 11],  # 3-2 son clave
+        "rumba_clave_2_3": [0, 3, 6, 10, 11],
+        "rumba_clave_3_2": [0, 1, 5, 7, 10],
+        "bossa_nova": [0, 3, 6, 10, 13],
+        "afro_cuban_6_8": [0, 3, 6, 9],
     }
 
     # West African bell patterns
     BELL_PATTERNS = {
-        'gankogui': [0, 2, 3, 5, 7, 9, 10],  # 7-stroke Ewe pattern
-        'standard_pattern': [0, 3, 5, 6, 9, 10, 11],  # 12-pulse pattern
-        'fume_fume': [0, 2, 4, 6, 9, 11],
-        'kpanlogo': [0, 3, 5, 7, 9, 10],
+        "gankogui": [0, 2, 3, 5, 7, 9, 10],  # 7-stroke Ewe pattern
+        "standard_pattern": [0, 3, 5, 6, 9, 10, 11],  # 12-pulse pattern
+        "fume_fume": [0, 2, 4, 6, 9, 11],
+        "kpanlogo": [0, 3, 5, 7, 9, 10],
     }
 
     @staticmethod
@@ -308,9 +314,9 @@ class GrooveEngine:
         return quantized
 
     @staticmethod
-    def humanize(onsets: List[float],
-                 timing_variation: float = 0.02,
-                 velocity_variation: float = 10) -> Tuple[List[float], List[int]]:
+    def humanize(
+        onsets: List[float], timing_variation: float = 0.02, velocity_variation: float = 10
+    ) -> Tuple[List[float], List[int]]:
         """
         Add human-like timing and velocity variations.
 
@@ -379,37 +385,37 @@ class GrooveEngine:
         """
         groove = {}
 
-        if pattern_type == 'funk':
+        if pattern_type == "funk":
             # Kick: on 1 and 3, some syncopation
-            groove['kick'] = [0, 2, 3.5]
+            groove["kick"] = [0, 2, 3.5]
             # Snare: on 2 and 4
-            groove['snare'] = [1, 3]
+            groove["snare"] = [1, 3]
             # Hi-hat: sixteenth notes
-            groove['hihat'] = [i * 0.25 for i in range(16)]
+            groove["hihat"] = [i * 0.25 for i in range(16)]
 
-        elif pattern_type == 'jazz':
+        elif pattern_type == "jazz":
             # Ride: swing pattern
-            groove['ride'] = [i * 0.5 for i in range(8)]
-            groove['ride'] = GrooveEngine.swing(groove['ride'], swing_amount=0.5)
+            groove["ride"] = [i * 0.5 for i in range(8)]
+            groove["ride"] = GrooveEngine.swing(groove["ride"], swing_amount=0.5)
             # Hi-hat: on 2 and 4
-            groove['hihat'] = [1, 3]
+            groove["hihat"] = [1, 3]
             # Kick: sparse, syncopated
-            groove['kick'] = [0, 2.5, 3.5]
+            groove["kick"] = [0, 2.5, 3.5]
 
-        elif pattern_type == 'rock':
+        elif pattern_type == "rock":
             # Kick: on 1 and 3
-            groove['kick'] = [0, 2]
+            groove["kick"] = [0, 2]
             # Snare: on 2 and 4
-            groove['snare'] = [1, 3]
+            groove["snare"] = [1, 3]
             # Hi-hat: eighth notes
-            groove['hihat'] = [i * 0.5 for i in range(8)]
+            groove["hihat"] = [i * 0.5 for i in range(8)]
 
-        elif pattern_type == 'latin':
+        elif pattern_type == "latin":
             # Use clave as basis
-            clave_onsets = AfricanRhythms.generate_clave('son_clave_2_3', num_measures=1)
-            groove['clave'] = clave_onsets
+            clave_onsets = AfricanRhythms.generate_clave("son_clave_2_3", num_measures=1)
+            groove["clave"] = clave_onsets
             # Tumbao bass pattern
-            groove['bass'] = [0, 0.5, 1.5, 2.5, 3, 3.5]
+            groove["bass"] = [0, 0.5, 1.5, 2.5, 3, 3.5]
 
         # Extend to requested number of beats
         for inst in groove:
@@ -477,7 +483,7 @@ class Syncopation:
             weight = hierarchy[nearest_pos]
 
             # Syncopation = 1 - weight
-            total_sync += (1.0 - weight)
+            total_sync += 1.0 - weight
 
         # Normalize
         return total_sync / len(onsets) if onsets else 0.0
@@ -514,9 +520,9 @@ class MetricModulation:
     """Handle metric modulation (tempo relationships)."""
 
     @staticmethod
-    def calculate_new_tempo(old_tempo: float,
-                            old_note_value: Fraction,
-                            new_note_value: Fraction) -> float:
+    def calculate_new_tempo(
+        old_tempo: float, old_note_value: Fraction, new_note_value: Fraction
+    ) -> float:
         """
         Calculate new tempo after metric modulation.
 
@@ -544,16 +550,16 @@ class MetricModulation:
             Dict mapping name to (tempo_ratio, description)
         """
         return {
-            'quarter_to_dotted_quarter': (2/3, "Quarter = dotted quarter (slower)"),
-            'quarter_to_eighth': (2.0, "Quarter = eighth (faster)"),
-            'quarter_to_triplet': (3/2, "Quarter = triplet quarter"),
-            'eighth_to_quarter': (0.5, "Eighth = quarter (slower)"),
-            'triplet_to_duplet': (2/3, "Triplet quarter = regular quarter"),
+            "quarter_to_dotted_quarter": (2 / 3, "Quarter = dotted quarter (slower)"),
+            "quarter_to_eighth": (2.0, "Quarter = eighth (faster)"),
+            "quarter_to_triplet": (3 / 2, "Quarter = triplet quarter"),
+            "eighth_to_quarter": (0.5, "Eighth = quarter (slower)"),
+            "triplet_to_duplet": (2 / 3, "Triplet quarter = regular quarter"),
         }
 
 
 # Example usage and testing
-if __name__ == '__main__':
+if __name__ == "__main__":
     print("=== Polyrhythm Generation ===")
     onsets_3, onsets_2 = Polyrhythm.generate((3, 2), duration=4.0)
     print(f"3 against 2: {onsets_3} vs {onsets_2}")
@@ -564,12 +570,12 @@ if __name__ == '__main__':
     print(f"5/4 (2+3): {pattern}")
 
     print("\n=== Clave Patterns ===")
-    son_clave = AfricanRhythms.generate_clave('son_clave_2_3', num_measures=2)
+    son_clave = AfricanRhythms.generate_clave("son_clave_2_3", num_measures=2)
     print(f"Son clave (2-3): {son_clave}")
 
     print("\n=== Groove Generation ===")
-    funk_groove = GrooveEngine.create_groove('funk', num_beats=4)
-    print(f"Funk groove:")
+    funk_groove = GrooveEngine.create_groove("funk", num_beats=4)
+    print("Funk groove:")
     for inst, onsets in funk_groove.items():
         print(f"  {inst}: {onsets}")
 
@@ -598,9 +604,7 @@ if __name__ == '__main__':
     print("\n=== Metric Modulation ===")
     old_tempo = 120
     new_tempo = MetricModulation.calculate_new_tempo(
-        old_tempo,
-        Fraction(1, 4),  # Quarter
-        Fraction(3, 8)   # Dotted quarter
+        old_tempo, Fraction(1, 4), Fraction(3, 8)  # Quarter  # Dotted quarter
     )
     print(f"Old tempo: {old_tempo} BPM")
     print(f"New tempo (quarter = dotted quarter): {new_tempo} BPM")

@@ -1,11 +1,11 @@
 """Unit tests for audio_processor module."""
 
+import subprocess
 from pathlib import Path
 from unittest.mock import MagicMock, Mock, patch
-import subprocess
 
-import pytest
 import numpy as np
+import pytest
 import soundfile as sf
 
 from src.audio_processor import LoFiAudioProcessor
@@ -20,23 +20,21 @@ class TestLoFiAudioProcessor:
         processor = LoFiAudioProcessor(test_config)
 
         assert processor.config == test_config
-        assert processor.audio_config == test_config['audio']
-        assert processor.lofi_config == test_config['audio']['lofi_effects']
-        assert processor.sample_rate == test_config['audio']['sample_rate']
+        assert processor.audio_config == test_config["audio"]
+        assert processor.lofi_config == test_config["audio"]["lofi_effects"]
+        assert processor.sample_rate == test_config["audio"]["sample_rate"]
 
     @pytest.mark.requires_fluidsynth
     def test_midi_to_wav_with_fluidsynth(self, test_config, sample_midi_path, temp_dir):
         """Test MIDI to WAV conversion using FluidSynth."""
         processor = LoFiAudioProcessor(test_config)
 
-        output_path = temp_dir / 'output.wav'
+        output_path = temp_dir / "output.wav"
 
         # This requires FluidSynth to be installed
         try:
             success = processor.midi_to_wav(
-                str(sample_midi_path),
-                str(output_path),
-                soundfont_path=None
+                str(sample_midi_path), str(output_path), soundfont_path=None
             )
 
             if success:
@@ -49,13 +47,10 @@ class TestLoFiAudioProcessor:
         """Test MIDI to WAV conversion fallback method."""
         processor = LoFiAudioProcessor(test_config)
 
-        output_path = temp_dir / 'output.wav'
+        output_path = temp_dir / "output.wav"
 
         # Use fallback synthesis
-        success = processor._synthesize_midi_to_wav(
-            str(sample_midi_path),
-            str(output_path)
-        )
+        success = processor._synthesize_midi_to_wav(str(sample_midi_path), str(output_path))
 
         if success:
             assert output_path.exists()
@@ -65,12 +60,9 @@ class TestLoFiAudioProcessor:
         """Test MIDI to WAV with invalid path."""
         processor = LoFiAudioProcessor(test_config)
 
-        output_path = temp_dir / 'output.wav'
+        output_path = temp_dir / "output.wav"
 
-        success = processor.midi_to_wav(
-            '/nonexistent/file.mid',
-            str(output_path)
-        )
+        success = processor.midi_to_wav("/nonexistent/file.mid", str(output_path))
 
         assert success is False
 
@@ -78,44 +70,40 @@ class TestLoFiAudioProcessor:
         """Test applying lo-fi effects to audio."""
         processor = LoFiAudioProcessor(test_config)
 
-        output_path = temp_dir / 'lofi_output.wav'
+        output_path = temp_dir / "lofi_output.wav"
 
-        success = processor.apply_lofi_effects(
-            sample_wav_file,
-            str(output_path)
-        )
+        success = processor.apply_lofi_effects(sample_wav_file, str(output_path))
 
         assert success is True
         assert output_path.exists()
 
         # Load and check output
         audio, sr = sf.read(str(output_path))
-        assert sr == test_config['audio']['sample_rate']
+        assert sr == test_config["audio"]["sample_rate"]
         assert len(audio) > 0
 
     def test_apply_lofi_effects_stereo(self, test_config, temp_dir):
         """Test lo-fi effects preserve stereo."""
         # Create stereo audio
         duration = 2.0
-        sample_rate = test_config['audio']['sample_rate']
+        sample_rate = test_config["audio"]["sample_rate"]
         t = np.linspace(0, duration, int(sample_rate * duration))
 
         # Stereo signal (different frequencies for L/R)
-        audio_stereo = np.stack([
-            0.5 * np.sin(2 * np.pi * 440 * t),  # Left
-            0.5 * np.sin(2 * np.pi * 880 * t),  # Right
-        ])
+        audio_stereo = np.stack(
+            [
+                0.5 * np.sin(2 * np.pi * 440 * t),  # Left
+                0.5 * np.sin(2 * np.pi * 880 * t),  # Right
+            ]
+        )
 
-        input_path = temp_dir / 'stereo_input.wav'
+        input_path = temp_dir / "stereo_input.wav"
         sf.write(str(input_path), audio_stereo.T, sample_rate)
 
         processor = LoFiAudioProcessor(test_config)
-        output_path = temp_dir / 'stereo_output.wav'
+        output_path = temp_dir / "stereo_output.wav"
 
-        success = processor.apply_lofi_effects(
-            str(input_path),
-            str(output_path)
-        )
+        success = processor.apply_lofi_effects(str(input_path), str(output_path))
 
         assert success is True
 
@@ -208,13 +196,15 @@ class TestLoFiAudioProcessor:
 
         # Create stereo audio
         duration = 2.0
-        sr = test_config['audio']['sample_rate']
+        sr = test_config["audio"]["sample_rate"]
         t = np.linspace(0, duration, int(sr * duration))
 
-        audio_stereo = np.stack([
-            0.1 * np.sin(2 * np.pi * 440 * t),
-            0.1 * np.sin(2 * np.pi * 880 * t),
-        ])
+        audio_stereo = np.stack(
+            [
+                0.1 * np.sin(2 * np.pi * 440 * t),
+                0.1 * np.sin(2 * np.pi * 880 * t),
+            ]
+        )
 
         audio_normalized = processor._normalize_audio(audio_stereo)
 
@@ -227,7 +217,7 @@ class TestLoFiAudioProcessor:
         audio, sr = sample_audio_data
 
         # Mock pyloudnorm to fail
-        with patch('src.audio_processor.pyln.Meter') as mock_meter:
+        with patch("src.audio_processor.pyln.Meter") as mock_meter:
             mock_meter.side_effect = Exception("Mock error")
 
             audio_normalized = processor._normalize_audio(audio)
@@ -240,41 +230,38 @@ class TestLoFiAudioProcessor:
         """Test complete MIDI to lo-fi audio pipeline."""
         processor = LoFiAudioProcessor(test_config)
 
-        output_dir = temp_dir / 'output'
+        output_dir = temp_dir / "output"
 
         result = processor.process_midi_to_lofi(
             str(sample_midi_path),
             str(output_dir),
-            name='test_track',
+            name="test_track",
             save_clean=True,
-            save_lofi=True
+            save_lofi=True,
         )
 
-        assert 'midi_path' in result
-        assert 'name' in result
+        assert "midi_path" in result
+        assert "name" in result
 
         # Check that files were created (if conversion succeeded)
-        if 'clean_wav_path' in result:
-            assert Path(result['clean_wav_path']).exists()
+        if "clean_wav_path" in result:
+            assert Path(result["clean_wav_path"]).exists()
 
-        if 'lofi_wav_path' in result:
-            assert Path(result['lofi_wav_path']).exists()
+        if "lofi_wav_path" in result:
+            assert Path(result["lofi_wav_path"]).exists()
 
     def test_process_midi_to_lofi_only_lofi(self, test_config, sample_midi_path, temp_dir):
         """Test processing MIDI with only lo-fi output."""
         processor = LoFiAudioProcessor(test_config)
 
-        output_dir = temp_dir / 'output'
+        output_dir = temp_dir / "output"
 
         result = processor.process_midi_to_lofi(
-            str(sample_midi_path),
-            str(output_dir),
-            save_clean=False,
-            save_lofi=True
+            str(sample_midi_path), str(output_dir), save_clean=False, save_lofi=True
         )
 
         # Clean file should not be in results
-        assert 'clean_wav_path' not in result
+        assert "clean_wav_path" not in result
 
         # Clean file should be deleted
         clean_path = output_dir / f"{Path(sample_midi_path).stem}_clean.wav"
@@ -284,14 +271,11 @@ class TestLoFiAudioProcessor:
         """Test processing invalid MIDI file."""
         processor = LoFiAudioProcessor(test_config)
 
-        output_dir = temp_dir / 'output'
+        output_dir = temp_dir / "output"
 
-        result = processor.process_midi_to_lofi(
-            '/nonexistent/file.mid',
-            str(output_dir)
-        )
+        result = processor.process_midi_to_lofi("/nonexistent/file.mid", str(output_dir))
 
-        assert 'error' in result
+        assert "error" in result
 
     def test_downsampling_effect(self, test_config, sample_wav_file, temp_dir):
         """Test that downsampling is applied."""
@@ -301,15 +285,15 @@ class TestLoFiAudioProcessor:
         audio_orig, sr_orig = sf.read(sample_wav_file)
 
         # Apply effects
-        output_path = temp_dir / 'processed.wav'
+        output_path = temp_dir / "processed.wav"
         processor.apply_lofi_effects(sample_wav_file, str(output_path))
 
         # Load processed
         audio_proc, sr_proc = sf.read(str(output_path))
 
         # Sample rates should match config
-        assert sr_orig == test_config['audio']['sample_rate']
-        assert sr_proc == test_config['audio']['sample_rate']
+        assert sr_orig == test_config["audio"]["sample_rate"]
+        assert sr_proc == test_config["audio"]["sample_rate"]
 
         # Audio should be modified
         # (Note: lengths might differ slightly due to processing)
@@ -318,20 +302,22 @@ class TestLoFiAudioProcessor:
         """Test that compression is applied to audio."""
         # Create audio with wide dynamic range
         duration = 1.0
-        sr = test_config['audio']['sample_rate']
+        sr = test_config["audio"]["sample_rate"]
         t = np.linspace(0, duration, int(sr * duration))
 
         # Alternating loud and quiet sections
-        audio = np.concatenate([
-            0.9 * np.sin(2 * np.pi * 440 * t[:len(t)//2]),  # Loud
-            0.1 * np.sin(2 * np.pi * 440 * t[len(t)//2:]),  # Quiet
-        ])
+        audio = np.concatenate(
+            [
+                0.9 * np.sin(2 * np.pi * 440 * t[: len(t) // 2]),  # Loud
+                0.1 * np.sin(2 * np.pi * 440 * t[len(t) // 2 :]),  # Quiet
+            ]
+        )
 
-        input_path = temp_dir / 'dynamic_input.wav'
+        input_path = temp_dir / "dynamic_input.wav"
         sf.write(str(input_path), audio, sr)
 
         processor = LoFiAudioProcessor(test_config)
-        output_path = temp_dir / 'compressed_output.wav'
+        output_path = temp_dir / "compressed_output.wav"
 
         processor.apply_lofi_effects(str(input_path), str(output_path))
 
@@ -348,20 +334,20 @@ class TestLoFiAudioProcessor:
 
         # Create audio with wide frequency range
         duration = 1.0
-        sr = test_config['audio']['sample_rate']
+        sr = test_config["audio"]["sample_rate"]
         t = np.linspace(0, duration, int(sr * duration))
 
         # Mix of low, mid, and high frequencies
         audio = (
-            np.sin(2 * np.pi * 50 * t) +    # Very low (should be filtered)
-            np.sin(2 * np.pi * 440 * t) +    # Mid (should pass)
-            np.sin(2 * np.pi * 8000 * t)     # High (should be filtered)
+            np.sin(2 * np.pi * 50 * t)  # Very low (should be filtered)
+            + np.sin(2 * np.pi * 440 * t)  # Mid (should pass)
+            + np.sin(2 * np.pi * 8000 * t)  # High (should be filtered)
         ) / 3.0
 
-        input_path = temp_dir / 'fullband_input.wav'
+        input_path = temp_dir / "fullband_input.wav"
         sf.write(str(input_path), audio, sr)
 
-        output_path = temp_dir / 'filtered_output.wav'
+        output_path = temp_dir / "filtered_output.wav"
 
         processor.apply_lofi_effects(str(input_path), str(output_path))
 
@@ -375,7 +361,7 @@ class TestLoFiAudioProcessor:
         """Test that bit reduction is applied."""
         processor = LoFiAudioProcessor(test_config)
 
-        output_path = temp_dir / 'bitcrushed.wav'
+        output_path = temp_dir / "bitcrushed.wav"
 
         processor.apply_lofi_effects(sample_wav_file, str(output_path))
 
@@ -387,11 +373,11 @@ class TestLoFiAudioProcessor:
     def test_effects_can_be_disabled(self, test_config, sample_wav_file, temp_dir):
         """Test processing with effects disabled."""
         # Disable effects
-        test_config['audio']['lofi_effects']['vinyl_crackle']['enabled'] = False
-        test_config['audio']['lofi_effects']['tape_wow_flutter']['enabled'] = False
+        test_config["audio"]["lofi_effects"]["vinyl_crackle"]["enabled"] = False
+        test_config["audio"]["lofi_effects"]["tape_wow_flutter"]["enabled"] = False
 
         processor = LoFiAudioProcessor(test_config)
-        output_path = temp_dir / 'minimal_effects.wav'
+        output_path = temp_dir / "minimal_effects.wav"
 
         success = processor.apply_lofi_effects(sample_wav_file, str(output_path))
 

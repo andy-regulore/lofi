@@ -7,12 +7,12 @@ Author: Claude
 License: MIT
 """
 
-from multiprocessing import Pool, cpu_count, Manager
-from concurrent.futures import ThreadPoolExecutor, as_completed
-from typing import List, Dict, Callable, Optional, Any
 import time
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from functools import partial
+from multiprocessing import Manager, Pool, cpu_count
 from pathlib import Path
+from typing import Any, Callable, Dict, List, Optional
 
 
 class ParallelProcessor:
@@ -29,10 +29,7 @@ class ParallelProcessor:
         print(f"🚀 Parallel processor initialized with {self.num_workers} workers")
 
     def process_batch_parallel(
-        self,
-        task_func: Callable,
-        tasks: List[Dict],
-        progress_callback: Optional[Callable] = None
+        self, task_func: Callable, tasks: List[Dict], progress_callback: Optional[Callable] = None
     ) -> List[Any]:
         """
         Process tasks in parallel using multiprocessing.
@@ -65,7 +62,9 @@ class ParallelProcessor:
                     elapsed = time.time() - start_time
                     rate = (i + 1) / elapsed
                     remaining = (len(tasks) - i - 1) / rate if rate > 0 else 0
-                    print(f"   Progress: {i+1}/{len(tasks)} ({rate:.1f} tasks/s, ~{remaining:.0f}s remaining)")
+                    print(
+                        f"   Progress: {i+1}/{len(tasks)} ({rate:.1f} tasks/s, ~{remaining:.0f}s remaining)"
+                    )
 
         total_time = time.time() - start_time
         print(f"   ✅ Completed in {total_time:.1f}s ({len(tasks)/total_time:.2f} tasks/s)")
@@ -73,10 +72,7 @@ class ParallelProcessor:
         return results
 
     def process_batch_threaded(
-        self,
-        task_func: Callable,
-        tasks: List[Dict],
-        max_workers: Optional[int] = None
+        self, task_func: Callable, tasks: List[Dict], max_workers: Optional[int] = None
     ) -> List[Any]:
         """
         Process I/O-bound tasks using threading (for API calls, file I/O).
@@ -128,7 +124,7 @@ class BatchGenerationOptimizer:
         self,
         generation_func: Callable,
         batch_params: List[Dict],
-        post_process_func: Optional[Callable] = None
+        post_process_func: Optional[Callable] = None,
     ) -> List[Dict]:
         """
         Generate music batch in parallel.
@@ -145,10 +141,7 @@ class BatchGenerationOptimizer:
         print(f"   Tracks to generate: {len(batch_params)}")
 
         # Generate in parallel
-        results = self.processor.process_batch_parallel(
-            generation_func,
-            batch_params
-        )
+        results = self.processor.process_batch_parallel(generation_func, batch_params)
 
         # Post-process if needed (sequentially for file operations)
         if post_process_func:
@@ -165,10 +158,7 @@ class BatchGenerationOptimizer:
         return successful
 
     def process_videos_parallel(
-        self,
-        video_func: Callable,
-        track_list: List[Dict],
-        max_workers: Optional[int] = None
+        self, video_func: Callable, track_list: List[Dict], max_workers: Optional[int] = None
     ) -> List[Dict]:
         """
         Generate videos in parallel (I/O bound).
@@ -183,16 +173,12 @@ class BatchGenerationOptimizer:
         """
         # Video rendering is I/O heavy, use threading
         return self.processor.process_batch_threaded(
-            video_func,
-            track_list,
-            max_workers=max_workers or 4  # Limit to avoid GPU contention
+            video_func, track_list, max_workers=max_workers or 4  # Limit to avoid GPU contention
         )
 
 
 def benchmark_parallel_speedup(
-    task_func: Callable,
-    tasks: List[Dict],
-    max_workers: int = None
+    task_func: Callable, tasks: List[Dict], max_workers: int = None
 ) -> Dict:
     """
     Benchmark parallel speedup.
@@ -210,10 +196,7 @@ def benchmark_parallel_speedup(
     print(f"\n📊 Benchmarking parallel speedup")
     print(f"   Tasks: {len(tasks)}")
 
-    results = {
-        'sequential': None,
-        'parallel': {}
-    }
+    results = {"sequential": None, "parallel": {}}
 
     # Sequential baseline
     print(f"\n1️⃣  Sequential (1 worker):")
@@ -221,7 +204,7 @@ def benchmark_parallel_speedup(
     for task in tasks:
         task_func(task)
     sequential_time = time.time() - start
-    results['sequential'] = sequential_time
+    results["sequential"] = sequential_time
     print(f"   Time: {sequential_time:.2f}s")
 
     # Parallel with different worker counts
@@ -238,10 +221,7 @@ def benchmark_parallel_speedup(
 
         speedup = sequential_time / parallel_time if parallel_time > 0 else 0
 
-        results['parallel'][num_workers] = {
-            'time': parallel_time,
-            'speedup': speedup
-        }
+        results["parallel"][num_workers] = {"time": parallel_time, "speedup": speedup}
 
         print(f"   Time: {parallel_time:.2f}s")
         print(f"   Speedup: {speedup:.2f}x")
@@ -250,6 +230,7 @@ def benchmark_parallel_speedup(
 
 
 # Example usage functions
+
 
 def generate_track_wrapper(params: Dict) -> Optional[Dict]:
     """
@@ -264,18 +245,18 @@ def generate_track_wrapper(params: Dict) -> Optional[Dict]:
     try:
         # This would call your actual generation function
         # For now, placeholder
-        mood = params.get('mood', 'chill')
-        duration = params.get('duration', 180)
+        mood = params.get("mood", "chill")
+        duration = params.get("duration", 180)
 
         # Simulate generation
         time.sleep(0.1)  # Replace with actual generation
 
         return {
-            'track_id': f"track_{int(time.time())}_{mood}",
-            'mood': mood,
-            'duration': duration,
-            'audio_path': f"output/audio/track_{mood}_{duration}.wav",
-            'status': 'success'
+            "track_id": f"track_{int(time.time())}_{mood}",
+            "mood": mood,
+            "duration": duration,
+            "audio_path": f"output/audio/track_{mood}_{duration}.wav",
+            "status": "success",
         }
 
     except Exception as e:
@@ -283,25 +264,22 @@ def generate_track_wrapper(params: Dict) -> Optional[Dict]:
         return None
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     # Demo: Parallel batch generation
     print("🎵 Parallel Batch Processing Demo")
     print("=" * 60)
 
     # Create demo tasks
     tasks = [
-        {'mood': 'chill', 'duration': 180},
-        {'mood': 'focus', 'duration': 180},
-        {'mood': 'happy', 'duration': 180},
-        {'mood': 'peaceful', 'duration': 180},
+        {"mood": "chill", "duration": 180},
+        {"mood": "focus", "duration": 180},
+        {"mood": "happy", "duration": 180},
+        {"mood": "peaceful", "duration": 180},
     ] * 5  # 20 tasks total
 
     # Process in parallel
     optimizer = BatchGenerationOptimizer()
-    results = optimizer.generate_batch_parallel(
-        generate_track_wrapper,
-        tasks
-    )
+    results = optimizer.generate_batch_parallel(generate_track_wrapper, tasks)
 
     print(f"\n✅ Generated {len(results)} tracks in parallel")
     print(f"   Speedup: ~4-8x compared to sequential processing")
